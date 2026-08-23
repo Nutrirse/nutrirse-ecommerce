@@ -218,7 +218,7 @@ export default function CheckoutForm() {
                   </span>
                 </span>
                 <span className="shrink-0 font-medium text-carbon">
-                  {i.tipo === 'consultar' ? 'a cotizar' : formatARS((i.precio ?? 0) * i.cantidad)}
+                  {i.tipo === 'consultar' ? 'Precio a Consultar' : formatARS((i.precio ?? 0) * i.cantidad)}
                 </span>
               </li>
             ))}

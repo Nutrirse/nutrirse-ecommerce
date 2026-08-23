@@ -1,8 +1,27 @@
 import { formatARS } from './format';
 import type { CartItem, Customer, ShippingOption } from '@/types';
 
-export const WHATSAPP_NUMBER =
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '5493875555555';
+const FALLBACK_NUMBER = '5493874870997';
+
+/**
+ * wa.me solo acepta digitos: sin '+', sin espacios, guiones, parentesis ni
+ * puntos. Tambien tolera que el .env venga con comillas o con prefijo '00'.
+ * Ej: "+54 9 387 487-0997" -> "5493874870997"
+ */
+export function sanitizeWhatsAppNumber(raw: string | undefined | null): string {
+  const digits = String(raw ?? '')
+    .trim()
+    .replace(/^['"]|['"]$/g, '')   // comillas del .env
+    .replace(/\D/g, '')            // todo lo que no sea digito
+    .replace(/^0+/, '');           // 00 internacional / ceros a la izquierda
+
+  // Un numero AR valido tiene 12-13 digitos (54 9 + area + abonado).
+  return digits.length >= 8 ? digits : FALLBACK_NUMBER;
+}
+
+export const WHATSAPP_NUMBER = sanitizeWhatsAppNumber(
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
+);
 
 type TicketInput = {
   customer: Customer;
@@ -33,7 +52,7 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
     .map((i) => {
       const precio =
         i.tipo === 'consultar'
-          ? 'a cotizar'
+          ? 'Precio a Consultar'
           : formatARS((i.precio ?? 0) * i.cantidad);
       return `• ${B(i.nombre)}\n   ${i.variantLabel} × ${i.cantidad} — ${precio}`;
     })
@@ -80,5 +99,6 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
 }
 
 export function buildWhatsAppUrl(ticket: string, numero = WHATSAPP_NUMBER): string {
-  return `https://wa.me/${numero}?text=${encodeURIComponent(ticket)}`;
+  // Se re-sanitiza por si llega un numero por parametro desde otro origen.
+  return `https://wa.me/${sanitizeWhatsAppNumber(numero)}?text=${encodeURIComponent(ticket)}`;
 }

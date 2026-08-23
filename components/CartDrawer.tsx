@@ -132,7 +132,7 @@ export default function CartDrawer() {
                       </div>
                       <p className="text-sm font-semibold text-nuez">
                         {i.tipo === 'consultar'
-                          ? 'A convenir'
+                          ? 'Precio a Consultar'
                           : formatPrecio((i.precio ?? 0) * i.cantidad)}
                       </p>
                     </div>
