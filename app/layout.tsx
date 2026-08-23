@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import Header from '@/components/Header';
+import Navbar from '@/components/Navbar';
 import CartDrawer from '@/components/CartDrawer';
 import Footer from '@/components/Footer';
 
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-dvh antialiased">
-        <Header />
+        <Navbar />
         <main>{children}</main>
         <Footer />
         <CartDrawer />

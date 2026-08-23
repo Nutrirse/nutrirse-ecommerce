@@ -3,98 +3,123 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useCart } from '@/store/cart';
-import { formatPrecio } from '@/lib/format';
+import { formatARS } from '@/lib/format';
+import ProductModal from './ProductModal';
 import type { Product } from '@/types';
 
 export default function ProductCard({ product }: { product: Product }) {
   const variantes = product.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [added, setAdded] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const addItem = useCart((s) => s.addItem);
 
   const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
   if (!variant) return null;
 
+  const esConsultar = variant.tipo === 'consultar';
+
   const onAdd = () => {
     addItem(product, variant);
     setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
+    setTimeout(() => setAdded(false), 1400);
   };
 
+  const openModal = () => setModalOpen(true);
+
   return (
-    <article className="product-card group flex flex-col overflow-hidden rounded-2xl border border-black/5 bg-hueso transition-shadow duration-300 hover:shadow-[0_18px_50px_-24px_rgba(107,68,35,0.45)]">
-      <div className="relative aspect-4/3 overflow-hidden bg-crema">
-        {product.imagen_url ? (
-          <Image
-            src={product.imagen_url}
-            alt={product.nombre}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <span className="font-[family-name:var(--font-display)] text-5xl text-nuez/15">
-              {product.nombre.charAt(0)}
-            </span>
-          </div>
-        )}
-        {product.categoria && (
-          <span className="absolute left-3 top-3 rounded-full bg-hueso/90 px-3 py-1 text-[10px] uppercase tracking-wider text-humo backdrop-blur">
-            {product.categoria.replace('-', ' ')}
+    <>
+      <article className="product-card group flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
+        {/* ---------- Imagen: abre el quick view ---------- */}
+        <button
+          onClick={openModal}
+          aria-label={`Ver detalles de ${product.nombre}`}
+          className="relative aspect-square w-full cursor-pointer p-6"
+        >
+          {product.imagen_url ? (
+            <Image
+              src={product.imagen_url}
+              alt={product.nombre}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center rounded-lg bg-gray-50">
+              <span className="font-[family-name:var(--font-display)] text-6xl text-gray-200">
+                {product.nombre.charAt(0)}
+              </span>
+            </div>
+          )}
+
+          <span className="pointer-events-none absolute inset-x-0 bottom-3 mx-auto w-fit rounded-full bg-carbon/85 px-3 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            Ver detalles
           </span>
-        )}
-      </div>
+        </button>
 
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold leading-tight text-carbon">
-          {product.nombre}
-        </h3>
-        {product.descripcion && (
-          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-humo">
-            {product.descripcion}
-          </p>
-        )}
+        {/* ---------- Cuerpo ---------- */}
+        <div className="flex flex-1 flex-col px-4 pb-4">
+          <button onClick={openModal} className="text-left">
+            <h3 className="text-sm leading-snug text-gray-700 transition-colors hover:text-black">
+              {product.nombre}
+            </h3>
+          </button>
 
-        <div className="mt-4 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Presentación">
-          {variantes.map((v) => {
-            const active = v.id === variantId;
-            return (
-              <button
-                key={v.id}
-                role="radio"
-                aria-checked={active}
-                onClick={() => setVariantId(v.id)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                  active
-                    ? 'border-carbon bg-carbon text-hueso'
-                    : 'border-black/10 text-humo hover:border-carbon/30 hover:text-carbon'
-                }`}
-              >
-                {v.tipo === 'consultar' ? '+5 bolsas' : v.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-auto flex items-end justify-between gap-3 pt-5">
-          <div>
-            <p className="text-[11px] uppercase tracking-wider text-humo">{variant.label}</p>
-            <p className="font-[family-name:var(--font-display)] text-2xl font-semibold text-nuez">
-              {formatPrecio(variant.precio)}
+          {product.descripcion && (
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-400">
+              {product.descripcion}
             </p>
+          )}
+
+          {/* Selector de presentación */}
+          <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Presentación">
+            {variantes.map((v) => {
+              const activo = v.id === variantId;
+              return (
+                <button
+                  key={v.id}
+                  role="radio"
+                  aria-checked={activo}
+                  onClick={() => setVariantId(v.id)}
+                  className={`rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                    activo
+                      ? 'border-gray-900 bg-gray-900 text-white'
+                      : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  {v.tipo === 'consultar' ? '+5 bolsas' : v.label}
+                </button>
+              );
+            })}
           </div>
 
+          {/* Precio */}
+          <div className="mt-auto pt-4">
+            {esConsultar ? (
+              <p className="text-base font-bold text-black">Precio a Consultar</p>
+            ) : (
+              <p className="text-xl font-bold text-black">{formatARS(variant.precio ?? 0)}</p>
+            )}
+            <p className="mt-0.5 text-[11px] text-gray-400">{variant.label}</p>
+          </div>
+
+          {/* CTA a todo el ancho */}
           <button
             onClick={onAdd}
-            className={`h-11 shrink-0 rounded-full px-5 text-sm font-medium transition-all active:scale-95 ${
-              added ? 'bg-oliva text-hueso' : 'bg-carbon text-hueso hover:scale-[1.03]'
+            className={`mt-3 w-full rounded-lg py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.98] ${
+              added ? 'bg-[#1e7e34]' : 'bg-[#28a745] hover:bg-[#218838]'
             }`}
           >
-            {added ? 'Agregado ✓' : variant.tipo === 'consultar' ? 'Consultar' : 'Añadir'}
+            {added ? 'Agregado ✓' : esConsultar ? 'Consultar' : 'Agregar'}
           </button>
         </div>
-      </div>
-    </article>
+      </article>
+
+      {/* El modal se monta solo despues del primer clic: no paga costo
+          de render por cada tarjeta de la grilla. */}
+      {modalOpen && (
+        <ProductModal product={product} open={modalOpen} onClose={() => setModalOpen(false)} />
+      )}
+    </>
   );
 }

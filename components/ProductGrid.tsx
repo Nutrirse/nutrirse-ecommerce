@@ -8,14 +8,27 @@ import type { Product } from '@/types';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function ProductGrid({ products }: { products: Product[] }) {
-  const root = useRef<HTMLDivElement>(null);
-  const [cat, setCat] = useState<string>('todos');
+type Props = {
+  products: Product[];
+  /** Categoria preseleccionada (ej. la que llega por ?cat= del mega menu). */
+  initialCat?: string;
+  /** Oculta el encabezado cuando la pagina ya trae su propio titulo. */
+  showHeading?: boolean;
+};
 
-  const categorias = useMemo(
-    () => ['todos', ...Array.from(new Set(products.map((p) => p.categoria).filter(Boolean) as string[]))],
-    [products]
-  );
+export default function ProductGrid({ products, initialCat = 'todos', showHeading = true }: Props) {
+  const root = useRef<HTMLDivElement>(null);
+  const [cat, setCat] = useState<string>(initialCat);
+
+  const categorias = useMemo(() => {
+    const propias = Array.from(
+      new Set(products.map((p) => p.categoria).filter(Boolean) as string[])
+    );
+    // Si la categoria pedida por URL no existe en el catalogo, igual se
+    // muestra como chip activo para que el filtro no mienta.
+    if (initialCat !== 'todos' && !propias.includes(initialCat)) propias.push(initialCat);
+    return ['todos', ...propias];
+  }, [products, initialCat]);
 
   const visibles = useMemo(
     () => (cat === 'todos' ? products : products.filter((p) => p.categoria === cat)),
@@ -45,14 +58,18 @@ export default function ProductGrid({ products }: { products: Product[] }) {
     <section id="catalogo" className="scroll-mt-20 bg-crema py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-tostado">
-              Catálogo mayorista
-            </p>
-            <h2 className="max-w-lg font-[family-name:var(--font-display)] text-[clamp(2rem,4.5vw,3.2rem)] font-semibold leading-[1.02] tracking-tight text-carbon">
-              Elegí la presentación y armá tu pedido.
-            </h2>
-          </div>
+          {showHeading ? (
+            <div>
+              <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-tostado">
+                Catálogo mayorista
+              </p>
+              <h2 className="max-w-lg font-[family-name:var(--font-display)] text-[clamp(2rem,4.5vw,3.2rem)] font-semibold leading-[1.02] tracking-tight text-carbon">
+                Elegí la presentación y armá tu pedido.
+              </h2>
+            </div>
+          ) : (
+            <span />
+          )}
 
           <div className="flex flex-wrap gap-2">
             {categorias.map((c) => (
