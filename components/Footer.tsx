@@ -4,8 +4,8 @@ import { WHATSAPP_NUMBER } from '@/lib/whatsapp';
 
 const CONTACTO = {
   email: 'ventas@nutrirse.com.ar',
-  instagram: 'https://instagram.com/nutrirse',
-  facebook: 'https://facebook.com/nutrirse',
+  instagram: '#',
+  tiktok: '#',
 };
 
 const ENLACES = [
@@ -94,8 +94,6 @@ export default function Footer() {
                 {waLegible(WHATSAPP_NUMBER)}
               </a>
             </li>
-            <li className="text-[#f5ebd9]/50">Salta Capital · CP 4400</li>
-            <li className="text-[#f5ebd9]/50">Lunes a viernes, 9 a 18 h</li>
           </ul>
 
           <div className="mt-6 flex gap-3">
@@ -113,14 +111,14 @@ export default function Footer() {
               </svg>
             </a>
             <a
-              href={CONTACTO.facebook}
+              href={CONTACTO.tiktok}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Facebook"
+              aria-label="TikTok"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-[#f5ebd9]/70 transition-colors hover:border-white/40 hover:text-[#f5ebd9]"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.45 2.89h-2.33v6.99A10 10 0 0 0 22 12z" />
+                <path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 0 1 0-5.18c.27 0 .53.04.78.12v-3.16a5.7 5.7 0 0 0-.78-.05A5.71 5.71 0 1 0 15.54 15.4V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.29 4.29 0 0 1-3.24-1.48z" />
               </svg>
             </a>
           </div>
