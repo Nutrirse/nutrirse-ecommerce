@@ -122,14 +122,19 @@ export default function Navbar() {
     closeTimer.current = setTimeout(() => setMegaOpen(false), 140);
   };
 
-  // El navbar es siempre verde oscuro: se funde con el tope del hero y
-  // deja resaltar el logo claro. `scrolled` solo agrega sombra y opacidad.
+  // Transparente solo arriba de todo en el home, donde detras hay hero
+  // verde oscuro. En el resto de las paginas el tope es crema, asi que el
+  // navbar va siempre solido o el texto claro quedaria ilegible.
+  const transparente = pathname === '/' && !scrolled && !megaOpen;
+
   const linkCls = 'text-[#f5ebd9]/80 hover:text-[#f5ebd9]';
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 bg-[#0b1c0f] transition-shadow duration-300 ${
-        scrolled || megaOpen ? 'shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]' : ''
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        transparente
+          ? 'bg-transparent'
+          : 'bg-[#0b1c0f] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:h-20 sm:px-8">

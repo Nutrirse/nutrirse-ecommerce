@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCart } from '@/store/cart';
 import { formatARS } from '@/lib/format';
@@ -42,7 +41,12 @@ const FICHA = [
 const SALIDA_MS = 320;
 
 export default function ProductModal({ product, related = [], onClose }: Props) {
-  const variantes = product.precios_por_variante;
+  // Producto que se esta viendo. Arranca en el que abrio el drawer y
+  // cambia al tocar un similar, sin cerrar ni navegar.
+  const [activo, setActivo] = useState<Product>(product);
+  // Pila de productos visitados al navegar por los similares.
+  const [historial, setHistorial] = useState<Product[]>([]);
+  const variantes = activo.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [cantidad, setCantidad] = useState(1);
   const [added, setAdded] = useState(false);
@@ -54,9 +58,36 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   const closeRef = useRef<HTMLButtonElement>(null);
   const prevFocus = useRef<HTMLElement | null>(null);
   const salidaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Contenedor con overflow: en desktop scrollea la columna derecha,
+  // en mobile el sheet entero. En los dos casos hay que volver arriba.
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
   const esConsultar = variant?.tipo === 'consultar';
+
+  /* ---- Navegacion entre similares ---- */
+  const irA = (p: Product) => {
+    setHistorial((h) => [...h, activo]);
+    setActivo(p);
+  };
+
+  const volver = () => {
+    setHistorial((h) => {
+      const previo = h[h.length - 1];
+      if (previo) setActivo(previo);
+      return h.slice(0, -1);
+    });
+  };
+
+  /* ---- Cambio de producto: resetea la seleccion y vuelve arriba.
+         Sin el scrollTo, al entrar a un similar desde el bloque de abajo
+         el drawer quedaria abierto a media altura del producto nuevo. ---- */
+  useEffect(() => {
+    setVariantId(activo.precios_por_variante[0]?.id ?? '');
+    setCantidad(1);
+    setAdded(false);
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activo.id, activo.precios_por_variante]);
 
   /* ---- Entrada: se pinta cerrado y en el frame siguiente se abre,
          asi la transicion CSS tiene un estado inicial del que partir. ---- */
@@ -122,7 +153,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   if (!variant) return null;
 
   const onAdd = () => {
-    addItem(product, variant, cantidad);
+    addItem(activo, variant, cantidad);
     setAdded(true);
     setTimeout(() => {
       setAdded(false);
@@ -134,9 +165,9 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
 
   // Prioriza misma categoría; si no alcanza, completa con el resto.
   const similares = (() => {
-    const otros = related.filter((p) => p.id !== product.id);
-    const mismaCat = otros.filter((p) => p.categoria === product.categoria);
-    return [...mismaCat, ...otros.filter((p) => p.categoria !== product.categoria)].slice(0, 3);
+    const otros = related.filter((p) => p.id !== activo.id);
+    const mismaCat = otros.filter((p) => p.categoria === activo.categoria);
+    return [...mismaCat, ...otros.filter((p) => p.categoria !== activo.categoria)].slice(0, 3);
   })();
 
   return (
@@ -157,7 +188,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={`modal-title-${product.id}`}
+        aria-labelledby={`modal-title-${activo.id}`}
         className={`absolute inset-x-0 bottom-0 h-[92dvh] overflow-hidden rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] md:inset-x-auto md:right-4 md:top-4 md:h-[calc(100dvh-2rem)] md:w-[85vw] md:max-w-6xl md:rounded-3xl ${
           shown
             ? 'translate-y-0 md:translate-x-0 md:translate-y-0'
@@ -179,16 +210,19 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
         {/* Contenedor de scroll del drawer. En desktop es grilla 50/50:
             la columna izquierda queda `sticky` y la derecha es la unica
             que corre bajo el cursor. */}
-        <div className="thin-scroll h-full overflow-y-auto overscroll-contain md:grid md:grid-cols-2">
+        <div
+          ref={scrollRef}
+          className="thin-scroll h-full overflow-y-auto overscroll-contain md:grid md:grid-cols-2"
+        >
           {/* ---------- Izquierda: imagen, fija.
                  `md:h-[calc(100dvh-2rem)]` iguala el alto del panel: si se
                  usara h-dvh, el sticky sobresaldria del contenedor. ---------- */}
           <div className="p-4 md:sticky md:top-0 md:h-[calc(100dvh-2rem)] md:self-start md:p-5">
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 shadow-sm md:aspect-auto md:h-full">
-              {product.imagen_url ? (
+              {activo.imagen_url ? (
                 <Image
-                  src={product.imagen_url}
-                  alt={product.nombre}
+                  src={activo.imagen_url}
+                  alt={activo.nombre}
                   fill
                   sizes="(max-width: 768px) 100vw, 45vw"
                   priority
@@ -197,7 +231,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
               ) : (
                 <div className="flex h-full items-center justify-center">
                   <span className="font-[family-name:var(--font-display)] text-8xl text-gray-200 md:text-[11rem]">
-                    {product.nombre.charAt(0)}
+                    {activo.nombre.charAt(0)}
                   </span>
                 </div>
               )}
@@ -206,21 +240,33 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
 
           {/* ---------- Derecha: info, scrollea ---------- */}
           <div className="flex flex-col p-6 sm:p-10 md:py-10 md:pl-4 md:pr-10">
-            {product.categoria && (
+            {historial.length > 0 && (
+              <button
+                onClick={volver}
+                className="-ml-2 mb-3 flex w-fit items-center gap-1 rounded-full px-2 py-1 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+                Volver a {historial[historial.length - 1].nombre}
+              </button>
+            )}
+
+            {activo.categoria && (
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-tostado">
-                {product.categoria.replace(/-/g, ' ')}
+                {activo.categoria.replace(/-/g, ' ')}
               </p>
             )}
 
             <h2
-              id={`modal-title-${product.id}`}
+              id={`modal-title-${activo.id}`}
               className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight text-black"
             >
-              {product.nombre}
+              {activo.nombre}
             </h2>
 
-            {product.descripcion && (
-              <p className="mt-3 text-base leading-relaxed text-gray-600">{product.descripcion}</p>
+            {activo.descripcion && (
+              <p className="mt-3 text-base leading-relaxed text-gray-600">{activo.descripcion}</p>
             )}
 
             {/* Variantes */}
@@ -346,10 +392,9 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                     const base = p.precios_por_variante.find((v) => v.tipo === 'precio');
                     return (
                       <li key={p.id}>
-                        <Link
-                          href={`/productos?cat=${p.categoria ?? 'todos'}`}
-                          onClick={requestClose}
-                          className="flex items-center gap-4 rounded-xl border border-gray-100 p-3 transition-colors hover:border-gray-300 hover:bg-gray-50"
+                        <button
+                          onClick={() => irA(p)}
+                          className="flex w-full items-center gap-4 rounded-xl border border-gray-100 p-3 text-left transition-colors hover:border-gray-300 hover:bg-gray-50"
                         >
                           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-50">
                             {p.imagen_url ? (
@@ -375,7 +420,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 text-gray-300">
                             <path d="m9 18 6-6-6-6" />
                           </svg>
-                        </Link>
+                        </button>
                       </li>
                     );
                   })}

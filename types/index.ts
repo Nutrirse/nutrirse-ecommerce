@@ -43,12 +43,21 @@ export type ShippingOption = {
   eta_dias: [number, number];
 };
 
+export type MetodoPago = 'transferencia' | 'efectivo';
+
 export type Customer = {
   nombre: string;
-  email: string;
+  apellido: string;
+  dni: string;          // DNI o CUIT, sin puntos ni guiones
   telefono: string;
-  dni: string;
+  email: string;        // opcional en el formulario
+  // Envio
   cp: string;
-  localidad: string;
+  provincia: string;
+  ciudad: string;
   direccion: string;
+  altura: string;
+  piso: string;         // opcional
+  indicaciones: string; // opcional
+  metodoPago: MetodoPago;
 };

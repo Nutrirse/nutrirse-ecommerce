@@ -43,7 +43,7 @@ export default function HomeProducts({ products }: { products: Product[] }) {
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-tostado">
             Catálogo mayorista
           </p>
-          <h2 className="mt-3 font-[family-name:var(--font-display)] text-[clamp(2.1rem,5vw,3.6rem)] font-semibold leading-[1.02] tracking-tight text-carbon">
+          <h2 className="mt-2 font-[family-name:var(--font-hand)] text-[clamp(2.6rem,7vw,5rem)] font-semibold leading-[1.05] text-carbon">
             Elegí la presentación y armá tu pedido.
           </h2>
         </header>

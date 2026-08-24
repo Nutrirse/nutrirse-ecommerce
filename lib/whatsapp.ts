@@ -1,5 +1,5 @@
 import { formatARS } from './format';
-import type { CartItem, Customer, ShippingOption } from '@/types';
+import type { CartItem, Customer, MetodoPago, ShippingOption } from '@/types';
 
 const FALLBACK_NUMBER = '5493874870997';
 
@@ -23,6 +23,68 @@ export const WHATSAPP_NUMBER = sanitizeWhatsAppNumber(
   process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
 );
 
+/* ------------------------------------------------------------------ */
+/* Metodos de pago                                                     */
+/* ------------------------------------------------------------------ */
+
+export const METODOS_PAGO: Array<{
+  id: MetodoPago;
+  label: string;
+  detalle: string;
+  /** Descuento sobre el subtotal de productos (0.10 = 10 %). */
+  descuento: number;
+  /** El retiro en deposito no paga envio. */
+  requiereEnvio: boolean;
+}> = [
+  {
+    id: 'transferencia',
+    label: 'Transferencia bancaria',
+    detalle: '10 % de descuento sobre el subtotal',
+    descuento: 0.1,
+    requiereEnvio: true,
+  },
+  {
+    id: 'efectivo',
+    label: 'Efectivo al retirar',
+    detalle: 'Retiro en depósito, Salta Capital (sin costo de envío)',
+    descuento: 0,
+    requiereEnvio: false,
+  },
+];
+
+export const metodoPago = (id: MetodoPago) =>
+  METODOS_PAGO.find((m) => m.id === id) ?? METODOS_PAGO[0];
+
+/**
+ * Calcula el desglose del pedido en un solo lugar, para que el resumen en
+ * pantalla y el ticket de WhatsApp nunca muestren numeros distintos.
+ */
+export function calcularTotales(
+  items: CartItem[],
+  shipping: ShippingOption | null,
+  pago: MetodoPago
+) {
+  const m = metodoPago(pago);
+  const subtotal = items.reduce((a, i) => a + (i.precio ?? 0) * i.cantidad, 0);
+  const descuento = Math.round(subtotal * m.descuento);
+  const envio = m.requiereEnvio ? shipping?.price ?? 0 : 0;
+  const peso = items.reduce((a, i) => a + i.peso_kg * i.cantidad, 0);
+
+  return {
+    subtotal,
+    descuento,
+    envio,
+    peso,
+    total: subtotal - descuento + envio,
+    hayConsultar: items.some((i) => i.tipo === 'consultar'),
+    metodo: m,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Ticket                                                              */
+/* ------------------------------------------------------------------ */
+
 type TicketInput = {
   customer: Customer;
   items: CartItem[];
@@ -42,54 +104,64 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
   }).format(new Date());
 
   const ref = `NUT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-
-  const subtotal = items.reduce((a, i) => a + (i.precio ?? 0) * i.cantidad, 0);
-  const peso = items.reduce((a, i) => a + i.peso_kg * i.cantidad, 0);
-  const hayConsultar = items.some((i) => i.tipo === 'consultar');
-  const total = subtotal + (shipping?.price ?? 0);
+  const t = calcularTotales(items, shipping, customer.metodoPago);
 
   const detalle = items
     .map((i) => {
       const precio =
-        i.tipo === 'consultar'
-          ? 'Precio a Consultar'
-          : formatARS((i.precio ?? 0) * i.cantidad);
+        i.tipo === 'consultar' ? 'Precio a Consultar' : formatARS((i.precio ?? 0) * i.cantidad);
       return `• ${B(i.nombre)}\n   ${i.variantLabel} × ${i.cantidad} — ${precio}`;
     })
     .join('\n');
 
-  const envio = shipping
-    ? [
-        `${B('ENVÍO')}`,
-        `${shipping.label}`,
-        `Entrega estimada: ${shipping.eta_dias[0]}–${shipping.eta_dias[1]} días hábiles`,
-        `Costo: ${formatARS(shipping.price)}`,
-      ].join('\n')
-    : `${B('ENVÍO')}\nA coordinar`;
+  const domicilio = [
+    `${customer.direccion} ${customer.altura}`.trim(),
+    customer.piso ? `Piso/Depto: ${customer.piso}` : null,
+    `${customer.ciudad}, ${customer.provincia} (CP ${customer.cp})`,
+    customer.indicaciones ? `Indicaciones: ${customer.indicaciones}` : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const envio = !t.metodo.requiereEnvio
+    ? `${B('ENTREGA')}\nRetiro en depósito · Salta Capital`
+    : shipping
+      ? [
+          B('ENVÍO'),
+          shipping.label,
+          `Entrega estimada: ${shipping.eta_dias[0]}–${shipping.eta_dias[1]} días hábiles`,
+          `Costo: ${formatARS(shipping.price)}`,
+        ].join('\n')
+      : `${B('ENVÍO')}\nA coordinar`;
 
   return [
     `${B('NUEVO PEDIDO MAYORISTA')} 🌰`,
     `Ref: ${ref} · ${fecha}`,
     LINE,
     B('CLIENTE'),
-    `Nombre: ${customer.nombre}`,
+    `Nombre: ${customer.nombre} ${customer.apellido}`,
     `DNI/CUIT: ${customer.dni}`,
     `Tel: ${customer.telefono}`,
-    `Email: ${customer.email}`,
-    `Dirección: ${customer.direccion}`,
-    `Localidad: ${customer.localidad} (CP ${customer.cp})`,
+    customer.email ? `Email: ${customer.email}` : null,
+    LINE,
+    B('DOMICILIO'),
+    domicilio,
     LINE,
     B('DETALLE'),
     detalle,
     '',
-    `Peso total: ${peso} kg`,
-    `Subtotal productos: ${formatARS(subtotal)}`,
-    hayConsultar ? '_(hay ítems por volumen a cotizar)_' : null,
+    `Peso total: ${t.peso} kg`,
+    `Subtotal productos: ${formatARS(t.subtotal)}`,
+    t.descuento > 0
+      ? `Descuento (${Math.round(t.metodo.descuento * 100)} %): -${formatARS(t.descuento)}`
+      : null,
+    t.hayConsultar ? '_(hay ítems por volumen a cotizar)_' : null,
     LINE,
     envio,
     LINE,
-    `${B('TOTAL ESTIMADO')}: ${formatARS(total)}`,
-    hayConsultar ? '_Sujeto a cotización de los ítems por volumen._' : null,
+    `${B('PAGO')}: ${t.metodo.label}`,
+    `${B('TOTAL ESTIMADO')}: ${formatARS(t.total)}`,
+    t.hayConsultar ? '_Sujeto a cotización de los ítems por volumen._' : null,
     nota ? `${LINE}\n${B('NOTA')}\n${nota}` : null,
     '',
     'Confirmame disponibilidad y forma de pago, gracias.',
