@@ -1,11 +1,8 @@
-'use client';
-
 import Image from 'next/image';
-import { useState } from 'react';
-import ShippingCalculator from './ShippingCalculator';
+import Link from 'next/link';
 
 type Props = {
-  /** PNG con fondo transparente del utilitario. */
+  /** PNG con fondo transparente de la repartidora. */
   imgSrc?: string;
 };
 
@@ -15,9 +12,7 @@ const PUNTOS = [
   'Retiro sin cargo en depósito',
 ];
 
-export default function LogisticsBanner({ imgSrc = '/utilitario.png' }: Props) {
-  const [abierto, setAbierto] = useState(false);
-
+export default function LogisticsBanner({ imgSrc = '/chica-nutrirse.png' }: Props) {
   return (
     // `pt-16` reserva el aire que la imagen usa para sobresalir por arriba.
     // Sin eso, el pop-out se comería la sección anterior.
@@ -25,7 +20,7 @@ export default function LogisticsBanner({ imgSrc = '/utilitario.png' }: Props) {
       {/* overflow-visible + relative: la imagen puede romper el borde verde */}
       <div className="relative mx-auto max-w-7xl overflow-visible rounded-3xl bg-gradient-to-r from-[#143620] to-[#0b1c0f] shadow-[0_30px_60px_-30px_rgba(11,28,15,0.7)]">
         {/* Halo cálido interno. Va en su propio div con overflow-hidden:
-            si el recorte viviera en el contenedor, cortaría la camioneta. */}
+            si el recorte viviera en el contenedor, cortaría la foto. */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl" aria-hidden>
           <div
             className="absolute inset-0"
@@ -37,7 +32,7 @@ export default function LogisticsBanner({ imgSrc = '/utilitario.png' }: Props) {
         </div>
 
         <div className="relative grid items-center gap-8 px-8 py-12 sm:px-12 md:grid-cols-[1.05fr_1fr] md:py-14">
-          {/* ---------- Izquierda: texto + cotizador ---------- */}
+          {/* ---------- Izquierda: texto ---------- */}
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#d6b26a]">
               Logística
@@ -56,13 +51,18 @@ export default function LogisticsBanner({ imgSrc = '/utilitario.png' }: Props) {
               ))}
             </ul>
 
-            <button
-              onClick={() => setAbierto((v) => !v)}
-              aria-expanded={abierto}
-              aria-controls="cotizador-envio"
+            {/* El costo de envío mayorista depende del peso del pedido, asi
+                que se cotiza en el carrito y no acá: un numero suelto en la
+                Home sería engañoso (5 kg y 50 kg no cuestan igual). */}
+            <p className="mt-6 max-w-md text-sm text-[#f5ebd9]/55">
+              El costo final se calcula en el carrito según el peso de tu pedido.
+            </p>
+
+            <Link
+              href="/productos"
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#f5ebd9] px-7 py-3.5 text-sm font-semibold text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
             >
-              {abierto ? 'Ocultar cotizador' : 'Calcular mi envío'}
+              Empezar mi pedido
               <svg
                 width="16"
                 height="16"
@@ -73,45 +73,21 @@ export default function LogisticsBanner({ imgSrc = '/utilitario.png' }: Props) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden
-                className={`transition-transform duration-300 ${abierto ? 'rotate-180' : ''}`}
               >
-                <path d="m6 9 6 6 6-6" />
+                <path d="m9 18 6-6-6-6" />
               </svg>
-            </button>
-
-            {/* Despliegue a altura automática: el truco de grid-rows 0fr -> 1fr
-                permite animar sin conocer el alto del contenido de antemano
-                (max-height fija cortaría la lista de opciones al cotizar). */}
-            <div
-              id="cotizador-envio"
-              className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${
-                abierto ? 'mt-6 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-              }`}
-            >
-              <div className="overflow-hidden">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-5 backdrop-blur-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[#d6b26a]">
-                    Cotizá tu envío
-                  </p>
-                  <p className="mt-1 text-xs text-[#f5ebd9]/55">
-                    Ingresá tu código postal. Calculamos desde Salta Capital sobre el peso
-                    del pedido.
-                  </p>
-                  <ShippingCalculator compact tone="oscuro" />
-                </div>
-              </div>
-            </div>
+            </Link>
           </div>
 
-          {/* ---------- Derecha: utilitario que sobresale ---------- */}
-          <div className="relative h-40 sm:h-52 md:h-full md:min-h-[220px]">
+          {/* ---------- Derecha: foto que sobresale ---------- */}
+          <div className="relative h-52 sm:h-64 md:h-full md:min-h-[260px]">
             <Image
               src={imgSrc}
-              alt="Utilitario de reparto Nutrirse"
-              width={900}
-              height={560}
-              sizes="(max-width: 768px) 80vw, 42vw"
-              className="pointer-events-none absolute -top-20 right-0 w-[min(560px,105%)] max-w-none drop-shadow-[0_30px_35px_rgba(0,0,0,0.45)] sm:-top-24 md:-top-28 md:-right-4"
+              alt="Repartidora de Nutrirse sonriendo"
+              width={720}
+              height={900}
+              sizes="(max-width: 768px) 70vw, 34vw"
+              className="pointer-events-none absolute -top-24 right-0 w-[min(380px,80%)] max-w-none drop-shadow-[0_30px_35px_rgba(0,0,0,0.45)] sm:-top-28 md:-top-32 md:-right-4"
             />
           </div>
         </div>
