@@ -11,6 +11,8 @@
   --color-humo:    #6F6A62;
 
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  /* Rotulo manuscrito del hero */
+  --font-hand: 'Caveat', 'Segoe Script', cursive;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 

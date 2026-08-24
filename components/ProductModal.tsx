@@ -124,7 +124,7 @@ export default function ProductModal({ product, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={`modal-title-${product.id}`}
-        className={`absolute inset-x-0 bottom-0 h-[92dvh] rounded-t-2xl bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] md:inset-x-auto md:right-0 md:top-0 md:h-dvh md:w-[85vw] md:max-w-6xl md:rounded-none ${
+        className={`absolute inset-x-0 bottom-0 h-[92dvh] overflow-hidden rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] md:inset-x-auto md:right-4 md:top-4 md:h-[calc(100dvh-2rem)] md:w-[85vw] md:max-w-6xl md:rounded-3xl ${
           shown
             ? 'translate-y-0 md:translate-x-0 md:translate-y-0'
             : 'translate-y-full md:translate-x-full md:translate-y-0'
@@ -146,28 +146,32 @@ export default function ProductModal({ product, onClose }: Props) {
             la columna izquierda queda `sticky` y la derecha es la unica
             que corre bajo el cursor. */}
         <div className="thin-scroll h-full overflow-y-auto overscroll-contain md:grid md:grid-cols-2">
-          {/* ---------- Izquierda: imagen, fija ---------- */}
-          <div className="relative aspect-square w-full bg-gray-50 md:sticky md:top-0 md:aspect-auto md:h-dvh md:self-start">
-            {product.imagen_url ? (
-              <Image
-                src={product.imagen_url}
-                alt={product.nombre}
-                fill
-                sizes="(max-width: 768px) 100vw, 45vw"
-                priority
-                className="object-contain p-8 md:p-14"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <span className="font-[family-name:var(--font-display)] text-8xl text-gray-200 md:text-[11rem]">
-                  {product.nombre.charAt(0)}
-                </span>
-              </div>
-            )}
+          {/* ---------- Izquierda: imagen, fija.
+                 `md:h-[calc(100dvh-2rem)]` iguala el alto del panel: si se
+                 usara h-dvh, el sticky sobresaldria del contenedor. ---------- */}
+          <div className="p-4 md:sticky md:top-0 md:h-[calc(100dvh-2rem)] md:self-start md:p-5">
+            <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 shadow-sm md:aspect-auto md:h-full">
+              {product.imagen_url ? (
+                <Image
+                  src={product.imagen_url}
+                  alt={product.nombre}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 45vw"
+                  priority
+                  className="object-contain p-4 md:p-6"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <span className="font-[family-name:var(--font-display)] text-8xl text-gray-200 md:text-[11rem]">
+                    {product.nombre.charAt(0)}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ---------- Derecha: info, scrollea ---------- */}
-          <div className="flex flex-col p-6 sm:p-10">
+          <div className="flex flex-col p-6 sm:p-10 md:py-10 md:pl-4 md:pr-10">
             {product.categoria && (
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-tostado">
                 {product.categoria.replace(/-/g, ' ')}

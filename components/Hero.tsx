@@ -14,6 +14,8 @@ gsap.registerPlugin(useGSAP);
 type Slide = {
   id: string;
   title: string;
+  /** Nombre corto para el rotulo manuscrito junto al producto. */
+  label: string;
   doypackImg: string;
   floatingImgs: string[];
 };
@@ -22,6 +24,7 @@ const SLIDES: Slide[] = [
   {
     id: 'almendra',
     title: 'A L M E N D R A',
+    label: 'Almendra',
     doypackImg: '/images/hero/doypack-almendra.png',
     floatingImgs: [
       '/images/hero/fruto-almendra-1.png',
@@ -34,6 +37,7 @@ const SLIDES: Slide[] = [
   {
     id: 'nuez',
     title: 'N U E Z',
+    label: 'Nuez',
     doypackImg: '/images/hero/doypack-nuez.png',
     floatingImgs: [
       '/images/hero/fruto-nuez-1.png',
@@ -46,6 +50,7 @@ const SLIDES: Slide[] = [
   {
     id: 'pasas',
     title: 'P A S A S',
+    label: 'Pasas',
     doypackImg: '/images/hero/doypack-pasas.png',
     floatingImgs: [
       '/images/hero/fruto-pasas-1.png',
@@ -58,6 +63,7 @@ const SLIDES: Slide[] = [
   {
     id: 'pistacho',
     title: 'P I S T A C H O',
+    label: 'Pistacho',
     doypackImg: '/images/hero/doypack-pistacho.png',
     floatingImgs: [
       '/images/hero/fruto-pistacho-1.png',
@@ -156,6 +162,45 @@ const SLOTS: Slot[] = [
   },
 ];
 
+
+/* ------------------------------------------------------------------ */
+/* Flecha trazada a mano que apunta del rotulo al doypack              */
+/* ------------------------------------------------------------------ */
+
+function HandArrow({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 160 120"
+      fill="none"
+      className={`hand-arrow ${className}`}
+      aria-hidden
+      focusable="false"
+    >
+      {/* Trazo principal: curva suelta, como hecha con marcador */}
+      <path
+        d="M6 12c14 34 34 58 62 72 21 10 44 14 68 12"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Punta de flecha en dos trazos sueltos */}
+      <path
+        d="M118 82c8 5 15 10 20 15"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M136 96c-6 1-13 1-19 0"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 const DUR = { out: 0.55, in: 0.85, fade: 0.5 };
 
 /* ------------------------------------------------------------------ */
@@ -176,9 +221,18 @@ export default function Hero() {
       /* ---- Estado inicial: solo el slide 0 visible ---- */
       SLIDES.forEach((_, i) => {
         const on = i === 0;
-        gsap.set(q(`[data-title="${i}"]`), { autoAlpha: on ? 1 : 0, yPercent: on ? 0 : 40 });
+        gsap.set(q(`[data-label="${i}"]`), { autoAlpha: on ? 1 : 0, y: on ? 0 : 18, scale: on ? 1 : 0.9 });
         gsap.set(q(`[data-doypack="${i}"]`), { autoAlpha: on ? 1 : 0, yPercent: on ? 0 : 100 });
         gsap.set(q(`[data-slide="${i}"] .fruit`), { autoAlpha: on ? 1 : 0 });
+      });
+
+      // Prepara el trazado de cada flecha: dasharray = largo total del
+      // path, para poder "dibujarlo" animando el dashoffset. Reemplaza a
+      // DrawSVGPlugin, que es del club premium de GSAP.
+      q('.hand-arrow path').forEach((path) => {
+        const len = (path as unknown as SVGPathElement).getTotalLength();
+        gsap.set(path, { strokeDasharray: len, strokeDashoffset: 0 });
+        (path as unknown as SVGPathElement).dataset.len = String(len);
       });
 
       if (reduce) return;
@@ -260,7 +314,17 @@ export default function Hero() {
       /* ---- Entrada del primer slide ---- */
       gsap
         .timeline({ defaults: { ease: 'power3.out' } })
-        .from(q('[data-title="0"]'), { yPercent: 45, autoAlpha: 0, duration: 0.9 })
+        .from(q('[data-label="0"]'), { y: 22, scale: 0.9, autoAlpha: 0, duration: 0.7, ease: 'back.out(1.7)' })
+        .from(
+          q('[data-label="0"] .hand-arrow path'),
+          {
+            strokeDashoffset: (i, t) => Number((t as unknown as SVGPathElement).dataset.len ?? 200),
+            duration: 0.7,
+            ease: 'power2.out',
+            stagger: 0.12,
+          },
+          0.25
+        )
         .from(q('[data-doypack="0"]'), { yPercent: 100, autoAlpha: 0, duration: 1.1 }, 0.05)
         .from(q('[data-slide="0"] .fruit'), { autoAlpha: 0, duration: 1.2, stagger: 0.09 }, 0.25)
         .from(q('.hero-ui'), { y: 18, autoAlpha: 0, duration: 0.6, stagger: 0.06 }, 0.5);
@@ -287,10 +351,10 @@ export default function Hero() {
 
     if (reduce) {
       drifts.current[cur]?.forEach((t) => t.pause());
-      gsap.set(q(`[data-title="${cur}"]`), { autoAlpha: 0 });
+      gsap.set(q(`[data-label="${cur}"]`), { autoAlpha: 0 });
       gsap.set(q(`[data-doypack="${cur}"]`), { autoAlpha: 0, yPercent: 100 });
       gsap.set(q(`[data-slide="${cur}"] .fruit`), { autoAlpha: 0 });
-      gsap.set(q(`[data-title="${next}"]`), { autoAlpha: 1, yPercent: 0 });
+      gsap.set(q(`[data-label="${next}"]`), { autoAlpha: 1, y: 0, scale: 1 });
       gsap.set(q(`[data-doypack="${next}"]`), { autoAlpha: 1, yPercent: 0 });
       gsap.set(q(`[data-slide="${next}"] .fruit`), { autoAlpha: 1 });
       return;
@@ -316,17 +380,25 @@ export default function Hero() {
       DUR.out * 0.65
     );
 
-    /* --- Titulo de fondo --- */
+    /* --- Rotulo manuscrito + flecha: sale corto, entra con rebote --- */
     tl.to(
-      q(`[data-title="${cur}"]`),
-      { yPercent: -38, autoAlpha: 0, duration: 0.4, ease: 'power2.in' },
+      q(`[data-label="${cur}"]`),
+      { y: -14, scale: 0.94, autoAlpha: 0, duration: 0.3, ease: 'power2.in' },
       0
-    ).fromTo(
-      q(`[data-title="${next}"]`),
-      { yPercent: 38, autoAlpha: 0 },
-      { yPercent: 0, autoAlpha: 1, duration: 0.55, ease: 'power2.out' },
-      0.32
-    );
+    )
+      .fromTo(
+        q(`[data-label="${next}"]`),
+        { y: 20, scale: 0.9, autoAlpha: 0 },
+        { y: 0, scale: 1, autoAlpha: 1, duration: 0.7, ease: 'back.out(1.7)' },
+        0.34
+      )
+      // La flecha se redibuja trazo por trazo.
+      .fromTo(
+        q(`[data-label="${next}"] .hand-arrow path`),
+        { strokeDashoffset: (i, t) => Number((t as unknown as SVGPathElement).dataset.len ?? 200) },
+        { strokeDashoffset: 0, duration: 0.65, ease: 'power2.out', stagger: 0.1 },
+        0.45
+      );
 
     /* --- Frutos: SOLO cruce de opacidad, el movimiento sigue corriendo. --- */
     tl.to(
@@ -398,19 +470,25 @@ export default function Hero() {
         style={{ background: 'radial-gradient(75% 70% at 50% 50%, transparent 45%, rgba(0,0,0,0.5))' }}
       />
 
-      {/* ---------- Z-0 · título gigante de fondo ---------- */}
-      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
+      {/* ---------- Z-[25] · rótulo manuscrito + flecha hacia el producto.
+           Va por encima del doypack para que se lea siempre. ---------- */}
+      <div className="pointer-events-none absolute inset-0 z-[25]">
         {SLIDES.map((s, i) => (
-          <h1
+          <div
             key={s.id}
-            data-title={i}
-            className="absolute select-none whitespace-nowrap px-4 text-center font-[family-name:var(--font-display)] text-[clamp(2.4rem,11vw,10.5rem)] font-semibold uppercase leading-none tracking-tight text-[#f5ebd9]/14"
+            data-label={i}
             aria-hidden={i !== active}
+            className="absolute left-[6%] top-[24%] origin-bottom-left select-none sm:left-[10%] sm:top-[26%] lg:left-[16%]"
           >
-            {s.title}
-          </h1>
+            <p className="font-[family-name:var(--font-hand)] text-[clamp(2.4rem,5.5vw,4.5rem)] font-semibold leading-none text-[#f5ebd9] drop-shadow-[0_4px_14px_rgba(0,0,0,0.45)]">
+              {s.label}
+            </p>
+            <HandArrow className="mt-1 ml-6 h-[clamp(56px,9vw,120px)] w-auto text-[#f5ebd9]/80 sm:ml-10" />
+          </div>
         ))}
-        <span className="sr-only">{SLIDES[active].title.replace(/\s+/g, '')}</span>
+        <h1 className="sr-only">
+          Nutrirse · {SLIDES[active].label} por mayor
+        </h1>
       </div>
 
       {/* ---------- Z-5 · frutos que cruzan POR DETRÁS del doypack ---------- */}
@@ -430,7 +508,7 @@ export default function Hero() {
               <div className="doypack-float absolute inset-0 will-change-transform">
                 <Image
                   src={s.doypackImg}
-                  alt={`Doypack ${s.title.replace(/\s+/g, '')}`}
+                  alt={`Doypack ${s.label}`}
                   fill
                   priority={i === 0}
                   sizes="(max-width: 640px) 88vw, 30rem"
@@ -494,7 +572,7 @@ export default function Hero() {
               key={s.id}
               role="tab"
               aria-selected={i === active}
-              aria-label={s.title.replace(/\s+/g, '')}
+              aria-label={s.label}
               onClick={() => go(i)}
               className={`h-1.5 rounded-full transition-all duration-500 ${
                 i === active ? 'w-9 bg-[#d6b26a]' : 'w-1.5 bg-[#f5ebd9]/30 hover:bg-[#f5ebd9]/55'
