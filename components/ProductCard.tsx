@@ -7,7 +7,14 @@ import { formatARS } from '@/lib/format';
 import ProductModal from './ProductModal';
 import type { Product } from '@/types';
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({
+  product,
+  related = [],
+}: {
+  product: Product;
+  /** Catálogo completo: alimenta "Productos similares" del quick view. */
+  related?: Product[];
+}) {
   const variantes = product.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [added, setAdded] = useState(false);
@@ -87,7 +94,7 @@ export default function ProductCard({ product }: { product: Product }) {
                       : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-800'
                   }`}
                 >
-                  {v.tipo === 'consultar' ? '+5 bolsas' : v.label}
+                  {v.tipo === 'consultar' ? '+5 bultos' : v.label}
                 </button>
               );
             })}
@@ -118,7 +125,7 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* El modal se monta solo despues del primer clic: no paga costo
           de render por cada tarjeta de la grilla. */}
       {modalOpen && (
-        <ProductModal product={product} onClose={() => setModalOpen(false)} />
+        <ProductModal product={product} related={related} onClose={() => setModalOpen(false)} />
       )}
     </>
   );

@@ -478,7 +478,7 @@ export default function Hero() {
             key={s.id}
             data-label={i}
             aria-hidden={i !== active}
-            className="absolute left-[6%] top-[24%] origin-bottom-left select-none sm:left-[10%] sm:top-[26%] lg:left-[16%]"
+            className="absolute left-[6%] top-[22%] origin-bottom-left select-none sm:left-[10%] sm:top-[26%] lg:left-[15%]"
           >
             <p className="font-[family-name:var(--font-hand)] text-[clamp(2.4rem,5.5vw,4.5rem)] font-semibold leading-none text-[#f5ebd9] drop-shadow-[0_4px_14px_rgba(0,0,0,0.45)]">
               {s.label}

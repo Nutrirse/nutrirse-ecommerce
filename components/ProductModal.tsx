@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCart } from '@/store/cart';
 import { formatARS } from '@/lib/format';
@@ -9,12 +10,38 @@ import type { Product } from '@/types';
 
 type Props = {
   product: Product;
+  /** Catálogo para armar "Productos similares". */
+  related?: Product[];
   onClose: () => void;
 };
 
+/** Fichas de la sección Descripción. Texto genérico por producto. */
+const FICHA = [
+  {
+    titulo: 'Beneficios',
+    texto:
+      'Fuente natural de grasas saludables, fibra y proteína vegetal. Producto seleccionado y clasificado por calibre, sin conservantes ni aditivos agregados.',
+  },
+  {
+    titulo: 'Usos',
+    texto:
+      'Consumo directo, fraccionado para venta al público, repostería, panificación, elaboración de mixes y barras de cereal.',
+  },
+  {
+    titulo: 'Cuidados',
+    texto:
+      'Conservar en lugar fresco, seco y al resguardo de la luz solar. Una vez abierto el bulto, mantener en envase hermético. Vida útil estimada: 9 meses.',
+  },
+  {
+    titulo: 'Marca',
+    texto:
+      'Nutrirse. Selección y fraccionamiento propio en Salta Capital, con control de partida y trazabilidad por lote.',
+  },
+];
+
 const SALIDA_MS = 320;
 
-export default function ProductModal({ product, onClose }: Props) {
+export default function ProductModal({ product, related = [], onClose }: Props) {
   const variantes = product.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [cantidad, setCantidad] = useState(1);
@@ -104,6 +131,13 @@ export default function ProductModal({ product, onClose }: Props) {
   };
 
   const totalLinea = (variant.precio ?? 0) * cantidad;
+
+  // Prioriza misma categoría; si no alcanza, completa con el resto.
+  const similares = (() => {
+    const otros = related.filter((p) => p.id !== product.id);
+    const mismaCat = otros.filter((p) => p.categoria === product.categoria);
+    return [...mismaCat, ...otros.filter((p) => p.categoria !== product.categoria)].slice(0, 3);
+  })();
 
   return (
     <div className="fixed inset-0 z-[60]" onKeyDown={onKeyDown}>
@@ -284,7 +318,72 @@ export default function ProductModal({ product, onClose }: Props) {
               <ShippingCalculator compact />
             </div>
 
-            <p className="mt-8 text-xs text-gray-400">
+            {/* ---------- Descripción ---------- */}
+            <section className="mt-10 border-t border-gray-100 pt-8">
+              <h3 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-black">
+                Descripción
+              </h3>
+              <dl className="mt-5 space-y-5">
+                {FICHA.map((f) => (
+                  <div key={f.titulo}>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-tostado">
+                      {f.titulo}
+                    </dt>
+                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-600">{f.texto}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+
+            {/* ---------- Productos similares ---------- */}
+            {similares.length > 0 && (
+              <section className="mt-10 border-t border-gray-100 pt-8">
+                <h3 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-black">
+                  Productos similares
+                </h3>
+                <ul className="mt-5 space-y-3">
+                  {similares.map((p) => {
+                    const base = p.precios_por_variante.find((v) => v.tipo === 'precio');
+                    return (
+                      <li key={p.id}>
+                        <Link
+                          href={`/productos?cat=${p.categoria ?? 'todos'}`}
+                          onClick={requestClose}
+                          className="flex items-center gap-4 rounded-xl border border-gray-100 p-3 transition-colors hover:border-gray-300 hover:bg-gray-50"
+                        >
+                          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-50">
+                            {p.imagen_url ? (
+                              <Image
+                                src={p.imagen_url}
+                                alt={p.nombre}
+                                fill
+                                sizes="64px"
+                                className="object-contain p-1.5"
+                              />
+                            ) : (
+                              <span className="flex h-full items-center justify-center font-[family-name:var(--font-display)] text-2xl text-gray-200">
+                                {p.nombre.charAt(0)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-800">{p.nombre}</p>
+                            <p className="text-xs text-gray-400">
+                              {base ? `Desde ${formatARS(base.precio ?? 0)}` : 'Precio a Consultar'}
+                            </p>
+                          </div>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 text-gray-300">
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+
+            <p className="mt-10 text-xs text-gray-400">
               Venta exclusiva por mayor · Los precios no incluyen IVA
             </p>
           </div>

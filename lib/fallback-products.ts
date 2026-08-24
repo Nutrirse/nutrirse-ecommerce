@@ -4,8 +4,8 @@ import type { Product, Variant } from '@/types';
 // Permite correr `npm run dev` sin credenciales de Supabase.
 const v = (precio5: number, precioBolsa: number): Variant[] => [
   { id: '5kg', label: '5 kg', tipo: 'precio', precio: precio5, peso_kg: 5 },
-  { id: 'bolsa', label: 'Bolsa cerrada', tipo: 'precio', precio: precioBolsa, peso_kg: 10 },
-  { id: 'mayorista', label: 'Más de 5 bolsas (Consultar)', tipo: 'consultar', precio: null, peso_kg: 50 },
+  { id: 'bolsa', label: 'Bulto Cerrado', tipo: 'precio', precio: precioBolsa, peso_kg: 10 },
+  { id: 'mayorista', label: '+5 bultos (Consultar)', tipo: 'consultar', precio: null, peso_kg: 50 },
 ];
 
 type Seed = [

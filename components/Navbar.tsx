@@ -122,19 +122,14 @@ export default function Navbar() {
     closeTimer.current = setTimeout(() => setMegaOpen(false), 140);
   };
 
-  // Solo el home arranca con el hero verde oscuro detras.
-  const overHero = pathname === '/' && !scrolled && !megaOpen;
-
-  const linkCls = overHero
-    ? 'text-[#f5ebd9]/80 hover:text-[#f5ebd9]'
-    : 'text-humo hover:text-carbon';
+  // El navbar es siempre verde oscuro: se funde con el tope del hero y
+  // deja resaltar el logo claro. `scrolled` solo agrega sombra y opacidad.
+  const linkCls = 'text-[#f5ebd9]/80 hover:text-[#f5ebd9]';
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled || megaOpen
-          ? 'border-b border-black/5 bg-hueso/90 backdrop-blur-md'
-          : 'bg-transparent'
+      className={`fixed inset-x-0 top-0 z-50 bg-[#0b1c0f] transition-shadow duration-300 ${
+        scrolled || megaOpen ? 'shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]' : ''
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:h-20 sm:px-8">
@@ -196,9 +191,7 @@ export default function Navbar() {
           <button
             onClick={openCart}
             aria-label="Abrir carrito"
-            className={`relative flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition-all hover:scale-[1.03] active:scale-95 ${
-              overHero ? 'bg-[#f5ebd9] text-[#0b1c0f]' : 'bg-carbon text-hueso'
-            }`}
+            className="relative flex h-10 items-center gap-2 rounded-full bg-[#f5ebd9] px-4 text-sm font-medium text-[#0b1c0f] transition-all hover:scale-[1.03] active:scale-95"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
@@ -216,9 +209,7 @@ export default function Navbar() {
           <button
             onClick={() => setMobileOpen(true)}
             aria-label="Abrir menú"
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors lg:hidden ${
-              overHero ? 'text-[#f5ebd9] hover:bg-white/10' : 'text-carbon hover:bg-black/5'
-            }`}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[#f5ebd9] transition-colors hover:bg-white/10 lg:hidden"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
               <path d="M3 6h18M3 12h18M3 18h18" />
@@ -231,7 +222,7 @@ export default function Navbar() {
       <div
         onMouseEnter={openMega}
         onMouseLeave={closeMega}
-        className={`absolute inset-x-0 top-full hidden origin-top border-b border-black/5 bg-hueso shadow-[0_24px_48px_-24px_rgba(28,26,23,0.35)] transition-all duration-200 lg:block ${
+        className={`absolute inset-x-0 top-full hidden origin-top border-t border-white/10 bg-[#0b1c0f] shadow-[0_24px_48px_-24px_rgba(0,0,0,0.8)] transition-all duration-200 lg:block ${
           megaOpen
             ? 'pointer-events-auto translate-y-0 opacity-100'
             : 'pointer-events-none -translate-y-2 opacity-0'
@@ -244,7 +235,7 @@ export default function Navbar() {
                 <div key={group.title}>
                   <Link
                     href={`/productos?cat=${group.cat}`}
-                    className="font-semibold text-carbon transition-colors hover:text-nuez"
+                    className="font-semibold text-[#f5ebd9] transition-colors hover:text-[#d6b26a]"
                   >
                     {group.title}
                   </Link>
@@ -254,7 +245,7 @@ export default function Navbar() {
                         <li key={it.cat}>
                           <Link
                             href={`/productos?cat=${it.cat}`}
-                            className="text-sm text-humo transition-colors hover:text-nuez"
+                            className="text-sm text-[#f5ebd9]/60 transition-colors hover:text-[#d6b26a]"
                           >
                             {it.label}
                           </Link>
@@ -268,10 +259,10 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="border-t border-black/5 bg-crema">
+        <div className="border-t border-white/10 bg-[#0f2716]">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4 text-sm">
-            <span className="text-humo">Venta exclusiva por mayor · Mínimo 5 kg</span>
-            <Link href="/productos" className="font-medium text-nuez hover:underline">
+            <span className="text-[#f5ebd9]/50">Venta exclusiva por mayor · Mínimo 5 kg</span>
+            <Link href="/productos" className="font-medium text-[#d6b26a] hover:underline">
               Ver todo el catálogo →
             </Link>
           </div>

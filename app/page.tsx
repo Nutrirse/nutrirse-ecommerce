@@ -1,5 +1,5 @@
 import Hero from '@/components/Hero';
-import ProductGrid from '@/components/ProductGrid';
+import HomeProducts from '@/components/HomeProducts';
 import ShippingCalculator from '@/components/ShippingCalculator';
 import { getProducts, CATALOG_REVALIDATE } from '@/lib/products';
 
@@ -13,7 +13,7 @@ export default async function Home() {
   return (
     <>
       <Hero />
-      <ProductGrid products={products} />
+      <HomeProducts products={products} />
 
       <section id="envios" className="scroll-mt-20 bg-hueso py-20 sm:py-24">
         <div className="mx-auto grid max-w-7xl items-start gap-10 px-5 sm:px-8 lg:grid-cols-2">
