@@ -1,5 +1,8 @@
-import Link from 'next/link';
+'use client';
+
 import Image from 'next/image';
+import { useState } from 'react';
+import ShippingCalculator from './ShippingCalculator';
 
 type Props = {
   /** PNG con fondo transparente del utilitario. */
@@ -13,17 +16,17 @@ const PUNTOS = [
 ];
 
 export default function LogisticsBanner({ imgSrc = '/images/utilitario.png' }: Props) {
+  const [abierto, setAbierto] = useState(false);
+
   return (
-    // `pt-16` en el wrapper reserva el aire que la imagen usa para sobresalir
-    // por arriba. Sin eso, el pop-out se comería la sección anterior.
-    <section className="bg-crema px-5 pb-20 pt-16 sm:px-8 sm:pb-24">
+    // `pt-16` reserva el aire que la imagen usa para sobresalir por arriba.
+    // Sin eso, el pop-out se comería la sección anterior.
+    <section id="envios" className="scroll-mt-24 bg-crema px-5 pb-20 pt-16 sm:px-8 sm:pb-24">
       {/* overflow-visible + relative: la imagen puede romper el borde verde */}
       <div className="relative mx-auto max-w-7xl overflow-visible rounded-3xl bg-gradient-to-r from-[#143620] to-[#0b1c0f] shadow-[0_30px_60px_-30px_rgba(11,28,15,0.7)]">
-        {/* halo cálido interno, recortado al radio del banner */}
-        <div
-          className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl"
-          aria-hidden
-        >
+        {/* Halo cálido interno. Va en su propio div con overflow-hidden:
+            si el recorte viviera en el contenedor, cortaría la camioneta. */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl" aria-hidden>
           <div
             className="absolute inset-0"
             style={{
@@ -34,7 +37,7 @@ export default function LogisticsBanner({ imgSrc = '/images/utilitario.png' }: P
         </div>
 
         <div className="relative grid items-center gap-8 px-8 py-12 sm:px-12 md:grid-cols-[1.05fr_1fr] md:py-14">
-          {/* ---------- Izquierda: texto ---------- */}
+          {/* ---------- Izquierda: texto + cotizador ---------- */}
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#d6b26a]">
               Logística
@@ -53,15 +56,51 @@ export default function LogisticsBanner({ imgSrc = '/images/utilitario.png' }: P
               ))}
             </ul>
 
-            <Link
-              href="#envios"
+            <button
+              onClick={() => setAbierto((v) => !v)}
+              aria-expanded={abierto}
+              aria-controls="cotizador-envio"
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#f5ebd9] px-7 py-3.5 text-sm font-semibold text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
             >
-              Calcular mi envío
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M5 12h14M12 5l7 7-7 7" />
+              {abierto ? 'Ocultar cotizador' : 'Calcular mi envío'}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+                className={`transition-transform duration-300 ${abierto ? 'rotate-180' : ''}`}
+              >
+                <path d="m6 9 6 6 6-6" />
               </svg>
-            </Link>
+            </button>
+
+            {/* Despliegue a altura automática: el truco de grid-rows 0fr -> 1fr
+                permite animar sin conocer el alto del contenido de antemano
+                (max-height fija cortaría la lista de opciones al cotizar). */}
+            <div
+              id="cotizador-envio"
+              className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${
+                abierto ? 'mt-6 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-5 backdrop-blur-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#d6b26a]">
+                    Cotizá tu envío
+                  </p>
+                  <p className="mt-1 text-xs text-[#f5ebd9]/55">
+                    Ingresá tu código postal. Calculamos desde Salta Capital sobre el peso
+                    del pedido.
+                  </p>
+                  <ShippingCalculator compact tone="oscuro" />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* ---------- Derecha: utilitario que sobresale ---------- */}

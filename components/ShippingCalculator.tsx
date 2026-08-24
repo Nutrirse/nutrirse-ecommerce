@@ -5,7 +5,14 @@ import { useCart, selectPesoTotal } from '@/store/cart';
 import { formatARS } from '@/lib/format';
 import type { ShippingOption } from '@/types';
 
-export default function ShippingCalculator({ compact = false }: { compact?: boolean }) {
+type Props = {
+  /** Sin encabezado ni marco: para embeber dentro de otro bloque. */
+  compact?: boolean;
+  /** `oscuro` invierte la paleta para fondos verdes (banner de logística). */
+  tone?: 'claro' | 'oscuro';
+};
+
+export default function ShippingCalculator({ compact = false, tone = 'claro' }: Props) {
   const { cp, setCp, shipping, setShipping } = useCart();
   const pesoTotal = useCart(selectPesoTotal);
 
@@ -15,6 +22,7 @@ export default function ShippingCalculator({ compact = false }: { compact?: bool
   const [error, setError] = useState<string | null>(null);
 
   const peso = pesoTotal > 0 ? pesoTotal : 5;
+  const dark = tone === 'oscuro';
 
   const cotizar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +46,35 @@ export default function ShippingCalculator({ compact = false }: { compact?: bool
     }
   };
 
+  /* ---------------- Paleta por tono ---------------- */
+  const cls = dark
+    ? {
+        wrap: '',
+        input:
+          'border-white/20 bg-white/10 text-[#f5ebd9] placeholder:text-[#f5ebd9]/45 focus:border-[#d6b26a]',
+        submit: 'bg-[#f5ebd9] text-[#0b1c0f]',
+        error: 'text-red-300',
+        muted: 'text-[#f5ebd9]/55',
+        optOn: 'border-[#d6b26a] bg-[#d6b26a] text-[#0b1c0f]',
+        optOff: 'border-white/15 bg-white/5 text-[#f5ebd9] hover:border-white/35',
+        optSubOn: 'text-[#0b1c0f]/70',
+        optSubOff: 'text-[#f5ebd9]/55',
+      }
+    : {
+        wrap: compact ? '' : 'rounded-2xl border border-black/5 bg-hueso p-6',
+        input: 'border-black/10 bg-crema text-carbon focus:border-carbon',
+        submit: 'bg-carbon text-hueso',
+        error: 'text-red-700',
+        muted: 'text-humo',
+        optOn: 'border-carbon bg-carbon text-hueso',
+        optOff: 'border-black/10 bg-crema text-carbon hover:border-carbon/30',
+        optSubOn: 'text-hueso/70',
+        optSubOff: 'text-humo',
+      };
+
   return (
-    <div className={compact ? '' : 'rounded-2xl border border-black/5 bg-hueso p-6'}>
-      {!compact && (
+    <div className={cls.wrap}>
+      {!compact && !dark && (
         <>
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-tostado">Envíos</p>
           <h3 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold text-carbon">
@@ -59,27 +93,27 @@ export default function ShippingCalculator({ compact = false }: { compact?: bool
           placeholder="Código postal"
           inputMode="numeric"
           aria-label="Código postal"
-          className="h-11 min-w-0 flex-1 rounded-full border border-black/10 bg-crema px-4 text-sm outline-none transition-colors focus:border-carbon"
+          className={`h-11 min-w-0 flex-1 rounded-full border px-4 text-sm outline-none transition-colors ${cls.input}`}
         />
         <button
           type="submit"
           disabled={loading || cp.trim().length < 4}
-          className="h-11 shrink-0 rounded-full bg-carbon px-5 text-sm font-medium text-hueso transition-transform hover:scale-[1.03] active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+          className={`h-11 shrink-0 rounded-full px-5 text-sm font-medium transition-transform hover:scale-[1.03] active:scale-95 disabled:opacity-40 disabled:hover:scale-100 ${cls.submit}`}
         >
           {loading ? 'Cotizando…' : 'Calcular'}
         </button>
       </form>
 
-      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
+      {error && <p className={`mt-3 text-sm ${cls.error}`}>{error}</p>}
 
       {opciones.length > 0 && (
         <div className="mt-5">
           {zona && (
-            <p className="mb-3 text-xs uppercase tracking-wider text-humo">
-              Zona detectada: {zona}
+            <p className={`mb-3 text-xs uppercase tracking-wider ${cls.muted}`}>
+              Zona detectada: {zona} · {peso} kg
             </p>
           )}
-          <ul className="space-y-2">
+          <ul className="grid gap-2 sm:grid-cols-2">
             {opciones.map((o) => {
               const activo = shipping?.id === o.id;
               return (
@@ -87,14 +121,14 @@ export default function ShippingCalculator({ compact = false }: { compact?: bool
                   <button
                     onClick={() => setShipping(activo ? null : o)}
                     className={`flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
-                      activo
-                        ? 'border-carbon bg-carbon text-hueso'
-                        : 'border-black/10 bg-crema hover:border-carbon/30'
+                      activo ? cls.optOn : cls.optOff
                     }`}
                   >
-                    <span>
-                      <span className="block text-sm font-medium">{o.label}</span>
-                      <span className={`block text-xs ${activo ? 'text-hueso/70' : 'text-humo'}`}>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">{o.label}</span>
+                      <span
+                        className={`block text-xs ${activo ? cls.optSubOn : cls.optSubOff}`}
+                      >
                         {o.eta_dias[0]}–{o.eta_dias[1]} días hábiles
                       </span>
                     </span>
@@ -104,7 +138,7 @@ export default function ShippingCalculator({ compact = false }: { compact?: bool
               );
             })}
           </ul>
-          <p className="mt-3 text-xs text-humo">
+          <p className={`mt-3 text-xs ${cls.muted}`}>
             Valores estimados. Se confirman al cerrar el pedido por WhatsApp.
           </p>
         </div>
