@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCart, selectPesoTotal } from '@/store/cart';
 import { formatARS } from '@/lib/format';
 import type { ShippingOption } from '@/types';
@@ -10,9 +10,15 @@ type Props = {
   compact?: boolean;
   /** `oscuro` invierte la paleta para fondos verdes (banner de logística). */
   tone?: 'claro' | 'oscuro';
+  /**
+   * Peso a cotizar, en kg. Si se pasa, pisa el peso del carrito: el modal de
+   * producto cotiza sobre la variante y cantidad que el usuario esta viendo,
+   * que todavia no estan en el carrito.
+   */
+  pesoKg?: number;
 };
 
-export default function ShippingCalculator({ compact = false, tone = 'claro' }: Props) {
+export default function ShippingCalculator({ compact = false, tone = 'claro', pesoKg }: Props) {
   const { cp, setCp, shipping, setShipping } = useCart();
   const pesoTotal = useCart(selectPesoTotal);
 
@@ -21,11 +27,11 @@ export default function ShippingCalculator({ compact = false, tone = 'claro' }: 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const peso = pesoTotal > 0 ? pesoTotal : 5;
+  // Prioridad: peso explicito (modal de producto) > peso del carrito > 5 kg.
+  const peso = pesoKg && pesoKg > 0 ? pesoKg : pesoTotal > 0 ? pesoTotal : 5;
   const dark = tone === 'oscuro';
 
-  const cotizar = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const cotizar = useCallback(async () => {
     setLoading(true);
     setError(null);
     setOpciones([]);
@@ -44,7 +50,27 @@ export default function ShippingCalculator({ compact = false, tone = 'claro' }: 
     } finally {
       setLoading(false);
     }
+  }, [cp, peso]);
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void cotizar();
   };
+
+  /* ---- Re-cotiza cuando cambia el peso (variante o cantidad en el modal).
+         Solo si ya habia una cotizacion en pantalla: mostrar precios de un
+         peso viejo seria peor que no mostrar nada. La opcion elegida se
+         descarta porque su precio ya no corresponde. ---- */
+  const hayCotizacion = opciones.length > 0;
+  const pesoPrevio = useRef(peso);
+  useEffect(() => {
+    if (pesoPrevio.current === peso) return;
+    pesoPrevio.current = peso;
+    if (!hayCotizacion) return;
+    setShipping(null);
+    const t = setTimeout(() => void cotizar(), 250);
+    return () => clearTimeout(t);
+  }, [peso, hayCotizacion, cotizar, setShipping]);
 
   /* ---------------- Paleta por tono ---------------- */
   const cls = dark
@@ -86,7 +112,7 @@ export default function ShippingCalculator({ compact = false, tone = 'claro' }: 
         </>
       )}
 
-      <form onSubmit={cotizar} className="mt-4 flex gap-2">
+      <form onSubmit={onSubmit} className="mt-4 flex gap-2">
         <input
           value={cp}
           onChange={(e) => setCp(e.target.value)}

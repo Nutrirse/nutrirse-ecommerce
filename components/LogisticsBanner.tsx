@@ -31,7 +31,7 @@ export default function LogisticsBanner({ imgSrc = '/chica-nutrirse.png' }: Prop
           />
         </div>
 
-        <div className="relative grid items-center gap-8 px-8 py-12 sm:px-12 md:grid-cols-[1.05fr_1fr] md:py-14">
+        <div className="relative grid items-end gap-8 px-8 py-12 sm:px-12 md:grid-cols-[1.05fr_1fr] md:py-14">
           {/* ---------- Izquierda: texto ---------- */}
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#d6b26a]">
@@ -79,15 +79,19 @@ export default function LogisticsBanner({ imgSrc = '/chica-nutrirse.png' }: Prop
             </Link>
           </div>
 
-          {/* ---------- Derecha: foto que sobresale ---------- */}
-          <div className="relative h-52 sm:h-64 md:h-full md:min-h-[260px]">
+          {/* ---------- Derecha: foto apoyada en la base ----------
+                 La foto va en el flujo (no `absolute`): asi su base queda
+                 exactamente sobre el borde inferior del banner. El `-mb`
+                 cancela el padding vertical del wrapper y el `-mt` la deja
+                 sobresalir por arriba (pop-out). */}
+          <div className="-mb-12 flex justify-center self-end md:-mb-14 md:justify-end">
             <Image
               src={imgSrc}
               alt="Repartidora de Nutrirse sonriendo"
               width={720}
               height={900}
-              sizes="(max-width: 768px) 70vw, 34vw"
-              className="pointer-events-none absolute -top-24 right-0 w-[min(380px,80%)] max-w-none drop-shadow-[0_30px_35px_rgba(0,0,0,0.45)] sm:-top-28 md:-top-32 md:-right-4"
+              sizes="(max-width: 768px) 80vw, 40vw"
+              className="pointer-events-none -mt-16 block w-[min(320px,78%)] max-w-none object-contain object-bottom drop-shadow-[0_30px_35px_rgba(0,0,0,0.45)] sm:-mt-24 sm:w-[min(400px,70%)] md:-mt-40 md:mr-[-1rem] md:w-[min(460px,112%)]"
             />
           </div>
         </div>

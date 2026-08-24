@@ -40,6 +40,15 @@ const FICHA = [
 
 const SALIDA_MS = 320;
 
+/**
+ * Tope de bultos por linea. Arriba de 5 el precio deja de ser de lista y se
+ * cotiza por volumen, que es justamente lo que hace la variante "+5 bultos".
+ * Se ancla al id de variante (`bolsa`), no al label: el label viaja por
+ * `ALIAS_VARIANTE` y puede cambiar sin tocar este archivo.
+ */
+const MAX_BULTOS = 5;
+const AVISO_MS = 2600;
+
 export default function ProductModal({ product, related = [], onClose }: Props) {
   // Producto que se esta viendo. Arranca en el que abrio el drawer y
   // cambia al tocar un similar, sin cerrar ni navegar.
@@ -50,6 +59,8 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [cantidad, setCantidad] = useState(1);
   const [added, setAdded] = useState(false);
+  // Aviso efimero al tocar el tope de bultos.
+  const [aviso, setAviso] = useState<string | null>(null);
   // `shown` maneja la animacion de entrada/salida del panel.
   const [shown, setShown] = useState(false);
   const addItem = useCart((s) => s.addItem);
@@ -58,12 +69,24 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   const closeRef = useRef<HTMLButtonElement>(null);
   const prevFocus = useRef<HTMLElement | null>(null);
   const salidaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const avisoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Contenedor con overflow: en desktop scrollea la columna derecha,
   // en mobile el sheet entero. En los dos casos hay que volver arriba.
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
   const esConsultar = variant?.tipo === 'consultar';
+
+  // Solo el bulto cerrado tiene tope; el 5 kg y la variante a cotizar no.
+  const esBulto = variant?.id === 'bolsa';
+  const maxCantidad = esBulto ? MAX_BULTOS : Infinity;
+  const enTope = cantidad >= maxCantidad;
+  const labelConsultar =
+    variantes.find((v) => v.tipo === 'consultar')?.label ?? '+5 bultos (Consultar)';
+
+  // Peso que se le pasa al cotizador: variante activa x cantidad elegida.
+  // El carrito todavia no tiene este item, asi que su peso no sirve aca.
+  const pesoCotizacion = (variant?.peso_kg ?? 0) * cantidad;
 
   /* ---- Navegacion entre similares ---- */
   const irA = (p: Product) => {
@@ -89,6 +112,13 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activo.id, activo.precios_por_variante]);
 
+  /* ---- Cambio de variante: si la nueva tiene tope y la cantidad quedo
+         por encima, se recorta. Sin esto se podria pasar de "5 kg x 8" a
+         "Bulto Cerrado x 8" esquivando el limite. ---- */
+  useEffect(() => {
+    if (esBulto) setCantidad((c) => Math.min(c, MAX_BULTOS));
+  }, [esBulto, variantId]);
+
   /* ---- Entrada: se pinta cerrado y en el frame siguiente se abre,
          asi la transicion CSS tiene un estado inicial del que partir. ---- */
   useEffect(() => {
@@ -113,6 +143,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
       document.body.style.paddingRight = prevPad;
       prevFocus.current?.focus();
       if (salidaTimer.current) clearTimeout(salidaTimer.current);
+      if (avisoTimer.current) clearTimeout(avisoTimer.current);
     };
   }, []);
 
@@ -149,6 +180,21 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
     },
     [requestClose]
   );
+
+  const mostrarAviso = (texto: string) => {
+    setAviso(texto);
+    if (avisoTimer.current) clearTimeout(avisoTimer.current);
+    avisoTimer.current = setTimeout(() => setAviso(null), AVISO_MS);
+  };
+
+  const sumar = () => {
+    if (enTope) {
+      mostrarAviso(`Para más de ${MAX_BULTOS} bultos, elegí la opción "${labelConsultar}".`);
+      return;
+    }
+    setAviso(null);
+    setCantidad((c) => c + 1);
+  };
 
   if (!variant) return null;
 
@@ -207,22 +253,18 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
           </svg>
         </button>
 
-        {/* Contenedor de scroll del drawer. En desktop es grilla 50/50 y
-            el scroll es unico para las dos columnas: la izquierda ahora
-            lleva la ficha de Descripcion, asi que ya no puede ir `sticky`
-            (quedaria recortada por el alto del panel). */}
+        {/* Contenedor de scroll del drawer. En desktop es grilla 50/50:
+            la columna izquierda queda `sticky` y la derecha es la unica
+            que corre bajo el cursor. */}
         <div
           ref={scrollRef}
-          className="thin-scroll flex h-full flex-col overflow-y-auto overscroll-contain md:grid md:grid-cols-2"
+          className="thin-scroll h-full overflow-y-auto overscroll-contain md:grid md:grid-cols-2"
         >
-          {/* ---------- Izquierda: imagen + Descripcion.
-                 `md:self-start` evita que la grilla estire esta columna al
-                 alto de la derecha; la imagen mantiene relacion 1:1. ---------- */}
-          {/* En mobile la columna es `contents`: sus dos hijos entran al flex
-              del contenedor y se reordenan, para que la ficha no se meta
-              entre la foto y el precio. En desktop vuelve a ser una columna. */}
-          <div className="contents md:block md:self-start md:p-5">
-            <div className="relative order-1 mx-4 mt-4 aspect-square w-[calc(100%-2rem)] shrink-0 overflow-hidden rounded-2xl bg-gray-50 shadow-sm md:order-none md:mx-0 md:mt-0 md:w-full">
+          {/* ---------- Izquierda: imagen, fija mientras la derecha scrollea.
+                 `md:self-start` + `md:top-4` la dejan pegada arriba sin que
+                 la grilla la estire al alto de la columna derecha. ---------- */}
+          <div className="p-4 md:sticky md:top-4 md:self-start md:p-6">
+            <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-gray-50 shadow-sm">
               {activo.imagen_url ? (
                 <Image
                   src={activo.imagen_url}
@@ -230,7 +272,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                   fill
                   sizes="(max-width: 768px) 100vw, 45vw"
                   priority
-                  className="object-contain p-4 md:p-6"
+                  className="object-contain p-3 md:p-4"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">
@@ -241,26 +283,10 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
               )}
             </div>
 
-            {/* ---------- Descripción ---------- */}
-            <section className="order-3 mx-6 mt-10 border-t border-gray-100 pb-10 pt-8 sm:mx-10 md:order-none md:mx-0 md:pb-0">
-              <h3 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-black">
-                Descripción
-              </h3>
-              <dl className="mt-5 space-y-5">
-                {FICHA.map((f) => (
-                  <div key={f.titulo}>
-                    <dt className="text-xs font-semibold uppercase tracking-wider text-tostado">
-                      {f.titulo}
-                    </dt>
-                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-600">{f.texto}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
           </div>
 
-          {/* ---------- Derecha: info ---------- */}
-          <div className="order-2 flex flex-col p-6 sm:p-10 md:order-none md:py-10 md:pl-4 md:pr-10">
+          {/* ---------- Derecha: info, cotizador y ficha ---------- */}
+          <div className="flex flex-col p-6 sm:p-10 md:py-10 md:pl-4 md:pr-10">
             {historial.length > 0 && (
               <button
                 onClick={volver}
@@ -348,15 +374,29 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                   −
                 </button>
                 <span className="w-10 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
+                {/* En el tope no se deshabilita: el click tiene que poder
+                    disparar el aviso que explica adonde ir. */}
                 <button
-                  onClick={() => setCantidad((c) => c + 1)}
+                  onClick={sumar}
                   aria-label="Sumar"
-                  className="h-11 w-11 rounded-full text-gray-500 transition-colors hover:text-black"
+                  aria-disabled={enTope}
+                  className={`h-11 w-11 rounded-full transition-colors ${
+                    enTope ? 'cursor-not-allowed text-gray-300' : 'text-gray-500 hover:text-black'
+                  }`}
                 >
                   +
                 </button>
               </div>
             </div>
+
+            {aviso && (
+              <p
+                role="status"
+                className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800"
+              >
+                {aviso}
+              </p>
+            )}
 
             {!esConsultar && cantidad > 1 && (
               <p className="mt-2 text-right text-sm text-gray-500">
@@ -380,10 +420,29 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                 Calculá el envío
               </p>
               <p className="mt-1 text-xs text-gray-500">
-                Despachamos desde Salta Capital. La cotización usa el peso del carrito.
+                Despachamos desde Salta Capital. Cotización sobre{' '}
+                <span className="font-semibold text-gray-700">{pesoCotizacion} kg</span> ({cantidad}{' '}
+                × {variant.label} de {variant.peso_kg} kg).
               </p>
-              <ShippingCalculator compact />
+              <ShippingCalculator compact pesoKg={pesoCotizacion} />
             </div>
+
+            {/* ---------- Descripción ---------- */}
+            <section className="mt-8 border-t border-gray-100 pt-8">
+              <h3 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-black">
+                Descripción
+              </h3>
+              <dl className="mt-5 space-y-5">
+                {FICHA.map((f) => (
+                  <div key={f.titulo}>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-tostado">
+                      {f.titulo}
+                    </dt>
+                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-600">{f.texto}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
 
             {/* ---------- Productos similares ---------- */}
             {similares.length > 0 && (
