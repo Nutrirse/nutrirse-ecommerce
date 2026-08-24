@@ -26,17 +26,14 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 md:grid-cols-3">
         {/* ---------- Col 1 · marca ---------- */}
         <div>
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="inline-flex items-center" aria-label="Nutrirse - Inicio">
             <Image
               src="/Logo.png"
               alt="Nutrirse"
-              width={48}
-              height={48}
-              className="h-11 w-11 object-contain"
+              width={280}
+              height={280}
+              className="h-20 w-auto object-contain"
             />
-            <span className="font-[family-name:var(--font-display)] text-2xl font-semibold">
-              Nutrirse<span className="text-[#d6b26a]">.</span>
-            </span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-[#f5ebd9]/60">
             Distribuidora mayorista de frutos secos, desecados y semillas.

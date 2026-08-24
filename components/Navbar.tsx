@@ -137,24 +137,17 @@ export default function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:h-20 sm:px-8">
         {/* ---------- Logo ---------- */}
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link href="/" className="flex shrink-0 items-center" aria-label="Nutrirse - Inicio">
           <Image
             src="/Logo.png"
             alt="Nutrirse"
-            width={40}
-            height={40}
+            width={220}
+            height={220}
             priority
-            className="h-9 w-9 object-contain"
+            className="h-12 w-auto object-contain transition-all duration-300 sm:h-14"
           />
-          <span
-            className={`font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight transition-colors ${
-              overHero ? 'text-[#f5ebd9]' : 'text-nuez'
-            }`}
-          >
-            Nutrirse<span className="text-tostado">.</span>
-          </span>
         </Link>
 
         {/* ---------- Nav desktop ---------- */}

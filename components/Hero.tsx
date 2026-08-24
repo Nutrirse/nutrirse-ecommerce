@@ -74,78 +74,85 @@ const SLIDES: Slide[] = [
 /* ------------------------------------------------------------------ */
 
 /**
- * plano  = 'lente' (foreground extremo, rozando la camara) | 'medio' | 'fondo'
- * size   = escala real via ancho. Se usa ancho y NO `scale` para no pelear
- *          con ningun transform de GSAP.
- * dir    = sentido del vuelo continuo (1 der, -1 izq).
- * speed  = segundos en cruzar el ciclo completo. Mas alto = mas lento.
+ * capa  = 'frente' (z-20, delante del doypack, pegados a los costados)
+ *         'atras'  (z-5, entre el titulo y el doypack: cruzan por detras)
+ * modo  = 'flota' -> deriva local, se queda en su rincon
+ *         'cruza' -> travesia horizontal infinita (solo en capa 'atras',
+ *                    asi ningun fruto pasa por delante del producto)
+ * size  = escala real via ancho, no via `scale`, para no pelear con GSAP.
  */
 type Slot = {
-  plano: 'lente' | 'medio' | 'fondo';
+  capa: 'frente' | 'atras';
+  modo: 'flota' | 'cruza';
   style: React.CSSProperties;
   size: string;
   blur: number;
-  opacity: number;
-  dir: 1 | -1;
-  speed: number;
-  bob: number;
+  sway: number;   // deriva horizontal (modo flota)
+  bob: number;    // cabeceo vertical
+  dir: 1 | -1;    // sentido (modo cruza)
+  speed: number;  // segundos de ciclo (modo cruza)
 };
 
 const SLOTS: Slot[] = [
-  // --- Foreground extremo: enorme, casi fuera de cuadro, muy desenfocado ---
+  // --- Costados, POR DELANTE del doypack (z-20). Nitidos, sin blur:
+  //     la profundidad la da el z-index y la escala, no el desenfoque. ---
   {
-    plano: 'lente',
-    style: { top: '-8%', left: '-12%' },
-    size: 'clamp(300px, 42vw, 640px)',
-    blur: 12,
-    opacity: 0.85,
+    capa: 'frente',
+    modo: 'flota',
+    style: { top: '-4%', left: '-8%' },
+    size: 'clamp(210px, 27vw, 430px)',
+    blur: 0,
+    sway: 26,
+    bob: 40,
     dir: 1,
-    speed: 78,
-    bob: 46,
+    speed: 0,
   },
   {
-    plano: 'lente',
-    style: { bottom: '-14%', right: '-10%' },
-    size: 'clamp(320px, 46vw, 700px)',
-    blur: 9,
-    opacity: 0.9,
+    capa: 'frente',
+    modo: 'flota',
+    style: { bottom: '-9%', right: '-6%' },
+    size: 'clamp(230px, 30vw, 470px)',
+    blur: 0,
+    sway: 30,
+    bob: 34,
     dir: -1,
-    speed: 92,
-    bob: 38,
-  },
-
-  // --- Mid-ground ---
-  {
-    plano: 'medio',
-    style: { top: '14%', right: '7%' },
-    size: 'clamp(96px, 13vw, 220px)',
-    blur: 1.5,
-    opacity: 1,
-    dir: -1,
-    speed: 54,
-    bob: 22,
+    speed: 0,
   },
   {
-    plano: 'medio',
-    style: { bottom: '22%', left: '13%' },
-    size: 'clamp(84px, 11vw, 186px)',
-    blur: 3,
-    opacity: 1,
-    dir: 1,
-    speed: 61,
+    capa: 'frente',
+    modo: 'flota',
+    style: { bottom: '21%', left: '8%' },
+    size: 'clamp(84px, 11vw, 180px)',
+    blur: 0,
+    sway: 34,
     bob: 26,
+    dir: 1,
+    speed: 0,
   },
 
-  // --- Background: chico y difuso ---
+  // --- Cruzan la pantalla POR DETRAS del doypack. Mas chicos: el
+  //     tamano menor es lo que los manda al fondo, no el blur. ---
   {
-    plano: 'fondo',
-    style: { top: '54%', left: '7%' },
-    size: 'clamp(54px, 7vw, 124px)',
-    blur: 5.5,
-    opacity: 0.75,
+    capa: 'atras',
+    modo: 'cruza',
+    style: { top: '24%' },
+    size: 'clamp(72px, 9vw, 160px)',
+    blur: 0,
+    sway: 0,
+    bob: 20,
+    dir: -1,
+    speed: 58,
+  },
+  {
+    capa: 'atras',
+    modo: 'cruza',
+    style: { top: '64%' },
+    size: 'clamp(52px, 6.5vw, 112px)',
+    blur: 0,
+    sway: 0,
+    bob: 16,
     dir: 1,
-    speed: 47,
-    bob: 18,
+    speed: 46,
   },
 ];
 
@@ -177,9 +184,8 @@ export default function Hero() {
       if (reduce) return;
 
       /* ---- Levitacion idle del doypack.
-             Vive en `.doypack-float`, un elemento distinto del wrapper
-             `[data-doypack]` que anima la transicion: dos transforms
-             independientes, cero colision. ---- */
+             Vive en `.doypack-float`, elemento distinto del wrapper
+             `[data-doypack]` que anima la transicion: sin colision. ---- */
       gsap.to(q('.doypack-float'), {
         y: -24,
         duration: 3.2,
@@ -188,51 +194,63 @@ export default function Hero() {
         yoyo: true,
       });
 
-      /* ---- Vuelo continuo de los frutos.
+      /* ---- Movimiento de los frutos.
              Corre en `.fruit-drift` (interno) y NUNCA se toca al cambiar de
              slide: la transicion solo cruza opacidad en `.fruit` (externo).
-             Por eso el vuelo no da tirones ni se reinicia.
-
-             Los tweens se agrupan por slide para poder pausar los que no
-             estan a la vista: 20 tweens infinitos corriendo a la vez son
-             20 recalculos de transform por frame para nada. ---- */
+             Se agrupan por slide para pausar los que no estan a la vista. ---- */
       const W = window.innerWidth;
       drifts.current = SLIDES.map(() => []);
 
       SLIDES.forEach((_, si) => {
         q(`[data-slide="${si}"] .fruit-drift`).forEach((el) => {
           const d = (el as HTMLElement).dataset;
-          const dir = Number(d.dir ?? 1);
-          const speed = Number(d.speed ?? 60);
+          const modo = d.modo ?? 'flota';
           const bob = Number(d.bob ?? 20);
 
-          // Rango de wrap: bien fuera de cuadro, asi el salto del ciclo
-          // ocurre siempre fuera de la pantalla y no se ve.
-          const span = W * 0.9 + 700;
-          const wrap = gsap.utils.wrap(-span, span);
-
-          gsap.set(el, { x: gsap.utils.random(-span, span) });
-
-          // Travesia horizontal infinita.
-          const cruce = gsap.to(el, {
-            x: `+=${dir * span * 2}`,
-            duration: speed,
-            ease: 'none',
-            repeat: -1,
-            modifiers: { x: (v) => `${wrap(parseFloat(v))}px` },
-          });
-
-          // Cabeceo vertical suave, desacoplado del avance horizontal.
+          // Cabeceo vertical, comun a los dos modos.
           const cabeceo = gsap.to(el, {
             y: -bob,
-            rotate: gsap.utils.random(-6, 6),
-            duration: gsap.utils.random(5, 9),
+            rotate: gsap.utils.random(-7, 7),
+            duration: gsap.utils.random(4.5, 8),
             ease: 'sine.inOut',
             repeat: -1,
             yoyo: true,
           });
+          cabeceo.progress(Math.random()); // desincroniza el arranque
 
-          drifts.current[si].push(cruce, cabeceo);
+          let horizontal: gsap.core.Tween;
+
+          if (modo === 'cruza') {
+            const dir = Number(d.dir ?? 1);
+            const speed = Number(d.speed ?? 55);
+            // Rango de wrap bien fuera de cuadro: el salto del ciclo
+            // ocurre siempre fuera de pantalla y no se ve.
+            const span = W * 0.9 + 700;
+            const wrap = gsap.utils.wrap(-span, span);
+
+            gsap.set(el, { x: gsap.utils.random(-span, span) });
+
+            horizontal = gsap.to(el, {
+              x: `+=${dir * span * 2}`,
+              duration: speed,
+              ease: 'none',
+              repeat: -1,
+              modifiers: { x: (v) => `${wrap(parseFloat(v))}px` },
+            });
+          } else {
+            // Deriva local: se queda en su rincon, nunca invade el centro.
+            const sway = Number(d.sway ?? 24);
+            horizontal = gsap.to(el, {
+              x: sway,
+              duration: gsap.utils.random(6, 11),
+              ease: 'sine.inOut',
+              repeat: -1,
+              yoyo: true,
+            });
+            horizontal.progress(Math.random());
+          }
+
+          drifts.current[si].push(horizontal, cabeceo);
         });
 
         // Arranca solo el slide visible.
@@ -286,8 +304,7 @@ export default function Hero() {
     });
     tlRef.current = tl;
 
-    /* --- Doypack: la bolsa actual baja y se desvanece; la nueva sube
-           desde abajo. Una sola imagen por slide, sin capas 3D. --- */
+    /* --- Doypack: la bolsa actual baja y se desvanece; la nueva sube. --- */
     tl.to(
       q(`[data-doypack="${cur}"]`),
       { yPercent: 100, autoAlpha: 0, duration: DUR.out, ease: 'power2.in' },
@@ -299,7 +316,7 @@ export default function Hero() {
       DUR.out * 0.65
     );
 
-    /* --- Titulo de fondo: sale hacia arriba, entra desde abajo --- */
+    /* --- Titulo de fondo --- */
     tl.to(
       q(`[data-title="${cur}"]`),
       { yPercent: -38, autoAlpha: 0, duration: 0.4, ease: 'power2.in' },
@@ -311,8 +328,7 @@ export default function Hero() {
       0.32
     );
 
-    /* --- Frutos: SOLO cruce de opacidad. No se tocan x/y/rotate, asi el
-           vuelo continuo sigue corriendo sin cortes ni reinicios. --- */
+    /* --- Frutos: SOLO cruce de opacidad, el movimiento sigue corriendo. --- */
     tl.to(
       q(`[data-slide="${cur}"] .fruit`),
       { autoAlpha: 0, duration: DUR.fade, ease: 'power1.inOut', stagger: 0.05 },
@@ -329,10 +345,46 @@ export default function Hero() {
 
   /* ---------------------------- Render ---------------------------- */
 
+  // Un mismo renderer para las dos capas de frutos.
+  const renderFrutos = (s: Slide, si: number, capa: 'frente' | 'atras') =>
+    s.floatingImgs.map((src, fi) => {
+      const slot = SLOTS[fi % SLOTS.length];
+      if (slot.capa !== capa) return null;
+      return (
+        // .fruit       -> solo opacidad (transicion de slide)
+        // .fruit-drift -> movimiento continuo, nunca interrumpido
+        <div key={src} className="fruit absolute" style={{ ...slot.style, width: slot.size }}>
+          <div
+            className="fruit-drift will-change-transform"
+            data-modo={slot.modo}
+            data-dir={slot.dir}
+            data-speed={slot.speed}
+            data-sway={slot.sway}
+            data-bob={slot.bob}
+            style={{
+              filter: slot.blur
+                ? `blur(${slot.blur}px) drop-shadow(0 20px 28px rgba(0,0,0,0.5))`
+                : 'drop-shadow(0 20px 28px rgba(0,0,0,0.5))',
+            }}
+          >
+            <Image
+              src={src}
+              alt=""
+              width={720}
+              height={720}
+              priority={si === 0 && capa === 'frente'}
+              sizes={capa === 'frente' ? '32vw' : '12vw'}
+              className="h-auto w-full object-contain"
+            />
+          </div>
+        </div>
+      );
+    });
+
   return (
     <section
       ref={root}
-      className="relative min-h-[100svh] overflow-hidden bg-gradient-to-b from-[#1e4a28] via-[#143620] to-[#0b1c0f] pt-16"
+      className="relative min-h-[100svh] overflow-hidden bg-gradient-to-b from-[#1e4a28] via-[#143620] to-[#0b1c0f] pt-16 sm:pt-20"
       aria-roledescription="carousel"
       aria-label="Productos destacados"
     >
@@ -352,7 +404,7 @@ export default function Hero() {
           <h1
             key={s.id}
             data-title={i}
-            className="absolute select-none whitespace-nowrap px-4 text-center font-[family-name:var(--font-display)] text-[clamp(2.4rem,12vw,11rem)] font-bold leading-none tracking-tight text-[#f5ebd9]/12"
+            className="absolute select-none whitespace-nowrap px-4 text-center font-[family-name:var(--font-display)] text-[clamp(2.4rem,11vw,10.5rem)] font-semibold uppercase leading-none tracking-tight text-[#f5ebd9]/14"
             aria-hidden={i !== active}
           >
             {s.title}
@@ -361,7 +413,16 @@ export default function Hero() {
         <span className="sr-only">{SLIDES[active].title.replace(/\s+/g, '')}</span>
       </div>
 
-      {/* ---------- Z-10 · doypack central (una sola imagen por slide) ---------- */}
+      {/* ---------- Z-5 · frutos que cruzan POR DETRÁS del doypack ---------- */}
+      <div className="pointer-events-none absolute inset-0 z-[5]">
+        {SLIDES.map((s, si) => (
+          <div key={s.id} data-slide={si} className="absolute inset-0">
+            {renderFrutos(s, si, 'atras')}
+          </div>
+        ))}
+      </div>
+
+      {/* ---------- Z-10 · doypack central ---------- */}
       <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
         <div className="relative h-[26rem] w-[22rem] sm:h-[32rem] sm:w-[26rem] md:h-[38rem] md:w-[30rem]">
           {SLIDES.map((s, i) => (
@@ -381,43 +442,11 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* ---------- Z-20 · frutos flotantes ---------- */}
+      {/* ---------- Z-20 · frutos flotando por los costados ---------- */}
       <div className="pointer-events-none absolute inset-0 z-20">
         {SLIDES.map((s, si) => (
           <div key={s.id} data-slide={si} className="absolute inset-0">
-            {s.floatingImgs.map((src, fi) => {
-              const slot = SLOTS[fi % SLOTS.length];
-              return (
-                // .fruit  -> solo opacidad (transicion de slide)
-                // .fruit-drift -> vuelo continuo, nunca interrumpido
-                <div
-                  key={src}
-                  className="fruit absolute"
-                  style={{ ...slot.style, width: slot.size }}
-                >
-                  <div
-                    className="fruit-drift will-change-transform"
-                    data-dir={slot.dir}
-                    data-speed={slot.speed}
-                    data-bob={slot.bob}
-                    style={{
-                      filter: `blur(${slot.blur}px) drop-shadow(0 18px 26px rgba(0,0,0,0.45))`,
-                      opacity: slot.opacity,
-                    }}
-                  >
-                    <Image
-                      src={src}
-                      alt=""
-                      width={720}
-                      height={720}
-                      priority={si === 0 && slot.plano === 'lente'}
-                      sizes={slot.plano === 'lente' ? '46vw' : '14vw'}
-                      className="h-auto w-full object-contain"
-                    />
-                  </div>
-                </div>
-              );
-            })}
+            {renderFrutos(s, si, 'frente')}
           </div>
         ))}
       </div>

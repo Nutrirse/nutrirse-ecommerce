@@ -118,7 +118,7 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* El modal se monta solo despues del primer clic: no paga costo
           de render por cada tarjeta de la grilla. */}
       {modalOpen && (
-        <ProductModal product={product} open={modalOpen} onClose={() => setModalOpen(false)} />
+        <ProductModal product={product} onClose={() => setModalOpen(false)} />
       )}
     </>
   );
