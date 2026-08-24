@@ -207,18 +207,22 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
           </svg>
         </button>
 
-        {/* Contenedor de scroll del drawer. En desktop es grilla 50/50:
-            la columna izquierda queda `sticky` y la derecha es la unica
-            que corre bajo el cursor. */}
+        {/* Contenedor de scroll del drawer. En desktop es grilla 50/50 y
+            el scroll es unico para las dos columnas: la izquierda ahora
+            lleva la ficha de Descripcion, asi que ya no puede ir `sticky`
+            (quedaria recortada por el alto del panel). */}
         <div
           ref={scrollRef}
-          className="thin-scroll h-full overflow-y-auto overscroll-contain md:grid md:grid-cols-2"
+          className="thin-scroll flex h-full flex-col overflow-y-auto overscroll-contain md:grid md:grid-cols-2"
         >
-          {/* ---------- Izquierda: imagen, fija.
-                 `md:h-[calc(100dvh-2rem)]` iguala el alto del panel: si se
-                 usara h-dvh, el sticky sobresaldria del contenedor. ---------- */}
-          <div className="p-4 md:sticky md:top-0 md:h-[calc(100dvh-2rem)] md:self-start md:p-5">
-            <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 shadow-sm md:aspect-auto md:h-full">
+          {/* ---------- Izquierda: imagen + Descripcion.
+                 `md:self-start` evita que la grilla estire esta columna al
+                 alto de la derecha; la imagen mantiene relacion 1:1. ---------- */}
+          {/* En mobile la columna es `contents`: sus dos hijos entran al flex
+              del contenedor y se reordenan, para que la ficha no se meta
+              entre la foto y el precio. En desktop vuelve a ser una columna. */}
+          <div className="contents md:block md:self-start md:p-5">
+            <div className="relative order-1 mx-4 mt-4 aspect-square w-[calc(100%-2rem)] shrink-0 overflow-hidden rounded-2xl bg-gray-50 shadow-sm md:order-none md:mx-0 md:mt-0 md:w-full">
               {activo.imagen_url ? (
                 <Image
                   src={activo.imagen_url}
@@ -236,10 +240,27 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                 </div>
               )}
             </div>
+
+            {/* ---------- Descripción ---------- */}
+            <section className="order-3 mx-6 mt-10 border-t border-gray-100 pb-10 pt-8 sm:mx-10 md:order-none md:mx-0 md:pb-0">
+              <h3 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-black">
+                Descripción
+              </h3>
+              <dl className="mt-5 space-y-5">
+                {FICHA.map((f) => (
+                  <div key={f.titulo}>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-tostado">
+                      {f.titulo}
+                    </dt>
+                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-600">{f.texto}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
           </div>
 
-          {/* ---------- Derecha: info, scrollea ---------- */}
-          <div className="flex flex-col p-6 sm:p-10 md:py-10 md:pl-4 md:pr-10">
+          {/* ---------- Derecha: info ---------- */}
+          <div className="order-2 flex flex-col p-6 sm:p-10 md:order-none md:py-10 md:pl-4 md:pr-10">
             {historial.length > 0 && (
               <button
                 onClick={volver}
@@ -363,23 +384,6 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
               </p>
               <ShippingCalculator compact />
             </div>
-
-            {/* ---------- Descripción ---------- */}
-            <section className="mt-10 border-t border-gray-100 pt-8">
-              <h3 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-black">
-                Descripción
-              </h3>
-              <dl className="mt-5 space-y-5">
-                {FICHA.map((f) => (
-                  <div key={f.titulo}>
-                    <dt className="text-xs font-semibold uppercase tracking-wider text-tostado">
-                      {f.titulo}
-                    </dt>
-                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-600">{f.texto}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
 
             {/* ---------- Productos similares ---------- */}
             {similares.length > 0 && (

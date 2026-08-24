@@ -15,7 +15,7 @@ const PUNTOS = [
   'Retiro sin cargo en depósito',
 ];
 
-export default function LogisticsBanner({ imgSrc = '/images/utilitario.png' }: Props) {
+export default function LogisticsBanner({ imgSrc = '/utilitario.png' }: Props) {
   const [abierto, setAbierto] = useState(false);
 
   return (
