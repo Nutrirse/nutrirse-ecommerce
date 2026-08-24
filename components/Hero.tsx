@@ -478,12 +478,12 @@ export default function Hero() {
             key={s.id}
             data-label={i}
             aria-hidden={i !== active}
-            className="absolute right-[6%] top-[22%] origin-bottom-right select-none text-right sm:right-[10%] sm:top-[26%] lg:right-[15%]"
+            className="absolute right-[8%] top-[22%] origin-bottom-right select-none text-right sm:right-[14%] sm:top-[26%] lg:right-[19%]"
           >
             <p className="font-[family-name:var(--font-hand)] text-[clamp(2.4rem,5.5vw,4.5rem)] font-semibold leading-none text-[#f5ebd9] drop-shadow-[0_4px_14px_rgba(0,0,0,0.45)]">
               {s.label}
             </p>
-            <HandArrow className="mt-1 mr-6 ml-auto h-[clamp(56px,9vw,120px)] w-auto scale-x-[-1] text-[#f5ebd9]/80 sm:mr-10" />
+            <HandArrow className="mt-1 mr-2 ml-auto h-[clamp(56px,9vw,120px)] w-auto scale-x-[-1] text-[#f5ebd9]/80 sm:mr-4" />
           </div>
         ))}
         <h1 className="sr-only">

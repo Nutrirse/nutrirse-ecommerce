@@ -1,7 +1,8 @@
 import Hero from '@/components/Hero';
 import HomeProducts from '@/components/HomeProducts';
+import LogisticsBanner from '@/components/LogisticsBanner';
 import ShippingCalculator from '@/components/ShippingCalculator';
-import { getProducts, CATALOG_REVALIDATE } from '@/lib/products';
+import { getProducts } from '@/lib/products';
 
 // ISR: el catalogo se regenera cada hora en el edge de Vercel.
 export const revalidate = 3600;
@@ -14,13 +15,16 @@ export default async function Home() {
     <>
       <Hero />
       <HomeProducts products={products} />
+      <LogisticsBanner />
 
-      <section id="envios" className="scroll-mt-20 bg-hueso py-20 sm:py-24">
+      <section id="envios" className="scroll-mt-24 bg-hueso py-20 sm:py-24">
         <div className="mx-auto grid max-w-7xl items-start gap-10 px-5 sm:px-8 lg:grid-cols-2">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-tostado">Logística</p>
-            <h2 className="mt-3 font-[family-name:var(--font-display)] text-[clamp(2rem,4.5vw,3rem)] font-semibold leading-[1.05] tracking-tight text-carbon">
-              De Salta a todo el país.
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-tostado">
+              Costos de envío
+            </p>
+            <h2 className="mt-3 font-[family-name:var(--font-hand)] text-[clamp(2.4rem,5.5vw,3.8rem)] font-semibold leading-[1.05] text-carbon">
+              Calculá tu envío
             </h2>
             <p className="mt-4 max-w-md leading-relaxed text-humo">
               Trabajamos con Andreani, OCA y Correo Argentino, a domicilio o retiro
@@ -28,7 +32,7 @@ export default async function Home() {
             </p>
             <ul className="mt-7 space-y-3 text-sm text-humo">
               {[
-                'Embalaje reforzado para bolsas de 25 kg',
+                'Embalaje reforzado para bultos completos',
                 'Seguimiento por número de guía',
                 'Retiro sin cargo en depósito (Salta Capital)',
               ].map((t) => (
