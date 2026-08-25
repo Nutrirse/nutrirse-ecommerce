@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import CartDrawer from '@/components/CartDrawer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import Footer from '@/components/Footer';
+import SoloSitioPublico from '@/components/SoloSitioPublico';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nutrirse.vercel.app'),
@@ -37,11 +38,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-dvh antialiased">
-        <Navbar />
+        <SoloSitioPublico>
+          <Navbar />
+        </SoloSitioPublico>
         <main>{children}</main>
-        <Footer />
-        <CartDrawer />
-        <FloatingWhatsApp />
+        <SoloSitioPublico>
+          <Footer />
+          <CartDrawer />
+          <FloatingWhatsApp />
+        </SoloSitioPublico>
       </body>
     </html>
   );
