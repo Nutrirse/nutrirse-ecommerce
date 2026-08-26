@@ -3,8 +3,20 @@ import CatalogView from '@/components/CatalogView';
 import { getProducts } from '@/lib/products';
 
 export const metadata: Metadata = {
-  title: 'Productos',
-  description: 'Catálogo mayorista completo: frutos secos, desecados, semillas y más.',
+  title: 'Catálogo Mayorista',
+  description:
+    'Catálogo mayorista completo de Nutrirse: frutos secos, frutas desecadas, semillas, ' +
+    'granolas e insumos de repostería. Precios por 5 kg, bulto cerrado y volumen, con envío ' +
+    'desde Salta a todo el país.',
+  // Sin esto hereda el canonical del layout ('/') y las dos URLs competirían.
+  alternates: { canonical: '/productos' },
+  openGraph: {
+    title: 'Catálogo Mayorista | Nutrirse',
+    description:
+      'Frutos secos, desecados y semillas por mayor. Mínimo 5 kg, envíos a todo el país.',
+    url: '/productos',
+    type: 'website',
+  },
 };
 
 export const revalidate = 3600;

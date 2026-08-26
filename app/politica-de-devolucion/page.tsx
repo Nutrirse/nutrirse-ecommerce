@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Políticas de Devolución y Envíos',
   description:
     'Condiciones de cambio, devolución, plazos de reclamo y reembolsos para compras mayoristas en Nutrirse.',
+  alternates: { canonical: '/politica-de-devolucion' },
 };
 
 const SECCIONES = [

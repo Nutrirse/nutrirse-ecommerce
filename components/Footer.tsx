@@ -127,7 +127,7 @@ export default function Footer() {
 
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-6 text-xs text-[#f5ebd9]/40 sm:flex-row sm:px-8">
-          <p>© {new Date().getFullYear()} Nutrirse. Todos los derechos reservados.</p>
+          <p>© 2026 Nutrirse Hoy . By Maxing Agent . Todos los derechos reservados.</p>
           <p>Precios sin IVA sujetos a modificación sin previo aviso.</p>
         </div>
       </div>

@@ -70,3 +70,45 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
   return data ? normalizar(data as Product) : null;
 }
+
+/**
+ * Categorias con producto activo, y cuando se toco cada una por ultima vez.
+ * Lo consume el sitemap: `lastModified` real le dice a Google que vuelva a
+ * pasar cuando cambio un precio, en vez de poner la fecha de hoy siempre
+ * (una fecha que siempre cambia es ruido y termina ignorandose).
+ */
+export type CategoriaSitemap = { categoria: string; lastModified: Date };
+
+export async function getCategoriasParaSitemap(): Promise<CategoriaSitemap[]> {
+  type Fila = { categoria: string | null; updated_at?: string | null };
+
+  let filas: Fila[];
+
+  if (!isSupabaseConfigured || !supabase) {
+    filas = FALLBACK_PRODUCTS.map((p) => ({ categoria: p.categoria }));
+  } else {
+    const { data, error } = await supabase
+      .from('products')
+      .select('categoria, updated_at')
+      .eq('activo', true);
+
+    if (error) {
+      console.error('[products] supabase error:', error.message);
+      filas = FALLBACK_PRODUCTS.map((p) => ({ categoria: p.categoria }));
+    } else {
+      filas = (data ?? []) as Fila[];
+    }
+  }
+
+  const porCategoria = new Map<string, Date>();
+  for (const f of filas) {
+    if (!f.categoria) continue;
+    const fecha = f.updated_at ? new Date(f.updated_at) : new Date();
+    const previa = porCategoria.get(f.categoria);
+    if (!previa || fecha > previa) porCategoria.set(f.categoria, fecha);
+  }
+
+  return [...porCategoria.entries()]
+    .map(([categoria, lastModified]) => ({ categoria, lastModified }))
+    .sort((a, b) => a.categoria.localeCompare(b.categoria));
+}

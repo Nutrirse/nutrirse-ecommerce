@@ -4,6 +4,8 @@ import CheckoutForm from '@/components/CheckoutForm';
 export const metadata: Metadata = {
   title: 'Checkout',
   description: 'Completá tus datos y cerrá el pedido mayorista por WhatsApp.',
+  // Paso de compra: no tiene nada que hacer en resultados de búsqueda.
+  robots: { index: false, follow: true },
 };
 
 export default function CheckoutPage() {

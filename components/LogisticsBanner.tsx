@@ -7,7 +7,7 @@ type Props = {
 };
 
 const PUNTOS = [
-  'Andreani · OCA · Correo Argentino',
+  'Andreani, OCA, Correo Argentino, Buspack, Flechabus, entre otras.',
   'Despacho en 24 h hábiles',
   'Retiro sin cargo en depósito',
 ];

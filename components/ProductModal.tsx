@@ -14,30 +14,6 @@ type Props = {
   onClose: () => void;
 };
 
-/** Fichas de la sección Descripción. Texto genérico por producto. */
-const FICHA = [
-  {
-    titulo: 'Beneficios',
-    texto:
-      'Fuente natural de grasas saludables, fibra y proteína vegetal. Producto seleccionado y clasificado por calibre, sin conservantes ni aditivos agregados.',
-  },
-  {
-    titulo: 'Usos',
-    texto:
-      'Consumo directo, fraccionado para venta al público, repostería, panificación, elaboración de mixes y barras de cereal.',
-  },
-  {
-    titulo: 'Cuidados',
-    texto:
-      'Conservar en lugar fresco, seco y al resguardo de la luz solar. Una vez abierto el bulto, mantener en envase hermético. Vida útil estimada: 9 meses.',
-  },
-  {
-    titulo: 'Marca',
-    texto:
-      'Nutrirse. Selección y fraccionamiento propio en Salta Capital, con control de partida y trazabilidad por lote.',
-  },
-];
-
 const SALIDA_MS = 320;
 
 /**
@@ -260,11 +236,13 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
           ref={scrollRef}
           className="thin-scroll h-full overflow-y-auto overscroll-contain md:grid md:grid-cols-2"
         >
-          {/* ---------- Izquierda: imagen, fija mientras la derecha scrollea.
-                 `md:self-start` + `md:top-4` la dejan pegada arriba sin que
-                 la grilla la estire al alto de la columna derecha. ---------- */}
-          <div className="p-4 md:sticky md:top-4 md:self-start md:p-6">
-            <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-gray-50 shadow-sm">
+          {/* ---------- Izquierda: imagen centrada, fija mientras la derecha
+                 scrollea. La columna toma el alto del panel (100dvh - 2rem de
+                 margen - 1rem de `top-4`) y centra su unico hijo. El `max-w`
+                 atado a la altura evita que el cuadrado se corte por abajo en
+                 pantallas bajas: sin eso, `w-full` gana y rompe el 1:1. ---------- */}
+          <div className="flex items-center justify-center p-4 md:sticky md:top-4 md:h-[calc(100dvh-3rem)] md:p-6">
+            <div className="relative aspect-square w-full max-w-[min(100%,calc(100dvh-9rem))] overflow-hidden rounded-3xl bg-gray-50 shadow-sm">
               {activo.imagen_url ? (
                 <Image
                   src={activo.imagen_url}
@@ -282,10 +260,9 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                 </div>
               )}
             </div>
-
           </div>
 
-          {/* ---------- Derecha: info, cotizador y ficha ---------- */}
+          {/* ---------- Derecha: info y cotizador ---------- */}
           <div className="flex flex-col p-6 sm:p-10 md:py-10 md:pl-4 md:pr-10">
             {historial.length > 0 && (
               <button
@@ -426,23 +403,6 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
               </p>
               <ShippingCalculator compact pesoKg={pesoCotizacion} />
             </div>
-
-            {/* ---------- Descripción ---------- */}
-            <section className="mt-8 border-t border-gray-100 pt-8">
-              <h3 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-black">
-                Descripción
-              </h3>
-              <dl className="mt-5 space-y-5">
-                {FICHA.map((f) => (
-                  <div key={f.titulo}>
-                    <dt className="text-xs font-semibold uppercase tracking-wider text-tostado">
-                      {f.titulo}
-                    </dt>
-                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-600">{f.texto}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
 
             {/* ---------- Productos similares ---------- */}
             {similares.length > 0 && (

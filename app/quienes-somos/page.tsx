@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Quiénes Somos',
   description:
     'Nutrirse, distribuidora mayorista de frutos secos, desecados y semillas desde Salta Capital hacia todo el país.',
+  alternates: { canonical: '/quienes-somos' },
 };
 
 /* Imagen ilustrativa. Reemplazar por una foto real del depósito
@@ -38,7 +39,7 @@ const VALORES = [
   {
     titulo: 'Logística nacional',
     texto:
-      'Andreani, OCA y Correo Argentino, a domicilio o sucursal. Despacho dentro de las 24 h hábiles de confirmado el pedido.',
+      'Andreani, OCA, Correo Argentino, Buspack, Flechabus, entre otras, a domicilio o sucursal. Despacho dentro de las 24 h hábiles de confirmado el pedido.',
     icon: (
       <>
         <path d="M1 3h13v13H1zM14 8h4l3 3v5h-7z" />
