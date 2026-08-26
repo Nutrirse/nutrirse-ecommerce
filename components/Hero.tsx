@@ -415,6 +415,43 @@ export default function Hero() {
   const prev = () => go((activeRef.current - 1 + SLIDES.length) % SLIDES.length);
   const next = () => go((activeRef.current + 1) % SLIDES.length);
 
+  /* ---------------- Swipe tactil (mobile) ----------------
+     No se puede usar `scroll-snap`: los slides no estan uno al lado del otro
+     en un track scrolleable, son capas absolutas superpuestas que cruza GSAP.
+     Asi que el gesto se mide a mano y termina llamando al mismo `go()` que
+     las flechas.
+
+     `touchmove` no llama a `preventDefault()`: el hero ocupa toda la
+     pantalla y bloquearlo dejaria la home sin scroll vertical. El gesto se
+     descarta si el movimiento es mas vertical que horizontal, que es como se
+     distingue "deslizar el carrusel" de "seguir bajando por la pagina". */
+  const touch = useRef<{ x: number; y: number } | null>(null);
+
+  /** Recorrido horizontal minimo, en px, para contar como swipe. */
+  const SWIPE_MIN = 45;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const inicio = touch.current;
+    touch.current = null;
+    if (!inicio) return;
+
+    const t = e.changedTouches[0];
+    const dx = t.clientX - inicio.x;
+    const dy = t.clientY - inicio.y;
+
+    // Gesto vertical: es scroll de la pagina, no cambio de slide.
+    if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) <= Math.abs(dy)) return;
+
+    // Arrastrar hacia la izquierda avanza, igual que la flecha derecha.
+    if (dx < 0) next();
+    else prev();
+  };
+
   /* ---------------------------- Render ---------------------------- */
 
   // Un mismo renderer para las dos capas de frutos.
@@ -456,7 +493,15 @@ export default function Hero() {
   return (
     <section
       ref={root}
-      className="relative min-h-[100svh] overflow-hidden bg-gradient-to-b from-[#1e4a28] via-[#143620] to-[#0b1c0f] pt-16 sm:pt-20"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={() => {
+        touch.current = null;
+      }}
+      /* `touch-pan-y`: le avisa al navegador que solo el scroll vertical es
+         suyo, asi el gesto horizontal no dispara el "volver atras" por
+         deslizamiento de iOS/Android antes de que lleguen los eventos. */
+      className="relative min-h-[100svh] touch-pan-y overflow-hidden bg-gradient-to-b from-[#1e4a28] via-[#143620] to-[#0b1c0f] pt-16 sm:pt-20"
       aria-roledescription="carousel"
       aria-label="Productos destacados"
     >

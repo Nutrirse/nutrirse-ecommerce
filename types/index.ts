@@ -32,6 +32,12 @@ export type CartItem = {
   precio: number | null;  // null => a cotizar
   peso_kg: number;
   cantidad: number;
+  /**
+   * Tope de la linea, calculado con `maxCantidad()` al agregar. Se guarda en
+   * el item porque el CartDrawer no tiene el `Product` completo a mano.
+   * Opcional: los carritos ya persistidos en localStorage no lo traen.
+   */
+  maxCantidad?: number;
 };
 
 export type ShippingOption = {

@@ -76,9 +76,23 @@ export default function CatalogView({
     setRango('todos');
     setMarcas([]);
     setOrden('destacados');
+    setFiltrosAbiertos(false);
   };
 
   const hayFiltros = cat !== 'todos' || rango !== 'todos' || marcas.length > 0;
+
+  /**
+   * Elegir categoria cierra el panel mobile. El sidebar es el mismo nodo en
+   * desktop y en mobile, pero ahi `filtrosAbiertos` no se usa para nada:
+   * cerrar de mas no tiene efecto visible.
+   *
+   * Solo aplica a categorias. Precio, marca y orden son multi-toque: cerrar
+   * el panel obligaria a reabrirlo para el filtro siguiente.
+   */
+  const elegirCategoria = (c: string) => {
+    setCat(c);
+    setFiltrosAbiertos(false);
+  };
 
   /* ---------------------------- Sidebar ---------------------------- */
 
@@ -89,7 +103,7 @@ export default function CatalogView({
           {categorias.map((c) => (
             <li key={c}>
               <button
-                onClick={() => setCat(c)}
+                onClick={() => elegirCategoria(c)}
                 className={`w-full rounded-md px-2 py-1.5 text-left text-sm capitalize transition-colors ${
                   cat === c ? 'bg-carbon text-hueso' : 'text-humo hover:bg-black/5 hover:text-carbon'
                 }`}
@@ -181,6 +195,8 @@ export default function CatalogView({
         </p>
         <button
           onClick={() => setFiltrosAbiertos((v) => !v)}
+          aria-expanded={filtrosAbiertos}
+          aria-controls="filtros-mobile"
           className="flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-sm text-carbon lg:hidden"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
@@ -196,9 +212,15 @@ export default function CatalogView({
           <div className="sticky top-28">{sidebar}</div>
         </aside>
 
-        {/* Panel de filtros mobile */}
+        {/* Panel de filtros mobile. Se desmonta al elegir categoria via
+            `elegirCategoria`, asi los productos quedan a la vista. */}
         {filtrosAbiertos && (
-          <div className="rounded-2xl border border-black/5 bg-hueso p-5 lg:hidden">{sidebar}</div>
+          <div
+            id="filtros-mobile"
+            className="rounded-2xl border border-black/5 bg-hueso p-5 lg:hidden"
+          >
+            {sidebar}
+          </div>
         )}
 
         <div>

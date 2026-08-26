@@ -147,10 +147,14 @@ export default function CartDrawer() {
                         <span className="w-7 text-center text-xs font-semibold tabular-nums text-gray-900">
                           {i.cantidad}
                         </span>
+                        {/* Mismo tope que el ProductModal. `maxCantidad` lo
+                            calculo el store al agregar; los carritos viejos
+                            persistidos no lo traen y quedan sin limite. */}
                         <button
                           onClick={() => setCantidad(i.key, i.cantidad + 1)}
                           aria-label="Sumar"
-                          className="flex h-7 w-7 items-center justify-center rounded-r-lg text-gray-500 transition-colors hover:bg-gray-50 hover:text-black"
+                          disabled={i.cantidad >= (i.maxCantidad ?? Infinity)}
+                          className="flex h-7 w-7 items-center justify-center rounded-r-lg text-gray-500 transition-colors hover:bg-gray-50 hover:text-black disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent disabled:hover:text-gray-300"
                         >
                           +
                         </button>

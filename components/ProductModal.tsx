@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCart } from '@/store/cart';
 import { formatARS } from '@/lib/format';
 import ShippingCalculator from './ShippingCalculator';
+import { maxCantidad as topeDeVariante, motivoTope } from '@/lib/variant-limits';
 import type { Product } from '@/types';
 
 type Props = {
@@ -15,14 +16,6 @@ type Props = {
 };
 
 const SALIDA_MS = 320;
-
-/**
- * Tope de bultos por linea. Arriba de 5 el precio deja de ser de lista y se
- * cotiza por volumen, que es justamente lo que hace la variante "+5 bultos".
- * Se ancla al id de variante (`bolsa`), no al label: el label viaja por
- * `ALIAS_VARIANTE` y puede cambiar sin tocar este archivo.
- */
-const MAX_BULTOS = 5;
 const AVISO_MS = 2600;
 
 export default function ProductModal({ product, related = [], onClose }: Props) {
@@ -53,12 +46,13 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
   const esConsultar = variant?.tipo === 'consultar';
 
-  // Solo el bulto cerrado tiene tope; el 5 kg y la variante a cotizar no.
-  const esBulto = variant?.id === 'bolsa';
-  const maxCantidad = esBulto ? MAX_BULTOS : Infinity;
-  const enTope = cantidad >= maxCantidad;
-  const labelConsultar =
-    variantes.find((v) => v.tipo === 'consultar')?.label ?? '+5 bultos (Consultar)';
+  /* ---- Tope de la variante activa. La regla vive en lib/variant-limits.ts,
+         que tambien aplica el store del carrito: la UI solo la refleja.
+           - bulto cerrado -> 5 unidades
+           - presentacion base -> lo que pese menos que un bulto cerrado
+           - "+5 bultos (Consultar)" -> sin tope, se cotiza aparte ---- */
+  const maxUnidades = variant ? topeDeVariante(activo, variant) : Infinity;
+  const enTope = cantidad >= maxUnidades;
 
   // Peso que se le pasa al cotizador: variante activa x cantidad elegida.
   // El carrito todavia no tiene este item, asi que su peso no sirve aca.
@@ -88,12 +82,13 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activo.id, activo.precios_por_variante]);
 
-  /* ---- Cambio de variante: si la nueva tiene tope y la cantidad quedo
-         por encima, se recorta. Sin esto se podria pasar de "5 kg x 8" a
-         "Bulto Cerrado x 8" esquivando el limite. ---- */
+  /* ---- Cambio de variante: si la nueva tiene un tope mas bajo y la
+         cantidad quedo por encima, se recorta. Sin esto se podria elegir
+         "5 kg x 4" y pasar a "Bulto Cerrado x 4" esquivando el limite. ---- */
   useEffect(() => {
-    if (esBulto) setCantidad((c) => Math.min(c, MAX_BULTOS));
-  }, [esBulto, variantId]);
+    setCantidad((c) => Math.min(c, maxUnidades));
+    setAviso(null);
+  }, [variantId, maxUnidades]);
 
   /* ---- Entrada: se pinta cerrado y en el frame siguiente se abre,
          asi la transicion CSS tiene un estado inicial del que partir. ---- */
@@ -164,12 +159,13 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   };
 
   const sumar = () => {
+    if (!variant) return;
     if (enTope) {
-      mostrarAviso(`Para más de ${MAX_BULTOS} bultos, elegí la opción "${labelConsultar}".`);
+      mostrarAviso(motivoTope(activo, variant));
       return;
     }
     setAviso(null);
-    setCantidad((c) => c + 1);
+    setCantidad((c) => Math.min(c + 1, maxUnidades));
   };
 
   if (!variant) return null;
@@ -346,13 +342,16 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                 <button
                   onClick={() => setCantidad((c) => Math.max(1, c - 1))}
                   aria-label="Restar"
-                  className="h-11 w-11 rounded-full text-gray-500 transition-colors hover:text-black"
+                  disabled={cantidad <= 1}
+                  className="h-11 w-11 rounded-full text-gray-500 transition-colors hover:text-black disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:text-gray-300"
                 >
                   −
                 </button>
                 <span className="w-10 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
-                {/* En el tope no se deshabilita: el click tiene que poder
-                    disparar el aviso que explica adonde ir. */}
+                {/* En el tope se marca `aria-disabled` pero NO `disabled`:
+                    un boton deshabilitado no dispara click, y el click es lo
+                    unico que muestra el aviso de a donde ir. Queda inerte
+                    igual, porque `sumar()` corta antes de incrementar. */}
                 <button
                   onClick={sumar}
                   aria-label="Sumar"
@@ -365,6 +364,15 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                 </button>
               </div>
             </div>
+
+            {/* Pista estatica del tope: se ve antes de chocar contra el, asi
+                el limite no aparece como un boton que dejo de funcionar. */}
+            {Number.isFinite(maxUnidades) && (
+              <p className="mt-2 text-right text-xs text-gray-400">
+                Máximo {maxUnidades} {maxUnidades === 1 ? 'unidad' : 'unidades'} en esta
+                presentación
+              </p>
+            )}
 
             {aviso && (
               <p

@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { CartItem, Product, ShippingOption, Variant } from '@/types';
+import { maxCantidad as topeDeVariante } from '@/lib/variant-limits';
 
 type CartState = {
   items: CartItem[];
@@ -41,10 +42,15 @@ export const useCart = create<CartState>()(
         set((s) => {
           const key = keyOf(product.id, variant.id);
           const existing = s.items.find((i) => i.key === key);
+          // El tope se aplica aca y no solo en la UI: sumar de a uno desde el
+          // modal varias veces llegaria igual a la linea acumulada.
+          const tope = topeDeVariante(product, variant);
 
           const items = existing
             ? s.items.map((i) =>
-                i.key === key ? { ...i, cantidad: i.cantidad + cantidad } : i
+                i.key === key
+                  ? { ...i, cantidad: Math.min(i.cantidad + cantidad, tope), maxCantidad: tope }
+                  : i
               )
             : [
                 ...s.items,
@@ -59,7 +65,8 @@ export const useCart = create<CartState>()(
                   tipo: variant.tipo,
                   precio: variant.precio,
                   peso_kg: variant.peso_kg,
-                  cantidad,
+                  cantidad: Math.min(cantidad, tope),
+                  maxCantidad: tope,
                 } satisfies CartItem,
               ];
 
@@ -74,7 +81,13 @@ export const useCart = create<CartState>()(
           items:
             cantidad <= 0
               ? s.items.filter((i) => i.key !== key)
-              : s.items.map((i) => (i.key === key ? { ...i, cantidad } : i)),
+              : s.items.map((i) =>
+                  // `?? Infinity`: los carritos guardados antes de que
+                  // existiera el tope no traen `maxCantidad`.
+                  i.key === key
+                    ? { ...i, cantidad: Math.min(cantidad, i.maxCantidad ?? Infinity) }
+                    : i
+                ),
         })),
 
       clear: () => set({ items: [], shipping: null }),
