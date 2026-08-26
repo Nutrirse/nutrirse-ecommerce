@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { WHATSAPP_NUMBER } from '@/lib/whatsapp';
+import { NEGOCIO } from '@/lib/site';
 
 const CONTACTO = {
-  email: 'ventas@nutrirse.com.ar',
+  email: NEGOCIO.email,
   instagram: '#',
   tiktok: '#',
 };

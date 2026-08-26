@@ -47,7 +47,7 @@ export const OG_IMAGE = {
 };
 
 export const NEGOCIO = {
-  email: 'ventas@nutrirse.com.ar',
+  email: 'nutrirsehoy.26@gmail.com',
   telefono: `+${WHATSAPP_NUMBER}`,
   whatsapp: `https://wa.me/${WHATSAPP_NUMBER}`,
   ciudad: 'Salta',

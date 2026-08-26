@@ -20,6 +20,13 @@
   --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-in: fade-in 0.8s ease-out both;
   --animate-slide-right: slide-right 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Flotado en loop para los adornos (nuez de Contacto). */
+  --animate-float: float 7s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-14px) rotate(4deg); }
 }
 
 @keyframes fade-up {
@@ -61,7 +68,8 @@ body {
 
   /* Sin motion: el contenido aparece ya colocado, no oculto. */
   [class*="animate-fade"],
-  [class*="animate-slide"] {
+  [class*="animate-slide"],
+  [class*="animate-float"] {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

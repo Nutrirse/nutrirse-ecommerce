@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import Image from 'next/image';
 import ContactWhatsAppForm from '@/components/ContactWhatsAppForm';
 import { WHATSAPP_NUMBER } from '@/lib/whatsapp';
+import { NEGOCIO } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Contacto',
@@ -9,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/contacto' },
 };
 
-const EMAIL = 'ventas@nutrirse.com.ar';
+const EMAIL = NEGOCIO.email;
 
 type Canal = {
   eyebrow: string;
@@ -124,7 +126,9 @@ function CanalCard({ canal, delay }: { canal: Canal; delay: string }) {
 
 export default function Contacto() {
   return (
-    <div className="min-h-dvh bg-crema pb-24 pt-28">
+    /* `overflow-x-clip`: la nuez sobresale del contenedor y sin esto
+       aparecería scroll horizontal en pantallas medianas. */
+    <div className="min-h-dvh overflow-x-clip bg-crema pb-24 pt-28">
       {/* ---------------- Header ---------------- */}
       <header className="mx-auto max-w-7xl animate-fade-up px-5 sm:px-8">
         <p className="font-[family-name:var(--font-hand)] text-[clamp(1.8rem,3.5vw,2.6rem)] leading-none text-tostado">
@@ -143,8 +147,19 @@ export default function Contacto() {
       </header>
 
       {/* ---------------- 2 columnas ---------------- */}
-      <section className="mx-auto mt-14 max-w-7xl px-5 sm:px-8">
-        <div className="grid items-start gap-8 lg:grid-cols-[1fr_1fr] lg:gap-12">
+      <section className="relative mx-auto mt-14 max-w-7xl px-5 sm:px-8">
+        {/* Nuez decorativa. `z-0` + `pointer-events-none` la dejan detrás
+            del formulario y fuera del alcance de los clics. */}
+        <Image
+          src="/nuez-contacto.png"
+          alt=""
+          aria-hidden
+          width={260}
+          height={260}
+          className="pointer-events-none absolute -top-12 -right-2 z-0 w-28 animate-float select-none opacity-90 drop-shadow-[0_18px_30px_rgba(28,26,23,0.28)] sm:-right-6 md:-top-16 md:-right-12 md:w-44"
+        />
+
+        <div className="relative z-10 grid items-start gap-8 lg:grid-cols-[1fr_1fr] lg:gap-12">
           {/* ---------- Izquierda: canales ---------- */}
           <div className="grid gap-5 sm:grid-cols-2">
             {CANALES.map((c, i) => (

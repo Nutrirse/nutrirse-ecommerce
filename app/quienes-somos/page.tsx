@@ -10,9 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/quienes-somos' },
 };
 
-/* Imagen ilustrativa. Reemplazar por una foto real del depósito
-   cuando esté disponible: solo cambia esta constante. */
-const FOTO = '/images/hero/doypack-nuez.png';
+/* Foto real del depósito. Si se reemplaza, solo cambia esta constante. */
+const FOTO = '/quienes-somos.jpg';
 
 const VALORES = [
   {
@@ -113,12 +112,14 @@ export default function QuienesSomos() {
               }}
               aria-hidden
             />
+            {/* Foto real: `object-cover` llena el marco. El `p-10` del
+                doypack transparente ya no aplica. */}
             <Image
               src={FOTO}
-              alt="Producto Nutrirse"
+              alt="Depósito de Nutrirse en Salta Capital"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-contain p-10 drop-shadow-[0_30px_40px_rgba(0,0,0,0.5)]"
+              className="object-cover"
             />
           </div>
         </div>
