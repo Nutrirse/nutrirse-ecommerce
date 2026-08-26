@@ -1,0 +1,2142 @@
+[
+  {
+    "nombre_producto": "Nuez Mariposa Chandler Extra Light Mendoza",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 65500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 128000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 12800.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 13100.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 13400.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Nuez Pecan Primera",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 105000.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 210000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "ESTIMADO a 10 kg estándar (unico_dato) - el proveedor solo listaba presentaciones menores a 5 kg",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 21000.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Maní Tostado Sin Sal",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Maní tostado de proceso parejo, sin sal, con bajo nivel de mermas — ideal para fraccionar en dietéticas o usar como insumo en fábricas de confituras y snacks. Disponible desde bolsas chicas hasta bultos de 25 kg para pedidos recurrentes.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 14250.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 67500.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 2700.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 2850.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 3000.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Pasas Morochas Flame Primera Calidad",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Pasas de uva seleccionadas, sin semilla, de textura tierna y humedad estable — un clásico de alta rotación para dietéticas, panaderías y fábricas de budines y panettone. Escalá tu pedido de 2 a 10 kg según la demanda de tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 20000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 39000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 3900.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 4000.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 4100.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Pasas Morochas Jumbo Extra Grandes",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Pasas de uva seleccionadas, sin semilla, de textura tierna y humedad estable — un clásico de alta rotación para dietéticas, panaderías y fábricas de budines y panettone. Escalá tu pedido de 2 a 10 kg según la demanda de tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 34500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 66700.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 6670.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 6900.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 7100.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Pasas de Uva Rubia",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Pasas de uva seleccionadas, sin semilla, de textura tierna y humedad estable — un clásico de alta rotación para dietéticas, panaderías y fábricas de budines y panettone. Escalá tu pedido de 2 a 10 kg según la demanda de tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 31500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 61200.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 6120.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 6300.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 6500.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Dátil Argelia con Carozo",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Presentaciones cerradas de 2 a 5 kg pensadas para reventa fraccionada con buen margen.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 36000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 36000.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 7200.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 7500.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Dátil Argelia Sin Carozo",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Presentaciones cerradas de 2 a 5 kg pensadas para reventa fraccionada con buen margen.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 49400.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 49400.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 9880.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 10100.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Dátil Medjoul con Carozo",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Presentaciones cerradas de 2 a 5 kg pensadas para reventa fraccionada con buen margen.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 91710.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 91710.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 18342.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 18900.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Chips de Banana Deshidratados",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Chips de banana deshidratados, crocantes y de espesor parejo — uno de los snacks más pedidos en dietéticas y kioscos saludables. Buen margen de reventa fraccionando por 100 g o 250 g desde el bulto mayorista.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 51890.21,
+    "precio_5kg_metodo": "ESTIMADO (interpolado_regresion_log)",
+    "precio_bulto_cerrado": 69836.0,
+    "peso_bulto_cerrado_kg": 6.8,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 6.8 KG",
+        "peso_kg": 6.8,
+        "costo_por_kg": 10270.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 10700.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Arándano Chileno Deshidratado",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Pasas de uva seleccionadas, sin semilla, de textura tierna y humedad estable — un clásico de alta rotación para dietéticas, panaderías y fábricas de budines y panettone. Escalá tu pedido de 2 a 10 kg según la demanda de tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 77250.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 172368.0,
+    "peso_bulto_cerrado_kg": 11.34,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 11.34 KG",
+        "peso_kg": 11.34,
+        "costo_por_kg": 15200.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 15450.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 15720.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Ananá en Rodajas Natural",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 88500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 88500.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 17700.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 18150.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Ananá en Cubos Natural",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 71175.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 71175.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 14235.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 14600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Ananá en Cubos Glaseado Verde",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 71170.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 71170.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 14234.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 14700.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Ananá en Cubos Glaseado Rojo",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 71170.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 71170.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 14234.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 14700.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Kiwi en Rodajas",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Kiwi deshidratado en rodajas, de color vivo y textura consistente — un diferencial para vidrieras de dietéticas y fruterías gourmet. Bultos de 2 a 5 kg listos para fraccionar.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 82500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 82500.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 16500.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 16800.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Castañas de Cajú W4 Brazil",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 77050.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 339066.0,
+    "peso_bulto_cerrado_kg": 22.68,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 22.68 KG",
+        "peso_kg": 22.68,
+        "costo_por_kg": 14950.0
+      },
+      {
+        "presentacion": "BOLSA 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 15410.0
+      },
+      {
+        "presentacion": "BOLSA 2 kg",
+        "peso_kg": 2.0,
+        "costo_por_kg": 15670.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Castañas de Cajú W1 Mi Brazil",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 98000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 433188.0,
+    "peso_bulto_cerrado_kg": 22.68,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 22.68 KG",
+        "peso_kg": 22.68,
+        "costo_por_kg": 19100.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 19600.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 19900.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Nuez Amazónica / Castaña de Pará",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 136500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 136500.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 27300.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 27700.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Almendra Nom Pareil Mediana-Grande Chilena",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 108750.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 213500.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 21350.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 21750.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 22150.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Almendra Guara Mediana",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 89250.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 177000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 17700.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 17850.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 18200.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Ciruela Dagen Sin Carozo Primera Mediana",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Ciruela desecada sin carozo, de pulpa jugosa y buena vida útil en góndola — un clásico de alta salida en dietéticas. Presentación cerrada de hasta 5 kg para reponer stock sin inmovilizar capital.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 47100.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 47100.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 9420.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 9650.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Ciruela Presidente Sin Carozo",
+    "categoria": "Frutas Desecadas",
+    "descripcion_comercial": "Ciruela desecada sin carozo, de pulpa jugosa y buena vida útil en góndola — un clásico de alta salida en dietéticas. Presentación cerrada de hasta 5 kg para reponer stock sin inmovilizar capital.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 66250.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 66250.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 13250.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 13600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Avellana Grande",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Fruto seco de calibre homogéneo y humedad controlada, pensado para reventa en dietéticas, panaderías y fábricas de alfajores/granolas. Precio escalonado según volumen: cuanto más compra tu local, menor el costo por kilo.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 147250.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 290000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 29000.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 29450.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 29950.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Pistacho con Cáscara Tostado y Salado Mendocino",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Pistacho de calibre parejo y tueste uniforme, ideal para dietéticas, fruterías y locales de snacks que buscan reponer stock sin sacrificar calidad. Abastecimiento estable en bolsas de 2 a 25 kg para adaptarse al ritmo de venta de tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 136200.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 267800.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 kg",
+        "peso_kg": 10.0,
+        "costo_por_kg": 26780.0
+      },
+      {
+        "presentacion": "BOLSA 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 27240.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 27600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Pistacho Pelado Natural",
+    "categoria": "Frutos Secos",
+    "descripcion_comercial": "Pistacho de calibre parejo y tueste uniforme, ideal para dietéticas, fruterías y locales de snacks que buscan reponer stock sin sacrificar calidad. Abastecimiento estable en bolsas de 2 a 25 kg para adaptarse al ritmo de venta de tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 265000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 526000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 52600.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 53000.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 53200.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Aceite de Coco Cosaco Neutro | 360 cc",
+    "categoria": "Coco",
+    "descripcion_comercial": "Aceite de coco neutro en botella individual, sin sabor ni olor a coco — pensado para reventa en dietéticas y farmacias naturistas. Mejor costo por unidad comprando por caja cerrada.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 4450.0,
+    "unidades_pack_cerrado": 6,
+    "precio_pack_cerrado": 26700.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 6 UD",
+        "unidades": 6,
+        "costo_por_unidad": 4450.0
+      },
+      {
+        "presentacion": "3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 4600.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Coco Rallado Low Fat",
+    "categoria": "Coco",
+    "descripcion_comercial": "Coco rallado bajo en grasa, insumo clásico de panaderías y reposterías. Bultos de 2 a 25 kg según el consumo de tu obrador, con precio decreciente por volumen.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 27000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 125000.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 5000.0
+      },
+      {
+        "presentacion": "BOLSA 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 5400.0
+      },
+      {
+        "presentacion": "BOLSA 2 kg",
+        "peso_kg": 2.0,
+        "costo_por_kg": 5600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Coco en Escamas (Chips)",
+    "categoria": "Coco",
+    "descripcion_comercial": "Coco en escamas de textura crocante, ideal para granolas, decoración de postres y venta fraccionada en dietéticas. Bultos de 2 a 10 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 60300.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 116700.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 11670.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 12060.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 12450.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Cacao Alcalino Vini Intense",
+    "categoria": "Cacao en Polvo",
+    "descripcion_comercial": "Cacao alcalino de uso profesional, con color y solubilidad estables entre lotes — clave para reposterías y fábricas de golosinas que necesitan consistencia de receta. Precio por kilo decreciente desde 2 hasta 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 58750.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 286250.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 11450.0
+      },
+      {
+        "presentacion": "BOLSA 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 11750.0
+      },
+      {
+        "presentacion": "BOLSA 2 kg",
+        "peso_kg": 2.0,
+        "costo_por_kg": 11950.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Cacao Alcalino Marrón Barry",
+    "categoria": "Cacao en Polvo",
+    "descripcion_comercial": "Cacao alcalino de uso profesional, con color y solubilidad estables entre lotes — clave para reposterías y fábricas de golosinas que necesitan consistencia de receta. Precio por kilo decreciente desde 2 hasta 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 84900.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 413750.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 16550.0
+      },
+      {
+        "presentacion": "BOLSA 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 16980.0
+      },
+      {
+        "presentacion": "BOLSA 2 kg",
+        "peso_kg": 2.0,
+        "costo_por_kg": 17300.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Chocolate Sin Azúcar 55% Cacao | 100 g",
+    "categoria": "Chocolates",
+    "descripcion_comercial": "Chocolate en tableta individual, formato listo para vidriera de dietética o kiosco. Se vende en cajas cerradas de unidades, ideal para mantener stock sin fraccionar.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 2530.0,
+    "unidades_pack_cerrado": 10,
+    "precio_pack_cerrado": 25300.0,
+    "equivalente_5kg_calculado": 126500.0,
+    "equivalente_5kg_nota": "calculado: unidad de 100 g al mejor costo por unidad ($2,530)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA X 10 UNIDADES",
+        "unidades": 10,
+        "costo_por_unidad": 2530.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Chocolate con Stevia 70% Cacao | 100 g",
+    "categoria": "Chocolates",
+    "descripcion_comercial": "Chocolate en tableta individual, formato listo para vidriera de dietética o kiosco. Se vende en cajas cerradas de unidades, ideal para mantener stock sin fraccionar.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 2700.0,
+    "unidades_pack_cerrado": 10,
+    "precio_pack_cerrado": 27000.0,
+    "equivalente_5kg_calculado": 135000.0,
+    "equivalente_5kg_nota": "calculado: unidad de 100 g al mejor costo por unidad ($2,700)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA X 10 UNIDADES",
+        "unidades": 10,
+        "costo_por_unidad": 2700.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Chocolate Orgánico 80% Cacao (azúcar orgánica) | 100 g",
+    "categoria": "Chocolates",
+    "descripcion_comercial": "Chocolate en tableta individual, formato listo para vidriera de dietética o kiosco. Se vende en cajas cerradas de unidades, ideal para mantener stock sin fraccionar.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 3520.0,
+    "unidades_pack_cerrado": 10,
+    "precio_pack_cerrado": 35200.0,
+    "equivalente_5kg_calculado": 176000.0,
+    "equivalente_5kg_nota": "calculado: unidad de 100 g al mejor costo por unidad ($3,520)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA X 10 UNIDADES",
+        "unidades": 10,
+        "costo_por_unidad": 3520.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Chocolatinas con Stevia 70% Cacao | 5 g",
+    "categoria": "Chocolates",
+    "descripcion_comercial": "Chocolate en tableta individual, formato listo para vidriera de dietética o kiosco. Se vende en cajas cerradas de unidades, ideal para mantener stock sin fraccionar.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 240.0,
+    "unidades_pack_cerrado": 50,
+    "precio_pack_cerrado": 12000.0,
+    "equivalente_5kg_calculado": 240000.0,
+    "equivalente_5kg_nota": "calculado: unidad de 5 g al mejor costo por unidad ($240)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA X 50 UNIDADES",
+        "unidades": 50,
+        "costo_por_unidad": 240.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Chocolate Cobertura 80% Cacao | 1 kg",
+    "categoria": "Chocolates",
+    "descripcion_comercial": "Chocolate cobertura para fundir de uso profesional, con buen temple y brillo final — insumo clave para fábricas de bombones, huevos de pascua y alfajores. Compra en packs cerrados de 3 bolsas de 1 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 161850.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 323700.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "ESTIMADO a 10 kg estándar (unico_dato) - el proveedor solo listaba presentaciones menores a 5 kg",
+    "presentaciones_originales": [
+      {
+        "presentacion": "3 BOLSAS",
+        "peso_kg": 1.0,
+        "costo_por_kg": 32370.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Chocolate Cobertura 100% Cacao | 1 kg",
+    "categoria": "Chocolates",
+    "descripcion_comercial": "Chocolate cobertura para fundir de uso profesional, con buen temple y brillo final — insumo clave para fábricas de bombones, huevos de pascua y alfajores. Compra en packs cerrados de 3 bolsas de 1 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 194750.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 389500.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "ESTIMADO a 10 kg estándar (unico_dato) - el proveedor solo listaba presentaciones menores a 5 kg",
+    "presentaciones_originales": [
+      {
+        "presentacion": "3 BOLSAS",
+        "peso_kg": 1.0,
+        "costo_por_kg": 38950.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Cacao Alcalino Amargo | 1 kg",
+    "categoria": "Chocolates",
+    "descripcion_comercial": "Cacao alcalino amargo en bolsa de 1 kg, listo para uso profesional en reposterías y fábricas de golosinas. Venta en packs cerrados de 3 unidades.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 148000.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 296000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "ESTIMADO a 10 kg estándar (unico_dato) - el proveedor solo listaba presentaciones menores a 5 kg",
+    "presentaciones_originales": [
+      {
+        "presentacion": "3 BOLSAS",
+        "peso_kg": 1.0,
+        "costo_por_kg": 29600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Maní con Chocolate con Leche Argenfrut",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 44000.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 52800.0,
+    "peso_bulto_cerrado_kg": 6.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CONSERVADORA 6 kg",
+        "peso_kg": 6.0,
+        "costo_por_kg": 8800.0
+      },
+      {
+        "presentacion": "MENOS 6 UNID",
+        "peso_kg": null,
+        "costo_por_kg": 9000.0
+      }
+    ],
+    "nota": "MENOS 6 UNID: $9,000/kg"
+  },
+  {
+    "nombre_producto": "Maní con Chocolate Semiamargo Argenfrut",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 73750.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 88500.0,
+    "peso_bulto_cerrado_kg": 6.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CONSERVADORA 6 kg",
+        "peso_kg": 6.0,
+        "costo_por_kg": 14750.0
+      },
+      {
+        "presentacion": "MENOS 6 UNID",
+        "peso_kg": null,
+        "costo_por_kg": 15000.0
+      }
+    ],
+    "nota": "MENOS 6 UNID: $15,000/kg"
+  },
+  {
+    "nombre_producto": "Almendras con Chocolate con Leche Argenfrut",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 152500.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 183000.0,
+    "peso_bulto_cerrado_kg": 6.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CONSERVADORA 6 kg",
+        "peso_kg": 6.0,
+        "costo_por_kg": 30500.0
+      },
+      {
+        "presentacion": "MENOS 6 UNID",
+        "peso_kg": null,
+        "costo_por_kg": 31200.0
+      }
+    ],
+    "nota": "MENOS 6 UNID: $31,200/kg"
+  },
+  {
+    "nombre_producto": "Almendras con Chocolate con Leche a Granel",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 100200.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 140280.0,
+    "peso_bulto_cerrado_kg": 7.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 7 kg",
+        "peso_kg": 7.0,
+        "costo_por_kg": 20040.0
+      },
+      {
+        "presentacion": "MENOS 7 kg",
+        "peso_kg": null,
+        "costo_por_kg": 20540.0
+      }
+    ],
+    "nota": "MENOS 7 kg: $20,540/kg"
+  },
+  {
+    "nombre_producto": "Pasas de Uva con Chocolate con Leche Argenfrut",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 93600.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 112320.0,
+    "peso_bulto_cerrado_kg": 6.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CONSERVADORA 6 kg",
+        "peso_kg": 6.0,
+        "costo_por_kg": 18720.0
+      },
+      {
+        "presentacion": "MENOS 6 UNID",
+        "peso_kg": null,
+        "costo_por_kg": 19000.0
+      }
+    ],
+    "nota": "MENOS 6 UNID: $19,000/kg"
+  },
+  {
+    "nombre_producto": "Gotitas de Chocolate Semiamargo Arcor",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 50400.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 98300.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 9830.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 10080.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 10250.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Rocklets Arcor",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 89500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 89500.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 17900.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 18300.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Chocolate Taza Semiamargo Águila",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 108000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 108000.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 21600.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 22100.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Chocolate Taza 60% Cacao Águila",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 134500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 134500.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 26900.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 27400.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Chocolate Taza Blanco Águila",
+    "categoria": "Confituras y Chocolates",
+    "descripcion_comercial": "Confitura de fruto seco bañada en chocolate, un clásico de mesas dulces y fiestas — alta rotación en dietéticas y kioscos en épocas de alta demanda (Pascuas, Navidad). Presentación cerrada en conservadora o caja de varios kilos.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 106750.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 106750.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 21350.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 21800.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Almohaditas Rellenas Sabor Frutilla/Avellana Lasfor",
+    "categoria": "Snacks",
+    "descripcion_comercial": "Almohadita rellena, formato de bajo costo y alta rotación para kioscos escolares y dietéticas de barrio. Bolsa cerrada de 2.5 kg lista para fraccionar por porción.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 35500.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 71000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "ESTIMADO a 10 kg estándar (unico_dato) - el proveedor solo listaba presentaciones menores a 5 kg",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 2.5 Kg",
+        "peso_kg": 2.5,
+        "costo_por_kg": 7100.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Almohaditas Rellenas Sabor Chocolate Lasfor",
+    "categoria": "Snacks",
+    "descripcion_comercial": "Almohadita rellena, formato de bajo costo y alta rotación para kioscos escolares y dietéticas de barrio. Bolsa cerrada de 2.5 kg lista para fraccionar por porción.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 39000.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 78000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "ESTIMADO a 10 kg estándar (unico_dato) - el proveedor solo listaba presentaciones menores a 5 kg",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 2.5 Kg",
+        "peso_kg": 2.5,
+        "costo_por_kg": 7800.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Granola Nutrirse",
+    "categoria": "Granola y Cereales",
+    "descripcion_comercial": "Granola artesanal con avena, frutos secos, coco y miel — insumo de desayuno de alta rotación en dietéticas y cafeterías. Bultos de 2 a 25 kg según el volumen de tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 35420.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 168750.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 Kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 6750.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 7084.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 7300.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Harina de Almendra Con Piel Rebajada",
+    "categoria": "Harinas",
+    "descripcion_comercial": "Harina de almendra apta para repostería fit y sin TACC (según variedad), insumo de alta demanda en dietéticas y obradores saludables. Bultos de 2 a 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 18500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 86250.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 Kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 3450.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 3700.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 3900.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Harina de Almendra Sin Piel Rebajada",
+    "categoria": "Harinas",
+    "descripcion_comercial": "Harina de almendra apta para repostería fit y sin TACC (según variedad), insumo de alta demanda en dietéticas y obradores saludables. Bultos de 2 a 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 19500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 90000.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 KG",
+        "peso_kg": 25.0,
+        "costo_por_kg": 3600.0
+      },
+      {
+        "presentacion": "BOLSA 5 Kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 3900.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 4100.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Harina de Coco Importada 100% Pureza",
+    "categoria": "Harinas",
+    "descripcion_comercial": "Harina de coco importada de pureza garantizada, insumo clave para repostería keto y sin TACC. Bultos de 2 a 10 kg para obradores y dietéticas.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 25450.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 49680.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 4968.0
+      },
+      {
+        "presentacion": "BOLSA 5 Kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 5090.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 5200.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Harina de Almendra 100% Pureza Parmex",
+    "categoria": "Harinas",
+    "descripcion_comercial": "Harina de almendra de calidad profesional (molienda Parmex), la elegida por pastelerías finas para macarons y masas de alta gama. Bultos de 2 a 10 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 117500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 231000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 10 KG",
+        "peso_kg": 10.0,
+        "costo_por_kg": 23100.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 23500.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 23900.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Harina de Almendra Amazónica Con Piel 100% Pura (Molienda Gruesa)",
+    "categoria": "Harinas",
+    "descripcion_comercial": "Harina de almendra apta para repostería fit y sin TACC (según variedad), insumo de alta demanda en dietéticas y obradores saludables. Bultos de 2 a 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 65500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 65500.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 13100.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 13600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Semilla de Girasol",
+    "categoria": "Semillas",
+    "descripcion_comercial": "Semilla a granel de calibre parejo, insumo de alta rotación en dietéticas, panaderías y fábricas de granola. Precio por kilo decreciente desde 2 hasta 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 20000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 87091.2,
+    "peso_bulto_cerrado_kg": 22.68,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 22,68 KG",
+        "peso_kg": 22.68,
+        "costo_por_kg": 3840.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 4000.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 4200.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Semilla de Zapallo AA",
+    "categoria": "Semillas",
+    "descripcion_comercial": "Semilla a granel de calibre parejo, insumo de alta rotación en dietéticas, panaderías y fábricas de granola. Precio por kilo decreciente desde 2 hasta 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 70250.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 342125.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 KG",
+        "peso_kg": 25.0,
+        "costo_por_kg": 13685.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 14050.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 14280.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Sal Rosada del Himalaya Fina",
+    "categoria": "Condimentos",
+    "descripcion_comercial": "Sal rosada del Himalaya de grano fino, un clásico de alta rotación en dietéticas y casas de naturales. Bultos de 2 a 25 kg con excelente margen de reventa fraccionada.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 12000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 57050.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 KG",
+        "peso_kg": 25.0,
+        "costo_por_kg": 2282.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 2400.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 2600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Psylium Molido",
+    "categoria": "Suplementos",
+    "descripcion_comercial": "Psyllium molido de uso profesional, insumo de alta demanda en dietéticas y farmacias naturistas para fibra soluble. Bultos de 2 a 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 122250.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 595625.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 KG",
+        "peso_kg": 25.0,
+        "costo_por_kg": 23825.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 24450.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 24870.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Flor de Jamaica",
+    "categoria": "Infusiones",
+    "descripcion_comercial": "Flor de Jamaica a granel, insumo clásico de infusiones e industria de bebidas naturales. Bultos de 2 a 25 kg con buen margen de reventa fraccionada.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 63300.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 304050.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "Bolsa 25 kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 12162.0
+      },
+      {
+        "presentacion": "Bolsa 5 kg",
+        "peso_kg": 5.0,
+        "costo_por_kg": 12660.0
+      },
+      {
+        "presentacion": "Bolsa 2 kg",
+        "peso_kg": 2.0,
+        "costo_por_kg": 12960.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Gelatina Sin Sabor Gelprime",
+    "categoria": "Insumos de Repostería",
+    "descripcion_comercial": "Gelatina sin sabor de uso profesional, insumo estándar de reposterías y fábricas de postres. Bultos de 2 a 25 kg.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 84750.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 412500.0,
+    "peso_bulto_cerrado_kg": 25.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 25 Kg",
+        "peso_kg": 25.0,
+        "costo_por_kg": 16500.0
+      },
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 16950.0
+      },
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 17200.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Mix Clásico de Frutos Secos",
+    "categoria": "Mixes de Frutos Secos",
+    "descripcion_comercial": "Mix de frutos secos listo para fraccionar y vender por porción — formato de alta rotación en dietéticas y kioscos saludables, sin proceso de armado en tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 43600.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 43600.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 8720.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Mix Deportivo de Frutos Secos",
+    "categoria": "Mixes de Frutos Secos",
+    "descripcion_comercial": "Mix de frutos secos listo para fraccionar y vender por porción — formato de alta rotación en dietéticas y kioscos saludables, sin proceso de armado en tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 51600.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 51600.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 10320.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Mix Tradicional de Frutos Secos",
+    "categoria": "Mixes de Frutos Secos",
+    "descripcion_comercial": "Mix de frutos secos listo para fraccionar y vender por porción — formato de alta rotación en dietéticas y kioscos saludables, sin proceso de armado en tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 73500.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 73500.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 14700.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Mix Tropical de Frutos Secos",
+    "categoria": "Mixes de Frutos Secos",
+    "descripcion_comercial": "Mix de frutos secos listo para fraccionar y vender por porción — formato de alta rotación en dietéticas y kioscos saludables, sin proceso de armado en tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 53900.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 53900.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 10780.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Mix Premium de Frutos Secos",
+    "categoria": "Mixes de Frutos Secos",
+    "descripcion_comercial": "Mix de frutos secos listo para fraccionar y vender por porción — formato de alta rotación en dietéticas y kioscos saludables, sin proceso de armado en tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 109000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 109000.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 21800.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Mix Patagónico de Frutos Secos",
+    "categoria": "Mixes de Frutos Secos",
+    "descripcion_comercial": "Mix de frutos secos listo para fraccionar y vender por porción — formato de alta rotación en dietéticas y kioscos saludables, sin proceso de armado en tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 83000.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 83000.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 16600.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Mix Amazónico de Frutos Secos",
+    "categoria": "Mixes de Frutos Secos",
+    "descripcion_comercial": "Mix de frutos secos listo para fraccionar y vender por porción — formato de alta rotación en dietéticas y kioscos saludables, sin proceso de armado en tu local.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 39750.0,
+    "precio_5kg_metodo": "EXACTO (tier de 5 kg del excel)",
+    "precio_bulto_cerrado": 39750.0,
+    "peso_bulto_cerrado_kg": 5.0,
+    "precio_bulto_cerrado_metodo": "EXACTO (mayor presentación real del excel)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 5 KG",
+        "peso_kg": 5.0,
+        "costo_por_kg": 7950.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Aceite de Coco Virgen Bio Nativa | 360 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de coco virgen en botella individual, para reventa en dietéticas y farmacias naturistas. Mejor costo por unidad comprando pack cerrado.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 8950.0,
+    "unidades_pack_cerrado": 15,
+    "precio_pack_cerrado": 134250.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 8950.0
+      },
+      {
+        "presentacion": "pack 8 UD",
+        "unidades": 8,
+        "costo_por_unidad": 9100.0
+      },
+      {
+        "presentacion": "pack 3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 9250.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Orégano Bio Nativa | 30 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite esencial de orégano, muy buscado en farmacias naturistas y dietéticas como apoyo del sistema inmune. Packs cerrados por docena con mejor costo unitario.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 7150.0,
+    "unidades_pack_cerrado": 24,
+    "precio_pack_cerrado": 171600.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 24 UD",
+        "unidades": 24,
+        "costo_por_unidad": 7150.0
+      },
+      {
+        "presentacion": "pack 12 UD",
+        "unidades": 12,
+        "costo_por_unidad": 7250.0
+      },
+      {
+        "presentacion": "pack 5 UD",
+        "unidades": 5,
+        "costo_por_unidad": 7400.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Orégano Bio Nativa | 100 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite esencial de orégano, muy buscado en farmacias naturistas y dietéticas como apoyo del sistema inmune. Packs cerrados por docena con mejor costo unitario.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 10980.0,
+    "unidades_pack_cerrado": 15,
+    "precio_pack_cerrado": 164700.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 10980.0
+      },
+      {
+        "presentacion": "pack 7 UD",
+        "unidades": 7,
+        "costo_por_unidad": 11150.0
+      },
+      {
+        "presentacion": "pack 3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 11350.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Ricino Bio Nativa | 30 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de ricino, uno de los más pedidos en cuidado capilar natural — alta rotación en dietéticas y perfumerías naturistas.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 3500.0,
+    "unidades_pack_cerrado": 24,
+    "precio_pack_cerrado": 84000.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 24 UD",
+        "unidades": 24,
+        "costo_por_unidad": 3500.0
+      },
+      {
+        "presentacion": "pack 12 UD",
+        "unidades": 12,
+        "costo_por_unidad": 3600.0
+      },
+      {
+        "presentacion": "pack 5 UD",
+        "unidades": 5,
+        "costo_por_unidad": 3700.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Ricino Bio Nativa | 100 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de ricino, uno de los más pedidos en cuidado capilar natural — alta rotación en dietéticas y perfumerías naturistas.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 4750.0,
+    "unidades_pack_cerrado": 15,
+    "precio_pack_cerrado": 71250.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 4750.0
+      },
+      {
+        "presentacion": "pack 7 UD",
+        "unidades": 7,
+        "costo_por_unidad": 4900.0
+      },
+      {
+        "presentacion": "pack 3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 5050.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Romero Bio Nativa | 30 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de romero, clásico del cuidado capilar natural, con demanda estable en dietéticas y farmacias naturistas.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 7300.0,
+    "unidades_pack_cerrado": 24,
+    "precio_pack_cerrado": 175200.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 24 UD",
+        "unidades": 24,
+        "costo_por_unidad": 7300.0
+      },
+      {
+        "presentacion": "pack 12 UD",
+        "unidades": 12,
+        "costo_por_unidad": 7450.0
+      },
+      {
+        "presentacion": "pack 5 UD",
+        "unidades": 5,
+        "costo_por_unidad": 7600.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Romero Bio Nativa | 100 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de romero, clásico del cuidado capilar natural, con demanda estable en dietéticas y farmacias naturistas.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 10450.0,
+    "unidades_pack_cerrado": 15,
+    "precio_pack_cerrado": 156750.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 10450.0
+      },
+      {
+        "presentacion": "pack 7 UD",
+        "unidades": 7,
+        "costo_por_unidad": 11650.0
+      },
+      {
+        "presentacion": "pack 3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 11850.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Almendras Bio Nativa | 100 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de almendras para piel y masajes, un básico de cosmética natural con rotación constante en dietéticas.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 3730.0,
+    "unidades_pack_cerrado": 15,
+    "precio_pack_cerrado": 55950.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 3730.0
+      },
+      {
+        "presentacion": "pack 7 UD",
+        "unidades": 7,
+        "costo_por_unidad": 3800.0
+      },
+      {
+        "presentacion": "pack 3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 3860.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Almendras Bio Nativa | 250 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de almendras para piel y masajes, un básico de cosmética natural con rotación constante en dietéticas.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 6500.0,
+    "unidades_pack_cerrado": 15,
+    "precio_pack_cerrado": 97500.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 6500.0
+      },
+      {
+        "presentacion": "pack 7 UD",
+        "unidades": 7,
+        "costo_por_unidad": 6610.0
+      },
+      {
+        "presentacion": "pack 3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 6750.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Palta Bio Nativa | 250 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de palta 100% puro, muy valorado en cosmética natural y coctelería fría — buen diferencial de góndola para dietéticas premium.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 9000.0,
+    "unidades_pack_cerrado": 15,
+    "precio_pack_cerrado": 135000.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 9000.0
+      },
+      {
+        "presentacion": "pack 7 UD",
+        "unidades": 7,
+        "costo_por_unidad": 9150.0
+      },
+      {
+        "presentacion": "pack 3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 9350.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Lino 100 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de lino, fuente vegetal de Omega 3 de alta rotación en dietéticas y casas de naturales.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 4062.0,
+    "unidades_pack_cerrado": 30,
+    "precio_pack_cerrado": 121860.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 30 UD",
+        "unidades": 30,
+        "costo_por_unidad": 4062.0
+      },
+      {
+        "presentacion": "15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 4250.0
+      },
+      {
+        "presentacion": "3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 4400.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de chia 100 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de chía, otra fuente de Omega 3 muy consultada en dietéticas para consumo diario en crudo.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 5300.0,
+    "unidades_pack_cerrado": 30,
+    "precio_pack_cerrado": 159000.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 30 UD",
+        "unidades": 30,
+        "costo_por_unidad": 5300.0
+      },
+      {
+        "presentacion": "15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 5420.0
+      },
+      {
+        "presentacion": "3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 5580.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Aceite de Rosa Mosqueta Bio Nativa | 30 cc",
+    "categoria": "Aceites Naturales",
+    "descripcion_comercial": "Aceite de rosa mosqueta, el más pedido para cicatrices y marcas — imprescindible en la góndola de cosmética natural de cualquier dietética.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 8900.0,
+    "unidades_pack_cerrado": 24,
+    "precio_pack_cerrado": 213600.0,
+    "equivalente_5kg_calculado": null,
+    "equivalente_5kg_nota": "no aplica (producto envasado por volumen, no por peso)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "pack 24 UD",
+        "unidades": 24,
+        "costo_por_unidad": 8900.0
+      },
+      {
+        "presentacion": "15 UD",
+        "unidades": 15,
+        "costo_por_unidad": 9050.0
+      },
+      {
+        "presentacion": "3 UD",
+        "unidades": 3,
+        "costo_por_unidad": 9250.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Grano de Cacao Orgánico Bolivia",
+    "categoria": "Cacao en Grano",
+    "descripcion_comercial": "Grano de cacao orgánico certificado, en su forma menos procesada, para reposterías artesanales y dietéticas que buscan diferenciarse con un insumo premium.",
+    "tipo_venta": "granel_por_kg",
+    "precio_5kg": 95000.0,
+    "precio_5kg_metodo": "ESTIMADO (unico_dato)",
+    "precio_bulto_cerrado": 190000.0,
+    "peso_bulto_cerrado_kg": 10.0,
+    "precio_bulto_cerrado_metodo": "ESTIMADO a 10 kg estándar (unico_dato) - el proveedor solo listaba presentaciones menores a 5 kg",
+    "presentaciones_originales": [
+      {
+        "presentacion": "BOLSA 2 KG",
+        "peso_kg": 2.0,
+        "costo_por_kg": 19000.0
+      }
+    ],
+    "nota": null
+  },
+  {
+    "nombre_producto": "Alfajor Agofa Relleno de Dulce de Leche 70% Cacao | 70 g",
+    "categoria": "Chocolates Artesanales",
+    "descripcion_comercial": "Alfajor artesanal bañado en chocolate 70% cacao, relleno de dulce de leche — formato individual listo para exhibir en cajas cerradas en kioscos, cafeterías y dietéticas.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 3707.0,
+    "unidades_pack_cerrado": 24,
+    "precio_pack_cerrado": 88968.0,
+    "equivalente_5kg_calculado": 264785.71,
+    "equivalente_5kg_nota": "calculado: unidad de 70 g al mejor costo por unidad ($3,707)",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 24 UD",
+        "unidades": 24,
+        "costo_por_unidad": 3707.0
+      },
+      {
+        "presentacion": "CAJA 6 UD",
+        "unidades": 6,
+        "costo_por_unidad": 4891.0
+      }
+    ]
+  },
+  {
+    "nombre_producto": "Barritas Artesanales Surtidas Agofa",
+    "categoria": "Chocolates Artesanales",
+    "descripcion_comercial": "Barritas artesanales surtidas en formato individual, ideales para exhibidor de caja o kiosco saludable. Venta en cajas cerradas para reposición rápida de stock.",
+    "tipo_venta": "por_unidad_pack_cerrado",
+    "costo_por_unidad": 2207.0,
+    "unidades_pack_cerrado": 60,
+    "precio_pack_cerrado": 132420.0,
+    "equivalente_5kg_calculado": 367833.33,
+    "equivalente_5kg_nota": "calculado: unidad de 30 g al mejor costo por unidad ($2,207) -- ASUNCIÓN de 30 g/unidad, no especificado en el excel",
+    "presentaciones_originales": [
+      {
+        "presentacion": "CAJA 60 UD",
+        "unidades": 60,
+        "costo_por_unidad": 2207.0
+      },
+      {
+        "presentacion": "20 UD",
+        "unidades": 20,
+        "costo_por_unidad": 2690.0
+      }
+    ]
+  }
+]

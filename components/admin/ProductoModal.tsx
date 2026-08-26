@@ -38,8 +38,8 @@ type Props = {
 };
 
 const input =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-gray-900';
-const label = 'text-xs font-semibold uppercase tracking-wider text-gray-500';
+  'w-full rounded-xl border border-carbon/10 bg-white px-3 py-2 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/12';
+const label = 'text-xs font-semibold uppercase tracking-wider text-tostado';
 
 export default function ProductoModal({ producto, onClose, onGuardado }: Props) {
   const esNuevo = producto === null;
@@ -147,23 +147,23 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
-      <div className="absolute inset-0 bg-black/50" onClick={ocupado ? undefined : onClose} aria-hidden />
+      <div className="absolute inset-0 bg-[#0b1c0f]/60 backdrop-blur-[2px]" onClick={ocupado ? undefined : onClose} aria-hidden />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label={esNuevo ? 'Nuevo producto' : `Editar ${producto?.nombre}`}
-        className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+        className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-[#fdfbf7] shadow-[0_45px_90px_-35px_rgba(11,28,15,0.75)] sm:rounded-3xl"
       >
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">
+        <div className="flex items-center justify-between border-b border-carbon/10 bg-gradient-to-r from-[#143620] to-[#0b1c0f] px-6 py-4">
+          <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#f5ebd9]">
             {esNuevo ? 'Agregar producto' : 'Editar producto'}
           </h2>
           <button
             onClick={onClose}
             disabled={ocupado}
             aria-label="Cerrar"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-[#f5ebd9]/60 transition-colors hover:bg-white/10 hover:text-[#f5ebd9] disabled:opacity-40"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
               <path d="M18 6 6 18M6 6l12 12" />
@@ -176,7 +176,7 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
             {/* ---------- Imagen ---------- */}
             <div>
               <p className={label}>Imagen</p>
-              <div className="mt-2 relative aspect-square w-full overflow-hidden rounded-xl border border-dashed border-gray-300 bg-gray-50">
+              <div className="mt-2 relative aspect-square w-full overflow-hidden rounded-xl border border-dashed border-carbon/20 bg-crema">
                 {imagenUrl ? (
                   <Image
                     src={imagenUrl}
@@ -187,12 +187,12 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                     className="object-contain p-2"
                   />
                 ) : (
-                  <span className="flex h-full items-center justify-center text-xs text-gray-400">
+                  <span className="flex h-full items-center justify-center text-xs text-humo/60">
                     Sin imagen
                   </span>
                 )}
                 {subiendo && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-white/80 text-xs font-medium text-gray-600">
+                  <span className="absolute inset-0 flex items-center justify-center bg-white/80 text-xs font-medium text-humo">
                     Subiendo…
                   </span>
                 )}
@@ -206,14 +206,14 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                   const f = e.target.files?.[0];
                   if (f) void subir(f);
                 }}
-                className="mt-2 block w-full text-xs text-gray-500 file:mr-2 file:rounded-full file:border-0 file:bg-gray-900 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-gray-700"
+                className="mt-2 block w-full text-xs text-humo file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#143620] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#f5ebd9] hover:file:bg-[#0b1c0f]"
               />
-              <p className="mt-1 text-[11px] text-gray-400">JPG, PNG, WEBP o AVIF. Máx 5 MB.</p>
+              <p className="mt-1 text-[11px] text-humo/60">JPG, PNG, WEBP o AVIF. Máx 5 MB.</p>
               {imagenUrl && (
                 <button
                   type="button"
                   onClick={() => setImagenUrl('')}
-                  className="mt-1 text-[11px] text-red-600 hover:underline"
+                  className="mt-1 text-[11px] text-[#b3261e] hover:underline"
                 >
                   Quitar imagen
                 </button>
@@ -272,12 +272,12 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2 text-sm text-carbon">
                 <input
                   type="checkbox"
                   checked={activo}
                   onChange={(e) => setActivo(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-carbon/25 accent-[#1e6b32]"
                 />
                 Visible en la web (destildar = sin stock)
               </label>
@@ -285,13 +285,13 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
           </div>
 
           {/* ---------- Variantes ---------- */}
-          <div className="mt-7 border-t border-gray-100 pt-5">
+          <div className="mt-7 border-t border-carbon/10 pt-5">
             <div className="flex items-center justify-between">
               <p className={label}>Variantes y precios</p>
               <button
                 type="button"
                 onClick={agregarVariante}
-                className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                className="text-xs font-medium text-[#175427] transition-colors hover:text-[#0b1c0f] hover:underline"
               >
                 + Agregar variante
               </button>
@@ -301,7 +301,7 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
               {variantes.map((v, i) => (
                 <div
                   key={i}
-                  className="grid grid-cols-2 gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-3 sm:grid-cols-[1fr_110px_110px_100px_32px]"
+                  className="grid grid-cols-2 gap-2 rounded-xl border border-carbon/[0.07] bg-crema/70 p-3 transition-colors hover:border-carbon/15 sm:grid-cols-[1fr_110px_110px_100px_32px]"
                 >
                   <input
                     value={v.label}
@@ -331,7 +331,7 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                     onChange={(e) => setVar(i, { precio: Number(e.target.value) })}
                     disabled={v.tipo === 'consultar'}
                     placeholder="Precio"
-                    className={`${input} disabled:bg-gray-100 disabled:text-gray-400`}
+                    className={`${input} disabled:bg-crema disabled:text-humo/50`}
                     aria-label="Precio"
                   />
                   <input
@@ -349,7 +349,7 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                     onClick={() => quitarVariante(i)}
                     disabled={variantes.length === 1}
                     aria-label={`Quitar ${v.label || 'variante'}`}
-                    className="flex h-9 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-30 disabled:hover:bg-transparent"
+                    className="flex h-9 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#b3261e]/10 hover:text-[#b3261e] disabled:opacity-30 disabled:hover:bg-transparent"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
                       <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
@@ -358,30 +358,30 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                 </div>
               ))}
             </div>
-            <p className="mt-2 text-[11px] text-gray-400">
+            <p className="mt-2 text-[11px] text-humo/60">
               El peso alimenta el cotizador de envíos. El id de cada variante no se puede
               cambiar desde acá: el carrito guardado de los clientes lo usa como clave.
             </p>
           </div>
 
           {error && (
-            <p className="mt-5 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+            <p className="mt-5 rounded-xl border border-[#b3261e]/20 bg-[#b3261e]/8 px-3.5 py-2.5 text-sm text-[#b3261e]">{error}</p>
           )}
         </form>
 
-        <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="flex items-center justify-end gap-2 border-t border-carbon/10 bg-crema px-6 py-4">
           <button
             type="button"
             onClick={onClose}
             disabled={ocupado}
-            className="rounded-full px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 disabled:opacity-40"
+            className="rounded-full px-4 py-2.5 text-sm font-medium text-humo transition-colors hover:bg-carbon/8 hover:text-carbon disabled:opacity-40"
           >
             Cancelar
           </button>
           <button
             onClick={guardar}
             disabled={ocupado || !nombre.trim()}
-            className="rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-700 disabled:opacity-40"
+            className="rounded-full bg-[#1e6b32] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_12px_26px_-12px_rgba(30,107,50,0.9)] transition-all duration-200 hover:bg-[#175427] active:scale-95 disabled:opacity-40 disabled:shadow-none"
           >
             {guardando ? 'Guardando…' : esNuevo ? 'Crear producto' : 'Guardar cambios'}
           </button>

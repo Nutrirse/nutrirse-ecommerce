@@ -53,16 +53,44 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-gray-100 px-5">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#0b1c0f] px-5">
+      {/* Halo dorado, el mismo recurso que el LogisticsBanner del sitio. */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(60% 55% at 50% 40%, rgba(214,178,106,0.18), transparent 70%)',
+        }}
+        aria-hidden
+      />
+
       <form
         onSubmit={entrar}
-        className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-[0_20px_50px_-25px_rgba(0,0,0,0.4)]"
+        className="relative w-full max-w-sm animate-fade-up overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-[0_45px_90px_-35px_rgba(0,0,0,0.75)]"
       >
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Nutrirse</p>
-        <h1 className="mt-1 text-2xl font-semibold text-gray-900">Panel de catálogo</h1>
+        {/* El Logo.png es casi blanco: solo se lee sobre fondo oscuro, asi que
+            vive en esta banda verde en vez de sobre la tarjeta crema. */}
+        <div className="flex items-center justify-center bg-gradient-to-b from-[#143620] to-[#0b1c0f] px-8 py-7">
+          <Image
+            src="/Logo.png"
+            alt="Nutrirse"
+            width={280}
+            height={280}
+            priority
+            className="h-14 w-auto object-contain"
+          />
+        </div>
+
+        <div className="px-8 pb-9 pt-7">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tostado">
+          Acceso interno
+        </p>
+        <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold text-carbon">
+          Panel de catálogo
+        </h1>
 
         {!configurado ? (
-          <p className="mt-5 rounded-lg bg-amber-50 px-3 py-2.5 text-sm leading-relaxed text-amber-800">
+          <p className="mt-5 rounded-xl border border-tostado/25 bg-tostado/10 px-3.5 py-3 text-sm leading-relaxed text-nuez">
             Falta definir <code className="font-mono">ADMIN_PASSWORD</code> en el entorno del
             servidor. Agregala a <code className="font-mono">.env.local</code> y reiniciá
             <code className="font-mono"> npm run dev</code>.
@@ -78,18 +106,23 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Contraseña"
-              className="mt-6 w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-gray-900"
+              className="mt-6 w-full rounded-xl border border-carbon/10 bg-white px-4 py-3 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/15"
             />
-            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            {error && (
+              <p role="alert" className="mt-3 rounded-lg bg-[#b3261e]/8 px-3 py-2 text-sm text-[#b3261e]">
+                {error}
+              </p>
+            )}
             <button
               type="submit"
               disabled={cargando || password.length === 0}
-              className="mt-4 w-full rounded-lg bg-gray-900 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-700 disabled:opacity-40"
+              className="mt-4 w-full rounded-full bg-[#143620] py-3.5 text-sm font-semibold tracking-wide text-[#f5ebd9] shadow-[0_14px_30px_-14px_rgba(11,28,15,0.9)] transition-all duration-200 hover:bg-[#0b1c0f] hover:shadow-[0_18px_35px_-14px_rgba(11,28,15,0.95)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
             >
               {cargando ? 'Verificando…' : 'Entrar'}
             </button>
           </>
         )}
+        </div>
       </form>
     </div>
   );
@@ -133,10 +166,10 @@ function CeldaPrecio({
 
   return (
     <label className="flex items-center gap-1.5">
-      <span className="w-24 shrink-0 truncate text-[11px] text-gray-400" title={variante.label}>
+      <span className="w-24 shrink-0 truncate text-[11px] text-humo/70" title={variante.label}>
         {variante.label}
       </span>
-      <span className="text-xs text-gray-400">$</span>
+      <span className="text-xs text-tostado">$</span>
       <input
         type="number"
         min={0}
@@ -148,7 +181,7 @@ function CeldaPrecio({
           if (e.key === 'Escape') setValor(original.current);
         }}
         aria-label={`Precio de ${variante.label}`}
-        className="w-24 rounded border border-transparent bg-transparent px-1.5 py-1 text-sm tabular-nums outline-none transition-colors hover:border-gray-200 focus:border-gray-900 focus:bg-white"
+        className="w-24 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-medium tabular-nums text-carbon outline-none transition-colors hover:border-carbon/15 hover:bg-white focus:border-[#143620]/40 focus:bg-white focus:ring-2 focus:ring-[#143620]/12"
       />
     </label>
   );
@@ -292,7 +325,7 @@ export default function AdminPage() {
 
   if (sesion === 'cargando') {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gray-100 text-sm text-gray-500">
+      <div className="flex min-h-dvh items-center justify-center bg-[#0b1c0f] text-sm text-[#f5ebd9]/60">
         Cargando…
       </div>
     );
@@ -311,13 +344,20 @@ export default function AdminPage() {
     : productos;
 
   return (
-    <div className="min-h-dvh bg-gray-100">
+    <div className="min-h-dvh bg-crema">
       {/* ---------- Barra superior ---------- */}
-      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-carbon/10 bg-hueso/95 backdrop-blur">
+        {/* Filete dorado: el acento de marca que separa el panel del contenido. */}
+        <div className="h-1 bg-gradient-to-r from-[#143620] via-tostado to-[#143620]" aria-hidden />
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-3 px-5 py-3.5">
           <div className="mr-auto">
-            <h1 className="text-base font-semibold text-gray-900">Catálogo</h1>
-            <p className="text-xs text-gray-500">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-tostado">
+              Nutrirse
+            </p>
+            <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold leading-tight text-carbon">
+              Catálogo
+            </h1>
+            <p className="text-xs text-humo">
               {productos.length} productos · {productos.filter((p) => p.activo).length} visibles
             </p>
           </div>
@@ -327,27 +367,27 @@ export default function AdminPage() {
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por nombre o categoría…"
             aria-label="Buscar"
-            className="h-10 w-full max-w-xs rounded-full border border-gray-200 px-4 text-sm outline-none transition-colors focus:border-gray-900 sm:w-64"
+            className="h-10 w-full max-w-xs rounded-full border border-carbon/10 bg-white px-4 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/12 sm:w-64"
           />
 
           <button
             onClick={() => void cargar()}
             disabled={cargando}
-            className="h-10 rounded-full px-4 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+            className="h-10 rounded-full px-4 text-sm font-medium text-humo transition-colors hover:bg-crema hover:text-carbon disabled:opacity-40"
           >
             {cargando ? 'Actualizando…' : 'Actualizar'}
           </button>
 
           <button
             onClick={() => setModal({ abierto: true, producto: null })}
-            className="h-10 rounded-full bg-gray-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
+            className="h-10 rounded-full bg-[#1e6b32] px-5 text-sm font-semibold text-white shadow-[0_12px_26px_-12px_rgba(30,107,50,0.9)] transition-all duration-200 hover:bg-[#175427] hover:shadow-[0_16px_30px_-12px_rgba(30,107,50,0.95)] active:scale-95"
           >
             + Agregar producto
           </button>
 
           <button
             onClick={() => void salir()}
-            className="h-10 rounded-full px-3 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            className="h-10 rounded-full px-3.5 text-sm text-humo/80 transition-colors hover:bg-crema hover:text-carbon"
           >
             Salir
           </button>
@@ -356,18 +396,19 @@ export default function AdminPage() {
 
       <main className="mx-auto max-w-[1400px] px-5 py-6">
         {errorCarga && (
-          <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{errorCarga}</p>
+          <p className="mb-4 rounded-xl border border-[#b3261e]/20 bg-[#b3261e]/8 px-4 py-3 text-sm text-[#b3261e]">{errorCarga}</p>
         )}
 
-        <p className="mb-3 text-xs text-gray-500">
+        <p className="mb-3 text-xs text-humo">
           Los precios y el estado se guardan solos al salir de la celda. Los cambios impactan en
           la web al instante.
         </p>
 
-        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-carbon/10 bg-hueso shadow-[0_24px_50px_-35px_rgba(28,26,23,0.5)]">
+          <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
+              <tr className="bg-gradient-to-r from-[#143620] to-[#0b1c0f] text-left text-xs uppercase tracking-wider text-[#f5ebd9]/75">
                 <th className="w-16 px-4 py-3 font-semibold">Foto</th>
                 <th className="px-4 py-3 font-semibold">Producto</th>
                 <th className="w-40 px-4 py-3 font-semibold">Categoría</th>
@@ -384,12 +425,16 @@ export default function AdminPage() {
                 return (
                   <tr
                     key={p.id}
-                    className={`border-b border-gray-100 transition-colors last:border-0 ${
-                      estado === 'ok' ? 'bg-green-50/60' : estado === 'error' ? 'bg-red-50/60' : 'hover:bg-gray-50/60'
-                    } ${p.activo ? '' : 'opacity-60'}`}
+                    className={`border-b border-carbon/[0.07] transition-colors duration-200 last:border-0 ${
+                      estado === 'ok'
+                        ? 'bg-[#1e6b32]/8'
+                        : estado === 'error'
+                          ? 'bg-[#b3261e]/8'
+                          : 'hover:bg-crema/70'
+                    } ${p.activo ? '' : 'opacity-55'}`}
                   >
                     <td className="px-4 py-3">
-                      <div className="relative h-11 w-11 overflow-hidden rounded-lg bg-gray-50">
+                      <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-carbon/[0.07] bg-crema">
                         {p.imagen_url ? (
                           <Image
                             src={p.imagen_url}
@@ -400,7 +445,7 @@ export default function AdminPage() {
                             className="object-contain p-0.5"
                           />
                         ) : (
-                          <span className="flex h-full items-center justify-center text-lg text-gray-300">
+                          <span className="flex h-full items-center justify-center font-[family-name:var(--font-display)] text-lg text-tostado/60">
                             {p.nombre.charAt(0)}
                           </span>
                         )}
@@ -410,15 +455,17 @@ export default function AdminPage() {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => setModal({ abierto: true, producto: p })}
-                        className="text-left font-medium text-gray-900 hover:underline"
+                        className="text-left font-semibold text-carbon underline-offset-2 transition-colors hover:text-[#1e6b32] hover:underline"
                       >
                         {p.nombre}
                       </button>
-                      <p className="font-mono text-[11px] text-gray-400">/{p.slug}</p>
+                      <p className="font-mono text-[11px] text-humo/60">/{p.slug}</p>
                     </td>
 
-                    <td className="px-4 py-3 text-gray-600">
-                      {(p.categoria ?? '—').replace(/-/g, ' ')}
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-crema px-2.5 py-1 text-xs capitalize text-humo">
+                        {(p.categoria ?? '—').replace(/-/g, ' ')}
+                      </span>
                     </td>
 
                     <td className="px-4 py-3">
@@ -432,10 +479,10 @@ export default function AdminPage() {
                             />
                           ))
                         ) : (
-                          <span className="text-xs text-gray-400">Solo a consultar</span>
+                          <span className="text-xs italic text-humo/60">Solo a consultar</span>
                         )}
                         {conPrecio.length > 0 && (
-                          <p className="pl-[6.5rem] text-[11px] text-gray-400">
+                          <p className="pl-[6.5rem] text-[11px] text-humo/60">
                             {formatARS(conPrecio[0].precio ?? 0)} el más bajo
                           </p>
                         )}
@@ -451,8 +498,8 @@ export default function AdminPage() {
                         aria-label={`Estado de ${p.nombre}`}
                         className={`w-full rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors ${
                           p.activo
-                            ? 'border-green-200 bg-green-50 text-green-800'
-                            : 'border-gray-200 bg-gray-100 text-gray-600'
+                            ? 'border-[#1e6b32]/25 bg-[#1e6b32]/10 text-[#175427]'
+                            : 'border-carbon/10 bg-crema text-humo'
                         }`}
                       >
                         <option value="activo">Activo</option>
@@ -469,7 +516,7 @@ export default function AdminPage() {
                           if (Number.isFinite(n) && n !== p.orden) void patch(p, { orden: n }, 'Orden');
                         }}
                         aria-label={`Orden de ${p.nombre}`}
-                        className="w-16 rounded border border-transparent px-1.5 py-1 text-sm tabular-nums outline-none transition-colors hover:border-gray-200 focus:border-gray-900"
+                        className="w-16 rounded-lg border border-transparent px-2 py-1 text-sm font-medium tabular-nums text-carbon outline-none transition-colors hover:border-carbon/15 hover:bg-white focus:border-[#143620]/40 focus:bg-white focus:ring-2 focus:ring-[#143620]/12"
                       />
                     </td>
 
@@ -478,7 +525,7 @@ export default function AdminPage() {
                         <button
                           onClick={() => setModal({ abierto: true, producto: p })}
                           aria-label={`Editar ${p.nombre}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#1e6b32]/10 hover:text-[#175427]"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                             <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
@@ -487,14 +534,14 @@ export default function AdminPage() {
                         <button
                           onClick={() => void eliminar(p)}
                           aria-label={`Eliminar ${p.nombre}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
                             <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
                           </svg>
                         </button>
                         {estado === 'guardando' && (
-                          <span className="text-[11px] text-gray-400">…</span>
+                          <span className="text-[11px] text-tostado">…</span>
                         )}
                       </div>
                     </td>
@@ -504,7 +551,7 @@ export default function AdminPage() {
 
               {filtrados.length === 0 && !cargando && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-sm text-gray-400">
+                  <td colSpan={7} className="px-4 py-16 text-center text-sm text-humo/70">
                     {productos.length === 0
                       ? 'Todavía no hay productos. Empezá con "Agregar producto".'
                       : 'Ningún producto coincide con la búsqueda.'}
@@ -513,6 +560,7 @@ export default function AdminPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </main>
 
@@ -523,7 +571,7 @@ export default function AdminPage() {
             key={t.id}
             role="status"
             className={`rounded-full px-4 py-2.5 text-sm font-medium shadow-lg ${
-              t.tipo === 'ok' ? 'bg-gray-900 text-white' : 'bg-red-600 text-white'
+              t.tipo === 'ok' ? 'bg-[#143620] text-[#f5ebd9]' : 'bg-[#b3261e] text-white'
             }`}
           >
             {t.tipo === 'ok' ? '✓ ' : '✕ '}

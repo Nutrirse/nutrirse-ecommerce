@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "node --env-file=.env.local scripts/migrar-productos.mjs",
+    "seed:dry": "node --env-file=.env.local scripts/migrar-productos.mjs --dry-run"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
