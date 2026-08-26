@@ -1,4 +1,12 @@
-import { NEGOCIO, SITE_DESCRIPTION, SITE_NAME, SITE_URL, OG_IMAGE } from './site';
+import {
+  FAQ,
+  LOGO_IMAGE,
+  NEGOCIO,
+  OG_IMAGE,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from './site';
 
 /**
  * JSON-LD del sitio, en un solo `@graph`.
@@ -17,7 +25,8 @@ export function schemaSitio() {
     url: SITE_URL,
     logo: {
       '@type': 'ImageObject',
-      url: `${SITE_URL}${OG_IMAGE.url}`,
+      // El logo de marca, no la placa social: Google los trata distinto.
+      url: `${SITE_URL}${LOGO_IMAGE}`,
       caption: SITE_NAME,
     },
     image: `${SITE_URL}${OG_IMAGE.url}`,
@@ -88,5 +97,34 @@ export function schemaSitio() {
   return {
     '@context': 'https://schema.org',
     '@graph': [org, web],
+  };
+}
+
+/**
+ * JSON-LD `FAQPage` para AEO.
+ *
+ * Las respuestas salen de `FAQ` en lib/site.ts, la misma fuente que
+ * renderiza el bloque visible de /contacto: si el schema dijera algo que no
+ * esta en la pagina, Google lo marca como spam estructurado.
+ *
+ * `acceptedAnswer.text` admite HTML basico, pero acá va texto plano a
+ * proposito: los motores extractivos lo citan tal cual.
+ */
+export function schemaFaq() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': `${SITE_URL}/contacto#faq`,
+    inLanguage: 'es-AR',
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    about: { '@id': `${SITE_URL}/#organization` },
+    mainEntity: FAQ.map((item) => ({
+      '@type': 'Question',
+      name: item.pregunta,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.respuesta,
+      },
+    })),
   };
 }

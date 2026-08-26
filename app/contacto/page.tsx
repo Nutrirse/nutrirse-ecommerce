@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import ContactWhatsAppForm from '@/components/ContactWhatsAppForm';
 import { WHATSAPP_NUMBER } from '@/lib/whatsapp';
-import { NEGOCIO } from '@/lib/site';
+import { FAQ, NEGOCIO } from '@/lib/site';
+import { schemaFaq } from '@/lib/schema';
 
 export const metadata: Metadata = {
   title: 'Contacto',
@@ -181,6 +182,62 @@ export default function Contacto() {
           </div>
         </div>
       </section>
+
+      {/* ---------------- FAQ (visible + JSON-LD) ----------------
+          Google exige que toda respuesta declarada en el `FAQPage` este
+          visible en la pagina. Ambos leen el mismo array `FAQ`, asi que no
+          pueden desincronizarse. */}
+      <section className="mx-auto mt-20 max-w-3xl px-5 sm:px-8">
+        <p className="font-[family-name:var(--font-hand)] text-[clamp(1.5rem,3vw,2.1rem)] leading-none text-tostado">
+          Antes de escribir
+        </p>
+        <h2 className="mt-2 font-[family-name:var(--font-display)] text-[clamp(1.8rem,4vw,2.8rem)] font-semibold leading-tight tracking-tight text-carbon">
+          Preguntas frecuentes
+        </h2>
+
+        <div className="mt-8 divide-y divide-black/5 border-y border-black/5">
+          {FAQ.map((item, i) => (
+            /* `<details>` nativo: acordeon sin JavaScript, accesible por
+               teclado y con el texto en el HTML inicial (los crawlers de IA
+               no ejecutan JS). El primero abierto. */
+            <details
+              key={item.pregunta}
+              open={i === 0}
+              className="group animate-fade-up py-5"
+              style={{ animationDelay: `${120 + i * 80}ms` }}
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-[family-name:var(--font-display)] text-lg font-semibold text-carbon marker:content-none [&::-webkit-details-marker]:hidden">
+                {item.pregunta}
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0 text-tostado transition-transform duration-300 group-open:rotate-180"
+                  aria-hidden
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-humo sm:text-base">
+                {item.respuesta}
+              </p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQPage para motores de respuesta (AI Overviews, Perplexity, etc.).
+          `dangerouslySetInnerHTML` porque React escaparia las comillas del
+          JSON. El contenido es estatico, sale de lib/site.ts. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaFaq()) }}
+      />
     </div>
   );
 }

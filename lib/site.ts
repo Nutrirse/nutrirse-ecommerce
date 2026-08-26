@@ -13,7 +13,7 @@ import { WHATSAPP_NUMBER } from './whatsapp';
  * despues obliga a que Google reindexe todo de cero.
  */
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nutrirse.vercel.app'
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.nutrirsehoy.com'
 ).replace(/\/+$/, '');
 
 export const SITE_NAME = 'Nutrirse';
@@ -38,13 +38,60 @@ export const SITE_KEYWORDS = [
   'envíos a todo el país',
 ];
 
-/** Imagen de OpenGraph/Twitter. 1200x630 es lo que esperan las previews. */
+/**
+ * Imagen de OpenGraph/Twitter. Va como URL relativa: `metadataBase` la
+ * convierte en absoluta, que es lo unico que leen WhatsApp, Facebook y X.
+ *
+ * OJO: el archivo actual mide 1200x360. Para `summary_large_image` hace
+ * falta 1200x630 (relacion 1.91:1); con 3.33:1 X descarta la card grande y
+ * WhatsApp recorta. Hay que reexportar /public/og-image.jpg a 1200x630 y
+ * actualizar `height` si el tamano cambia.
+ */
 export const OG_IMAGE = {
-  url: '/Logo.png',
+  url: '/og-image.jpg',
   width: 1200,
   height: 630,
   alt: 'Nutrirse · Frutos secos por mayor desde Salta',
+  type: 'image/jpeg',
 };
+
+/**
+ * Logo cuadrado/vertical para el JSON-LD. Separado de la OG image porque
+ * Google pide el logo real de la marca, no la placa de preview social.
+ */
+export const LOGO_IMAGE = '/Logo.png';
+
+/**
+ * Preguntas frecuentes B2B. Son la fuente unica del schema `FAQPage` y de
+ * cualquier bloque visible que las muestre. Los motores de respuesta (AI
+ * Overviews, Perplexity, ChatGPT Search) extraen de aca las reglas duras de
+ * compra minima, bonificacion de envio y cobertura logistica.
+ *
+ * Regla de Google: si una respuesta aparece en el schema tambien tiene que
+ * ser visible en la pagina. Por eso el FAQPage se inyecta en /contacto, que
+ * es donde estan los canales y la info de envios.
+ */
+export const FAQ = [
+  {
+    pregunta: '¿Cuál es el mínimo de compra?',
+    respuesta:
+      'El mínimo es de 5 kg por producto o bulto cerrado. Trabajamos exclusivamente por mayor, ' +
+      'así que cada artículo se vende en variantes de 5 kg o en su bulto original cerrado.',
+  },
+  {
+    pregunta: '¿Tienen envíos gratis?',
+    respuesta:
+      'Sí, bonificamos el envío en compras de productos superiores a $100.000. Por debajo de ese ' +
+      'monto el costo de envío se calcula desde el carrito o desde cualquier ficha de producto.',
+  },
+  {
+    pregunta: '¿Hacen envíos a todo el país?',
+    respuesta:
+      'Sí. Despachamos desde Salta Capital a toda la Argentina mediante transportes como Andreani, ' +
+      'OCA, Correo Argentino, Buspack y Flechabus, entre otros, con entrega a domicilio o a sucursal. ' +
+      'También se puede retirar sin cargo por el depósito coordinando turno previo por WhatsApp.',
+  },
+];
 
 /**
  * Perfiles sociales. `null` = todavia no existe: el Footer oculta el icono
