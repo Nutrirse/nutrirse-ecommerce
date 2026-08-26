@@ -42,9 +42,11 @@ export async function POST(req: Request) {
   }
 
   let password = '';
+  let recordarme = false;
   try {
-    const body = (await req.json()) as { password?: unknown };
+    const body = (await req.json()) as { password?: unknown; recordarme?: unknown };
     password = String(body.password ?? '');
+    recordarme = body.recordarme === true;
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
@@ -57,6 +59,6 @@ export async function POST(req: Request) {
 
   limpiarIntentos(ip);
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ADMIN_COOKIE, crearToken(), cookieOptions);
+  res.cookies.set(ADMIN_COOKIE, crearToken(recordarme), cookieOptions(recordarme));
   return res;
 }

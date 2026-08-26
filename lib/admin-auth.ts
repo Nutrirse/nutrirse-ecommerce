@@ -14,7 +14,15 @@ import { cookies } from 'next/headers';
  */
 
 export const ADMIN_COOKIE = 'nutrirse_admin';
-const DURACION_MS = 12 * 60 * 60 * 1000; // 12 h
+const DURACION_MS = 12 * 60 * 60 * 1000;          // 12 h, sesion normal
+const DURACION_RECORDAR_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias con "Recordarme"
+
+/**
+ * "Recordarme" alarga la sesion, no la vuelve permanente: es un panel con
+ * permisos de escritura sobre el catalogo. La expiracion viaja firmada
+ * dentro del token, asi que estirar la cookie a mano no sirve de nada.
+ */
+const duracion = (recordar: boolean) => (recordar ? DURACION_RECORDAR_MS : DURACION_MS);
 
 function secreto(): string | null {
   const s = process.env.ADMIN_SESSION_SECRET ?? process.env.ADMIN_PASSWORD;
@@ -47,10 +55,10 @@ export function passwordValida(intento: string): boolean {
   return igual(intento, real);
 }
 
-export function crearToken(): string {
+export function crearToken(recordar = false): string {
   const key = secreto();
   if (!key) throw new Error('Falta ADMIN_PASSWORD en el entorno.');
-  const payload = `${Date.now() + DURACION_MS}.${randomBytes(9).toString('base64url')}`;
+  const payload = `${Date.now() + duracion(recordar)}.${randomBytes(9).toString('base64url')}`;
   return `${payload}.${firmar(payload, key)}`;
 }
 
@@ -75,13 +83,13 @@ export async function haySesionAdmin(): Promise<boolean> {
   return tokenValido(store.get(ADMIN_COOKIE)?.value);
 }
 
-export const cookieOptions = {
+export const cookieOptions = (recordar = false) => ({
   httpOnly: true,
   sameSite: 'lax' as const,
   secure: process.env.NODE_ENV === 'production',
   path: '/',
-  maxAge: DURACION_MS / 1000,
-};
+  maxAge: duracion(recordar) / 1000,
+});
 
 /* ------------------------------------------------------------------ */
 /* Rate limit de login                                                 */

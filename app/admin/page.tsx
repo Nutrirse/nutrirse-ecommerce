@@ -4,7 +4,11 @@ import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductoModal from '@/components/admin/ProductoModal';
 import { formatARS } from '@/lib/format';
+import { NEGOCIO } from '@/lib/site';
 import type { Product, Variant } from '@/types';
+
+/** Preferencia del checkbox "Recordarme", no la sesion. */
+const RECORDARME_KEY = 'nutrirse_admin_recordarme';
 
 /* ================================================================== */
 /* Toasts                                                             */
@@ -28,8 +32,20 @@ function useToasts() {
 
 function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }) {
   const [password, setPassword] = useState('');
+  const [recordarme, setRecordarme] = useState(false);
+  const [verPass, setVerPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+
+  // La preferencia del checkbox se recuerda entre visitas; la sesion en si
+  // vive en la cookie httpOnly que emite /api/admin/login.
+  useEffect(() => {
+    try {
+      setRecordarme(localStorage.getItem(RECORDARME_KEY) === '1');
+    } catch {
+      /* modo privado o storage bloqueado: se queda en false */
+    }
+  }, []);
 
   const entrar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +55,15 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, recordarme }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'No pudimos validar la contraseña.');
+      try {
+        localStorage.setItem(RECORDARME_KEY, recordarme ? '1' : '0');
+      } catch {
+        /* no es critico */
+      }
       onOk();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado');
@@ -53,77 +74,166 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#0b1c0f] px-5">
-      {/* Halo dorado, el mismo recurso que el LogisticsBanner del sitio. */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(60% 55% at 50% 40%, rgba(214,178,106,0.18), transparent 70%)',
-        }}
-        aria-hidden
-      />
-
-      <form
-        onSubmit={entrar}
-        className="relative w-full max-w-sm animate-fade-up overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-[0_45px_90px_-35px_rgba(0,0,0,0.75)]"
-      >
-        {/* El Logo.png es casi blanco: solo se lee sobre fondo oscuro, asi que
-            vive en esta banda verde en vez de sobre la tarjeta crema. */}
-        <div className="flex items-center justify-center bg-gradient-to-b from-[#143620] to-[#0b1c0f] px-8 py-7">
-          <Image
-            src="/Logo.png"
-            alt="Nutrirse"
-            width={280}
-            height={280}
-            priority
-            className="h-14 w-auto object-contain"
-          />
-        </div>
-
-        <div className="px-8 pb-9 pt-7">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tostado">
-          Acceso interno
-        </p>
-        <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold text-carbon">
-          Panel de catálogo
-        </h1>
-
-        {!configurado ? (
-          <p className="mt-5 rounded-xl border border-tostado/25 bg-tostado/10 px-3.5 py-3 text-sm leading-relaxed text-nuez">
-            Falta definir <code className="font-mono">ADMIN_PASSWORD</code> en el entorno del
-            servidor. Agregala a <code className="font-mono">.env.local</code> y reiniciá
-            <code className="font-mono"> npm run dev</code>.
-          </p>
-        ) : (
-          <>
-            <label htmlFor="pass" className="sr-only">Contraseña</label>
-            <input
-              id="pass"
-              type="password"
-              autoFocus
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Contraseña"
-              className="mt-6 w-full rounded-xl border border-carbon/10 bg-white px-4 py-3 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/15"
+    <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-[#0b1c0f] via-[#143620] to-[#0b1c0f] px-4 py-10">
+      <div className="w-full max-w-4xl animate-fade-up overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-[0_50px_100px_-35px_rgba(0,0,0,0.8)]">
+        <div className="grid md:grid-cols-[0.9fr_1fr]">
+          {/* ---------------- Columna izquierda: marca ---------------- */}
+          <aside className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#143620] to-[#0b1c0f] p-8 md:p-10">
+            {/* Halo cálido, el mismo recurso del LogisticsBanner. */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  'radial-gradient(70% 50% at 50% 85%, rgba(214,178,106,0.22), transparent 70%)',
+              }}
+              aria-hidden
             />
-            {error && (
-              <p role="alert" className="mt-3 rounded-lg bg-[#b3261e]/8 px-3 py-2 text-sm text-[#b3261e]">
-                {error}
+
+            <div className="relative">
+              <Image
+                src="/Logo.png"
+                alt="Nutrirse"
+                width={280}
+                height={280}
+                priority
+                className="h-12 w-auto object-contain"
+              />
+              <p className="mt-7 font-[family-name:var(--font-hand)] text-[clamp(1.7rem,3vw,2.2rem)] leading-none text-[#d6b26a]">
+                Panel interno
               </p>
+              <h2 className="mt-2 font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] font-semibold leading-[1.15] text-[#f5ebd9]">
+                Gestión de catálogo y precios mayoristas en tiempo real.
+              </h2>
+              <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#f5ebd9]/60">
+                Cada cambio que guardás acá impacta al instante en la web y en las
+                cotizaciones que reciben tus clientes.
+              </p>
+            </div>
+
+            {/* La imagen se recorta sola en pantallas bajas: es decoración. */}
+            <div className="relative mt-8 hidden h-44 md:block">
+              <Image
+                src="/chica-nutrirse.png"
+                alt=""
+                aria-hidden
+                fill
+                sizes="(max-width: 768px) 0px, 380px"
+                className="object-contain object-bottom drop-shadow-[0_25px_35px_rgba(0,0,0,0.45)]"
+              />
+            </div>
+          </aside>
+
+          {/* ---------------- Columna derecha: formulario ---------------- */}
+          <form onSubmit={entrar} className="flex flex-col justify-center p-8 sm:p-10">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tostado">
+              Acceso interno
+            </p>
+            <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl font-semibold text-carbon">
+              Iniciar sesión
+            </h1>
+
+            {!configurado ? (
+              <p className="mt-6 rounded-xl border border-tostado/25 bg-tostado/10 px-4 py-3.5 text-sm leading-relaxed text-nuez">
+                Falta definir <code className="font-mono">ADMIN_PASSWORD</code> en el entorno del
+                servidor. Agregala a <code className="font-mono">.env.local</code> y reiniciá
+                <code className="font-mono"> npm run dev</code>.
+              </p>
+            ) : (
+              <>
+                <div className="mt-7">
+                  <label
+                    htmlFor="admin-email"
+                    className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-tostado"
+                  >
+                    Usuario
+                  </label>
+                  {/* El panel autentica solo con ADMIN_PASSWORD: este campo
+                      identifica la cuenta, no es un factor de login. Va
+                      readOnly para que no parezca editable. */}
+                  <input
+                    id="admin-email"
+                    type="email"
+                    readOnly
+                    value={NEGOCIO.email}
+                    autoComplete="username"
+                    aria-describedby="admin-email-nota"
+                    className="w-full cursor-default rounded-xl border border-carbon/10 bg-crema px-4 py-3 text-sm text-humo outline-none"
+                  />
+                  <p id="admin-email-nota" className="mt-1 text-[11px] text-humo/60">
+                    Cuenta única del negocio.
+                  </p>
+                </div>
+
+                <div className="mt-5">
+                  <label
+                    htmlFor="pass"
+                    className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-tostado"
+                  >
+                    Contraseña
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="pass"
+                      type={verPass ? 'text' : 'password'}
+                      autoFocus
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full rounded-xl border border-carbon/10 bg-white px-4 py-3 pr-12 text-sm text-carbon outline-none transition-colors placeholder:text-humo/40 focus:border-[#143620]/45 focus:ring-2 focus:ring-[#143620]/15"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setVerPass((v) => !v)}
+                      aria-label={verPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-crema hover:text-carbon"
+                    >
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+                        <circle cx="12" cy="12" r="3" />
+                        {verPass && <path d="m3 3 18 18" />}
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <label className="mt-5 flex w-fit cursor-pointer items-center gap-2.5 text-sm text-carbon">
+                  <input
+                    type="checkbox"
+                    checked={recordarme}
+                    onChange={(e) => setRecordarme(e.target.checked)}
+                    className="h-4 w-4 cursor-pointer rounded border-carbon/25 accent-[#143620]"
+                  />
+                  Recordarme
+                  <span className="text-xs text-humo/60">(7 días)</span>
+                </label>
+
+                {error && (
+                  <p
+                    role="alert"
+                    className="mt-4 rounded-xl border border-[#b3261e]/20 bg-[#b3261e]/8 px-3.5 py-2.5 text-sm text-[#b3261e]"
+                  >
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={cargando || password.length === 0}
+                  className="mt-6 w-full rounded-full bg-[#143620] py-3.5 text-sm font-semibold tracking-wide text-[#f5ebd9] shadow-[0_14px_30px_-14px_rgba(11,28,15,0.9)] transition-all duration-200 hover:bg-[#0b1c0f] hover:shadow-[0_18px_35px_-14px_rgba(11,28,15,0.95)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                >
+                  {cargando ? 'Verificando…' : 'Ingresar'}
+                </button>
+
+                <p className="mt-5 text-center text-[11px] leading-relaxed text-humo/60">
+                  Sesión cifrada en cookie httpOnly. Si olvidaste la clave, se rota desde
+                  las variables de entorno del servidor.
+                </p>
+              </>
             )}
-            <button
-              type="submit"
-              disabled={cargando || password.length === 0}
-              className="mt-4 w-full rounded-full bg-[#143620] py-3.5 text-sm font-semibold tracking-wide text-[#f5ebd9] shadow-[0_14px_30px_-14px_rgba(11,28,15,0.9)] transition-all duration-200 hover:bg-[#0b1c0f] hover:shadow-[0_18px_35px_-14px_rgba(11,28,15,0.95)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-            >
-              {cargando ? 'Verificando…' : 'Entrar'}
-            </button>
-          </>
-        )}
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
