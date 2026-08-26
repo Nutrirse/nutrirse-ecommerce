@@ -147,12 +147,6 @@ function pesoUnidadDesdeNombre(nombre) {
 
 const PESO_UNIDAD_FALLBACK = 0.1; // kg, para envasados sin peso en el nombre
 
-/** Ids estables y legibles. `slug` de la presentacion, recortado. */
-function idVariante(v, i) {
-  const base = slugify(String(v.presentacion ?? `var-${i}`)).slice(0, 24);
-  return base || `var-${i}`;
-}
-
 /**
  * Peso real de la presentacion, en kg. Es lo que consume el cotizador de
  * envios, no tiene nada que ver con el precio.
@@ -177,8 +171,8 @@ function pesoDeVariante(v, nombreProducto) {
 /**
  * Precio publicado de la presentacion.
  *
- * Con LECTURA_PRECIO = 'total' el numero del JSON se copia tal cual: es el
- * neto final de la presentacion y NO se multiplica por los kilos.
+ * Con LECTURA_PRECIO = 'unitario' el numero del JSON es el valor por kg
+ * (granel) o por unidad (packs) y se multiplica por `cantidad`.
  */
 function precioDeVariante(v) {
   const precio = Number(v.precio);
@@ -195,48 +189,68 @@ function precioDeVariante(v) {
  * Arma `precios_por_variante` con el esquema de la tabla:
  * [{ id, label, tipo, precio, peso_kg }].
  *
- * Las presentaciones se ordenan de menor a mayor volumen y se cierra con una
- * variante `consultar` para el pedido por volumen, que es como trabaja el
- * resto del sitio (carrito, ticket de WhatsApp, cotizador).
+ * El catalogo expone SOLO tres escalones, que es lo acordado con el cliente:
+ *
+ *   5kg       -> presentacion base (la fila de 5 kg del Excel)
+ *   bolsa     -> bulto cerrado (la presentacion mas grande del Excel)
+ *   mayorista -> "+5 bultos (Consultar)"
+ *
+ * Las presentaciones intermedias del Excel (bolsas de 2 kg, packs de 3 o 7
+ * unidades) se descartan a proposito: se cargan igual en la fuente pero no
+ * se publican.
  */
 function construirVariantes(p) {
   const nombre = String(p.nombre_producto ?? '');
-  const fuente = Array.isArray(p.variantes) ? p.variantes : [];
-  const usados = new Set();
+  const porUnidad = p.tipo_venta === 'unidad';
 
-  const variantes = fuente
-    .map((v, i) => {
+  // Solo las filas vendibles: con precio y con peso calculable.
+  const disponibles = (Array.isArray(p.variantes) ? p.variantes : [])
+    .map((v) => {
       const precio = precioDeVariante(v);
-      if (precio === null) return null;
-
       const peso = pesoDeVariante(v, nombre);
-      // Sin peso el cotizador de envios factura 0: se descarta la fila.
-      if (peso === null || !(peso > 0)) return null;
-
-      let id = idVariante(v, i);
-      while (usados.has(id)) id = `${id}-${i}`;
-      usados.add(id);
-
-      return {
-        id,
-        label: String(v.presentacion ?? '').trim() || `Presentación ${i + 1}`,
-        tipo: 'precio',
-        precio,
-        peso_kg: peso,
-        _orden: peso,
-      };
+      if (precio === null || peso === null || !(peso > 0)) return null;
+      return { precio, peso, cantidad: Number(v.cantidad), label: String(v.presentacion ?? '').trim() };
     })
     .filter(Boolean)
-    .sort((a, b) => a._orden - b._orden)
-    .map(({ _orden, ...v }) => v);
+    .sort((a, b) => a.peso - b.peso);
 
-  if (variantes.length === 0) return [];
+  if (disponibles.length === 0) return [];
 
-  // Variante a cotizar, tomando como piso 5x la presentacion mas grande.
+  /* ---- Base: la fila de 5 kg. Si el producto no la tiene (solo viene en
+     2 kg, en conservadora de 6 kg o en packs), cae a la presentacion mas
+     chica: descartarla dejaria el producto sin nada que vender. ---- */
+  const cinco = disponibles.find((v) => !porUnidad && v.peso === 5);
+  const base = cinco ?? disponibles[0];
+  const bulto = disponibles[disponibles.length - 1];
+
+  const variantes = [
+    {
+      id: '5kg',
+      label: base === cinco ? '5 kg' : base.label,
+      tipo: 'precio',
+      precio: base.precio,
+      peso_kg: base.peso,
+    },
+  ];
+
+  // Si la mas grande es la misma que la base, el producto tiene una sola
+  // presentacion: no se inventa un bulto duplicado.
+  if (bulto !== base) {
+    variantes.push({
+      id: 'bolsa',
+      label: porUnidad
+        ? `Bulto Cerrado (${bulto.cantidad} u.)`
+        : `Bulto Cerrado (${bulto.peso} kg)`,
+      tipo: 'precio',
+      precio: bulto.precio,
+      peso_kg: bulto.peso,
+    });
+  }
+
   const mayor = variantes[variantes.length - 1];
   variantes.push({
     id: 'mayorista',
-    label: p.tipo_venta === 'unidad' ? '+5 packs (Consultar)' : '+5 bultos (Consultar)',
+    label: '+5 bultos (Consultar)',
     tipo: 'consultar',
     precio: null,
     peso_kg: Number((mayor.peso_kg * 5).toFixed(3)),

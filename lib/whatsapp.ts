@@ -4,6 +4,13 @@ import type { CartItem, Customer, MetodoPago, ShippingOption } from '@/types';
 const FALLBACK_NUMBER = '5493874870997';
 
 /**
+ * Envio bonificado a partir de este subtotal DE PRODUCTOS (sin contar el
+ * envio). Lo anuncia components/AvisoEnvioGratis.tsx: si se cambia el
+ * numero aca, el cartel se actualiza solo. Poner 0 desactiva la promo.
+ */
+export const ENVIO_GRATIS_DESDE = 100_000;
+
+/**
  * wa.me solo acepta digitos: sin '+', sin espacios, guiones, parentesis ni
  * puntos. Tambien tolera que el .env venga con comillas o con prefijo '00'.
  * Ej: "+54 9 387 487-0997" -> "5493874870997"
@@ -31,7 +38,10 @@ export const METODOS_PAGO: Array<{
   id: MetodoPago;
   label: string;
   detalle: string;
-  /** Descuento sobre el subtotal de productos (0.10 = 10 %). */
+  /**
+   * Descuento sobre el subtotal de productos (0.10 = 10 %).
+   * Hoy ningun metodo descuenta: se deja el campo para una promo futura.
+   */
   descuento: number;
   /** El retiro en deposito no paga envio. */
   requiereEnvio: boolean;
@@ -39,8 +49,8 @@ export const METODOS_PAGO: Array<{
   {
     id: 'transferencia',
     label: 'Transferencia bancaria',
-    detalle: '10 % de descuento sobre el subtotal',
-    descuento: 0.1,
+    detalle: 'Coordinamos los datos por WhatsApp al confirmar el pedido',
+    descuento: 0,
     requiereEnvio: true,
   },
   {
@@ -67,13 +77,24 @@ export function calcularTotales(
   const m = metodoPago(pago);
   const subtotal = items.reduce((a, i) => a + (i.precio ?? 0) * i.cantidad, 0);
   const descuento = Math.round(subtotal * m.descuento);
-  const envio = m.requiereEnvio ? shipping?.price ?? 0 : 0;
   const peso = items.reduce((a, i) => a + i.peso_kg * i.cantidad, 0);
+
+  const costoEnvio = m.requiereEnvio ? shipping?.price ?? 0 : 0;
+  // El retiro en deposito ya no paga envio: no cuenta como bonificado.
+  const envioBonificado =
+    m.requiereEnvio && ENVIO_GRATIS_DESDE > 0 && subtotal >= ENVIO_GRATIS_DESDE;
+  const envio = envioBonificado ? 0 : costoEnvio;
 
   return {
     subtotal,
     descuento,
     envio,
+    /** Lo que se habria cobrado de envio si no aplicara la promo. */
+    envioSinPromo: costoEnvio,
+    envioBonificado,
+    /** Cuanto falta de subtotal para llegar al envio gratis. 0 si ya llego. */
+    faltaParaEnvioGratis:
+      ENVIO_GRATIS_DESDE > 0 ? Math.max(0, ENVIO_GRATIS_DESDE - subtotal) : 0,
     peso,
     total: subtotal - descuento + envio,
     hayConsultar: items.some((i) => i.tipo === 'consultar'),
@@ -130,7 +151,9 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
           B('ENVÍO'),
           shipping.label,
           `Entrega estimada: ${shipping.eta_dias[0]}–${shipping.eta_dias[1]} días hábiles`,
-          `Costo: ${formatARS(shipping.price)}`,
+          t.envioBonificado
+            ? `Costo: BONIFICADO (compra mayor a ${formatARS(ENVIO_GRATIS_DESDE)})`
+            : `Costo: ${formatARS(shipping.price)}`,
         ].join('\n')
       : `${B('ENVÍO')}\nA coordinar`;
 

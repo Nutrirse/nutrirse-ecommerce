@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import CheckoutForm from '@/components/CheckoutForm';
+import AvisoEnvioGratis from '@/components/AvisoEnvioGratis';
 
 export const metadata: Metadata = {
   title: 'Checkout',
@@ -23,6 +24,8 @@ export default function CheckoutPage() {
 
         <CheckoutForm />
       </div>
+
+      <AvisoEnvioGratis />
     </div>
   );
 }

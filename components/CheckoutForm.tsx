@@ -356,12 +356,23 @@ export default function CheckoutForm() {
               value={
                 !t.metodo.requiereEnvio
                   ? 'Retiro'
-                  : shipping
-                    ? formatARS(t.envio)
-                    : 'a calcular'
+                  : t.envioBonificado
+                    ? 'Gratis'
+                    : shipping
+                      ? formatARS(t.envio)
+                      : 'a calcular'
               }
+              acento={t.envioBonificado}
             />
           </dl>
+
+          {/* Empuje al envio gratis. Solo con envio a domicilio y si falta poco. */}
+          {t.metodo.requiereEnvio && t.faltaParaEnvioGratis > 0 && (
+            <p className="mt-3 rounded-lg bg-[#28a745]/8 px-3 py-2 text-[11px] leading-relaxed text-[#218838]">
+              Te faltan <strong>{formatARS(t.faltaParaEnvioGratis)}</strong> en productos para
+              que el envío sea gratis.
+            </p>
+          )}
 
           <div className="mt-5 flex items-baseline justify-between border-t border-gray-100 pt-5">
             <span className="text-sm font-medium text-gray-700">Total</span>
