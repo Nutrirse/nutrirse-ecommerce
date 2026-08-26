@@ -46,6 +46,16 @@ export const OG_IMAGE = {
   alt: 'Nutrirse · Frutos secos por mayor desde Salta',
 };
 
+/**
+ * Perfiles sociales. `null` = todavia no existe: el Footer oculta el icono
+ * y el JSON-LD lo deja fuera de `sameAs`. Nunca poner "#" ni un perfil
+ * vacio, resta confianza en los datos estructurados.
+ */
+export const REDES = {
+  instagram: 'https://www.instagram.com/nutrirse.hoy/' as string | null,
+  tiktok: null as string | null,
+};
+
 export const NEGOCIO = {
   email: 'nutrirsehoy.26@gmail.com',
   telefono: `+${WHATSAPP_NUMBER}`,
@@ -60,6 +70,6 @@ export const NEGOCIO = {
    * que coincida con la ficha de Google Business Profile.
    */
   calle: null as string | null,
-  /** Solo URLs reales: un `sameAs` a "#" o a un perfil vacio resta confianza. */
-  redes: [] as string[],
+  /** Se arma solo desde REDES: solo entran las URLs reales. Lo consume `sameAs`. */
+  redes: Object.values(REDES).filter((u): u is string => Boolean(u)),
 };

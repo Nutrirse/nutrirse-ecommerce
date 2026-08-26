@@ -19,6 +19,8 @@ type Canal = {
   texto: string;
   href?: string;
   externo?: boolean;
+  /** Override del tamaño del titulo. El email es largo y necesita achicarse. */
+  tituloClase?: string;
   icon: ReactNode;
 };
 
@@ -38,6 +40,8 @@ const CANALES: Canal[] = [
     titulo: EMAIL,
     texto: 'Para listas de precios, remitos y documentación comercial.',
     href: `mailto:${EMAIL}`,
+    /* `break-all`: sin esto el correo desborda la tarjeta en móvil. */
+    tituloClase: 'break-all text-base sm:text-lg',
     icon: (
       <>
         <rect width="20" height="16" x="2" y="4" rx="2" />
@@ -97,7 +101,11 @@ function CanalCard({ canal, delay }: { canal: Canal; delay: string }) {
       <p className="mt-5 text-xs font-medium uppercase tracking-wider text-tostado">
         {canal.eyebrow}
       </p>
-      <p className="mt-1.5 font-[family-name:var(--font-display)] text-xl font-semibold leading-snug text-carbon">
+      <p
+        className={`mt-1.5 font-[family-name:var(--font-display)] font-semibold leading-snug text-carbon ${
+          canal.tituloClase ?? 'text-xl'
+        }`}
+      >
         {canal.titulo}
       </p>
       <p className="mt-2 text-sm leading-relaxed text-humo">{canal.texto}</p>
@@ -148,15 +156,15 @@ export default function Contacto() {
 
       {/* ---------------- 2 columnas ---------------- */}
       <section className="relative mx-auto mt-14 max-w-7xl px-5 sm:px-8">
-        {/* Nuez decorativa. `z-0` + `pointer-events-none` la dejan detrás
-            del formulario y fuera del alcance de los clics. */}
+        {/* Nuez decorativa. `z-20` la deja por encima de las tarjetas;
+            `pointer-events-none` evita que robe clics del formulario. */}
         <Image
           src="/nuez-contacto.png"
           alt=""
           aria-hidden
           width={260}
           height={260}
-          className="pointer-events-none absolute -top-12 -right-2 z-0 w-28 animate-float select-none opacity-90 drop-shadow-[0_18px_30px_rgba(28,26,23,0.28)] sm:-right-6 md:-top-16 md:-right-12 md:w-44"
+          className="pointer-events-none absolute -top-20 -right-2 z-20 w-48 animate-float select-none drop-shadow-[0_26px_40px_rgba(28,26,23,0.32)] sm:-right-6 md:-top-32 md:-right-10 md:w-64"
         />
 
         <div className="relative z-10 grid items-start gap-8 lg:grid-cols-[1fr_1fr] lg:gap-12">
