@@ -119,7 +119,9 @@ export default function ShippingCalculator({ compact = false, tone = 'claro', pe
           placeholder="Código postal"
           inputMode="numeric"
           aria-label="Código postal"
-          className={`h-11 min-w-0 flex-1 rounded-full border px-4 text-sm outline-none transition-colors ${cls.input}`}
+          /* `text-base sm:text-sm`: 16 px en mobile evita el auto-zoom de iOS
+             al enfocar. Mismo criterio que los campos del checkout. */
+          className={`h-11 min-w-0 flex-1 rounded-full border px-4 text-base outline-none transition-colors sm:text-sm ${cls.input}`}
         />
         <button
           type="submit"

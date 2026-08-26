@@ -114,8 +114,14 @@ export default function CheckoutForm() {
 
   return (
     <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1fr_400px]">
-      {/* ================= Columna izquierda: formulario ================= */}
-      <div className="space-y-6">
+      {/* ================= Columna izquierda: formulario =================
+          `min-w-0`: los items de un grid arrancan en `min-width: auto`, o sea
+          que se niegan a bajar del ancho min-content de su contenido. El
+          cotizador de envio (bloque 2) tiene un min-content de 436 px, y en
+          un viewport de 375 px eso estiraba la columna entera y sacaba scroll
+          horizontal a toda la pagina. Con `min-w-0` el item respeta el track
+          y el contenido ancho scrollea o se parte adentro, como corresponde. */}
+      <div className="min-w-0 space-y-6">
         {/* ---------- 1. Datos personales ---------- */}
         <Bloque numero={1} titulo="Datos personales">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -248,11 +254,13 @@ export default function CheckoutForm() {
                   onChange={set('indicaciones')}
                   rows={3}
                   placeholder="Horario de recepción, referencias, transporte propio…"
-                  className="w-full resize-none rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus:border-[#28a745] focus:ring-2 focus:ring-[#28a745]/25"
+                  className="w-full resize-none rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus:border-[#28a745] focus:ring-2 focus:ring-[#28a745]/25 sm:text-sm"
                 />
               </Field>
 
-              <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50/60 p-4">
+              {/* `min-w-0` tambien aca: es el bloque cuyo min-content
+                  desbordaba, y asi no depende solo del padre. */}
+              <div className="mt-6 min-w-0 rounded-xl border border-gray-100 bg-gray-50/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Costo de envío
                 </p>
@@ -302,7 +310,7 @@ export default function CheckoutForm() {
       </div>
 
       {/* ================= Columna derecha: resumen sticky ================= */}
-      <aside className="lg:sticky lg:top-28">
+      <aside className="min-w-0 lg:sticky lg:top-28">
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-black">
             Resumen del pedido
@@ -427,8 +435,14 @@ export default function CheckoutForm() {
 
 /* ---------------------------- helpers de UI ---------------------------- */
 
+/**
+ * `text-base sm:text-sm`: en mobile los campos tienen que medir 16 px o
+ * iOS hace zoom automatico al enfocarlos, y de ahi no vuelve solo: la pagina
+ * queda ampliada y los elementos `fixed` se salen del viewport visible.
+ * Desde `sm` se recupera el tamano chico del diseno, donde no hay auto-zoom.
+ */
 const input = (error?: string) =>
-  `h-11 w-full rounded-lg border bg-white px-4 text-sm text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus:ring-2 ${
+  `h-11 w-full rounded-lg border bg-white px-4 text-base text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus:ring-2 sm:text-sm ${
     error
       ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
       : 'border-gray-200 focus:border-[#28a745] focus:ring-[#28a745]/25'

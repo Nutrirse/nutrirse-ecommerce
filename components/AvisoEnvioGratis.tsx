@@ -30,9 +30,20 @@ export default function AvisoEnvioGratis() {
   return (
     <aside
       aria-live="polite"
-      className={`fixed bottom-5 left-5 z-40 max-w-[19rem] transition-all duration-500 ${
+      /* Mobile-first, anclado a los dos bordes: `left-4 right-4` deja que el
+         ancho lo decida el viewport en vez de forzarlo. Nunca desborda.
+
+         `bottom-24`: el boton flotante de WhatsApp ocupa de 24 a 80 px desde
+         abajo (`bottom-6` + `h-14`) y comparte `z-40`, asi que al pintarse
+         despues en el DOM tapaba la esquina derecha del cartel. Subir el
+         cartel por encima de la burbuja los deja convivir sin recortar texto.
+         `env(safe-area-inset-bottom)` suma el home indicator de iOS.
+
+         Desde `lg` el boton ya no molesta (el cartel vive a la izquierda),
+         asi que vuelve a la esquina y recupera su ancho acotado. */
+      className={`fixed bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] left-4 right-4 z-40 transition-all duration-500 lg:bottom-5 lg:left-5 lg:right-auto lg:max-w-[19rem] ${
         visible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-      } max-lg:left-4 max-lg:right-4 max-lg:max-w-none`}
+      }`}
     >
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#143620] to-[#0b1c0f] p-4 pr-9 shadow-[0_25px_50px_-20px_rgba(11,28,15,0.8)]">
         {/* Halo dorado, el acento de marca del resto del sitio. */}
