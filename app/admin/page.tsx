@@ -75,10 +75,14 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-[#0b1c0f] via-[#143620] to-[#0b1c0f] px-4 py-10">
-      <div className="w-full max-w-4xl animate-fade-up overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-[0_50px_100px_-35px_rgba(0,0,0,0.8)]">
-        <div className="grid md:grid-cols-[0.9fr_1fr]">
+      {/* La animacion vive en un wrapper aparte: si el `transform` corre en el
+          mismo elemento que hace el clip redondeado, el navegador rasteriza el
+          borde antes de transformarlo y deja los cortes blancos en las esquinas. */}
+      <div className="w-full max-w-5xl animate-fade-up">
+        <div className="isolate overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-[0_55px_110px_-35px_rgba(0,0,0,0.85)]">
+        <div className="grid md:grid-cols-[0.95fr_1fr]">
           {/* ---------------- Columna izquierda: marca ---------------- */}
-          <aside className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#143620] to-[#0b1c0f] p-8 md:p-10">
+          <aside className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#143620] to-[#0b1c0f] p-8 pb-0 md:p-10 md:pb-0">
             {/* Halo cálido, el mismo recurso del LogisticsBanner. */}
             <div
               className="pointer-events-none absolute inset-0"
@@ -110,15 +114,17 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
               </p>
             </div>
 
-            {/* La imagen se recorta sola en pantallas bajas: es decoración. */}
-            <div className="relative mt-8 hidden h-44 md:block">
+            {/* `object-bottom` + el `pb-0` del aside la apoyan en la base del
+                bloque verde en vez de dejarla flotando. Es decoración: en
+                pantallas bajas se recorta por arriba sin romper nada. */}
+            <div className="relative mt-8 hidden h-72 w-full self-end lg:h-80 md:block">
               <Image
                 src="/chica-nutrirse.png"
                 alt=""
                 aria-hidden
                 fill
-                sizes="(max-width: 768px) 0px, 380px"
-                className="object-contain object-bottom drop-shadow-[0_25px_35px_rgba(0,0,0,0.45)]"
+                sizes="(max-width: 768px) 0px, 460px"
+                className="object-contain object-bottom drop-shadow-[0_30px_40px_rgba(0,0,0,0.5)]"
               />
             </div>
           </aside>
@@ -232,6 +238,7 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
               </>
             )}
           </form>
+        </div>
         </div>
       </div>
     </div>

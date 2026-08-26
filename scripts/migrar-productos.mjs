@@ -25,6 +25,20 @@ import { createClient } from '@supabase/supabase-js';
 const DRY_RUN = process.argv.includes('--dry-run');
 const SOBRESCRIBIR = process.argv.includes('--sobrescribir');
 
+/**
+ * Como leer el campo `precio` de cada variante del JSON.
+ *
+ *   'total'    -> el numero es el precio final de esa presentacion.
+ *                 "Bolsa 5 kg: 21750" se publica como $21.750.
+ *   'unitario' -> el numero es el precio por kg (granel) o por unidad
+ *                 (packs), y hay que multiplicarlo por `cantidad`.
+ *                 "Bolsa 5 kg: 21750" se publica como $108.750.
+ *
+ * Ver el bloque de avisos al final del script: si los precios bajan cuando
+ * sube la cantidad, el JSON esta en 'unitario' y este flag esta mal puesto.
+ */
+const LECTURA_PRECIO = 'unitario';
+
 const URL_SB = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -110,10 +124,9 @@ const redondear = (n) => Math.round(Number(n));
 
 /**
  * Peso por unidad a partir del nombre: "... | 360 cc" -> 0.36 kg.
- * Los envasados no traen peso en el JSON y el cotizador (lib/shipping.ts)
- * factura por kilo: sin esto, un pedido de 15 aceites cotizaria como si
- * pesara cero. cc/ml se toman como gramos (densidad ~1), es una
- * aproximacion consciente.
+ * Los envasados no declaran peso y el cotizador (lib/shipping.ts) factura
+ * por kilo: sin esto, un pack de 15 aceites cotizaria como si pesara cero.
+ * cc/ml se toman como gramos (densidad ~1): es una aproximacion consciente.
  */
 function pesoUnidadDesdeNombre(nombre) {
   const matches = [...nombre.matchAll(/(\d+(?:[.,]\d+)?)\s*(kg|g|cc|ml|l)\b/gi)];
@@ -134,80 +147,117 @@ function pesoUnidadDesdeNombre(nombre) {
 
 const PESO_UNIDAD_FALLBACK = 0.1; // kg, para envasados sin peso en el nombre
 
+/** Ids estables y legibles. `slug` de la presentacion, recortado. */
+function idVariante(v, i) {
+  const base = slugify(String(v.presentacion ?? `var-${i}`)).slice(0, 24);
+  return base || `var-${i}`;
+}
+
+/**
+ * Peso real de la presentacion, en kg. Es lo que consume el cotizador de
+ * envios, no tiene nada que ver con el precio.
+ */
+function pesoDeVariante(v, nombreProducto) {
+  const cantidad = Number(v.cantidad);
+
+  if (v.unidad_cantidad === 'kg' && Number.isFinite(cantidad)) {
+    return cantidad;
+  }
+
+  if (v.unidad_cantidad === 'unidad' && Number.isFinite(cantidad)) {
+    const pesoUnidad = pesoUnidadDesdeNombre(nombreProducto) ?? PESO_UNIDAD_FALLBACK;
+    return Number((pesoUnidad * cantidad).toFixed(3));
+  }
+
+  // `cantidad: null` -> filas tipo "Menos de 6 unidades (pedido chico)".
+  // No declaran cantidad, asi que no hay peso que calcular.
+  return null;
+}
+
+/**
+ * Precio publicado de la presentacion.
+ *
+ * Con LECTURA_PRECIO = 'total' el numero del JSON se copia tal cual: es el
+ * neto final de la presentacion y NO se multiplica por los kilos.
+ */
+function precioDeVariante(v) {
+  const precio = Number(v.precio);
+  if (!Number.isFinite(precio) || precio <= 0) return null;
+
+  if (LECTURA_PRECIO === 'total') return redondear(precio);
+
+  const cantidad = Number(v.cantidad);
+  if (!Number.isFinite(cantidad) || cantidad <= 0) return redondear(precio);
+  return redondear(precio * cantidad);
+}
+
 /**
  * Arma `precios_por_variante` con el esquema de la tabla:
- * [{ id, label, tipo, precio, peso_kg }]. Descarta las variantes sin precio
- * en vez de guardarlas en 0: un 0 se renderiza como "$0" en la ficha.
+ * [{ id, label, tipo, precio, peso_kg }].
+ *
+ * Las presentaciones se ordenan de menor a mayor volumen y se cierra con una
+ * variante `consultar` para el pedido por volumen, que es como trabaja el
+ * resto del sitio (carrito, ticket de WhatsApp, cotizador).
  */
 function construirVariantes(p) {
-  const variantes = [];
+  const nombre = String(p.nombre_producto ?? '');
+  const fuente = Array.isArray(p.variantes) ? p.variantes : [];
+  const usados = new Set();
 
-  if (p.tipo_venta === 'granel_por_kg') {
-    if (p.precio_5kg != null) {
-      variantes.push({
-        id: '5kg',
-        label: '5 kg',
+  const variantes = fuente
+    .map((v, i) => {
+      const precio = precioDeVariante(v);
+      if (precio === null) return null;
+
+      const peso = pesoDeVariante(v, nombre);
+      // Sin peso el cotizador de envios factura 0: se descarta la fila.
+      if (peso === null || !(peso > 0)) return null;
+
+      let id = idVariante(v, i);
+      while (usados.has(id)) id = `${id}-${i}`;
+      usados.add(id);
+
+      return {
+        id,
+        label: String(v.presentacion ?? '').trim() || `Presentación ${i + 1}`,
         tipo: 'precio',
-        precio: redondear(p.precio_5kg),
-        peso_kg: 5,
-      });
-    }
+        precio,
+        peso_kg: peso,
+        _orden: peso,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a._orden - b._orden)
+    .map(({ _orden, ...v }) => v);
 
-    const pesoBulto = Number(p.peso_bulto_cerrado_kg);
-    if (p.precio_bulto_cerrado != null && Number.isFinite(pesoBulto) && pesoBulto > 0) {
-      variantes.push({
-        id: 'bolsa',
-        label: `Bulto Cerrado (${pesoBulto} kg)`,
-        tipo: 'precio',
-        precio: redondear(p.precio_bulto_cerrado),
-        peso_kg: pesoBulto,
-      });
-      variantes.push({
-        id: 'mayorista',
-        label: '+5 bultos (Consultar)',
-        tipo: 'consultar',
-        precio: null,
-        peso_kg: pesoBulto * 5,
-      });
-    }
+  if (variantes.length === 0) return [];
 
-    return variantes;
-  }
-
-  // por_unidad_pack_cerrado
-  const unidades = Number(p.unidades_pack_cerrado);
-  const pesoUnidad = pesoUnidadDesdeNombre(p.nombre_producto) ?? PESO_UNIDAD_FALLBACK;
-
-  if (p.precio_pack_cerrado != null && Number.isFinite(unidades) && unidades > 0) {
-    const pesoPack = Number((pesoUnidad * unidades).toFixed(3));
-    variantes.push({
-      id: 'bolsa',
-      label: `Caja Cerrada (${unidades} u.)`,
-      tipo: 'precio',
-      precio: redondear(p.precio_pack_cerrado),
-      peso_kg: pesoPack,
-    });
-    variantes.push({
-      id: 'mayorista',
-      label: '+5 cajas (Consultar)',
-      tipo: 'consultar',
-      precio: null,
-      peso_kg: Number((pesoPack * 5).toFixed(3)),
-    });
-  }
+  // Variante a cotizar, tomando como piso 5x la presentacion mas grande.
+  const mayor = variantes[variantes.length - 1];
+  variantes.push({
+    id: 'mayorista',
+    label: p.tipo_venta === 'unidad' ? '+5 packs (Consultar)' : '+5 bultos (Consultar)',
+    tipo: 'consultar',
+    precio: null,
+    peso_kg: Number((mayor.peso_kg * 5).toFixed(3)),
+  });
 
   return variantes;
 }
 
 /**
- * `nota` trae la condicion por debajo del minimo ("MENOS 6 UNID: $9,000/kg").
- * Va pegada a la descripcion para que el dato no se pierda.
+ * Las filas con `cantidad: null` ("Menos de 6 unidades") son una condicion
+ * comercial, no una presentacion vendible: se descartan como variante y se
+ * anotan en la descripcion para que el dato no se pierda.
  */
 function construirDescripcion(p) {
-  const base = (p.descripcion_comercial ?? '').trim();
-  const nota = (p.nota ?? '').trim();
-  if (!nota) return base || null;
-  return `${base}\n\nCondicion especial: ${nota}`.trim();
+  const base = String(p.descripcion_comercial ?? '').trim();
+  const sueltas = (Array.isArray(p.variantes) ? p.variantes : [])
+    .filter((v) => v.cantidad == null && v.precio != null)
+    .map((v) => `${String(v.presentacion ?? '').trim()}: $${Number(v.precio).toLocaleString('es-AR')}`);
+
+  if (sueltas.length === 0) return base || null;
+  return `${base}\n\nCondiciones especiales: ${sueltas.join(' · ')}`.trim();
 }
 
 /* ------------------------------------------------------------------ */
@@ -223,6 +273,7 @@ async function main() {
   }
 
   console.log(`\nproductos.json: ${origen.length} productos leidos.`);
+  console.log(`Lectura de precios: ${LECTURA_PRECIO.toUpperCase()}`);
 
   /* ---- slugs ya tomados en la base ---- */
   const { data: existentes, error: errorLectura } = await db
@@ -237,6 +288,7 @@ async function main() {
   const usados = new Set();
   const filas = [];
   const avisos = [];
+  const invertidos = [];
   const saltados = [];
 
   // Ordena por categoria (segun ORDEN_CATEGORIAS) y despues por nombre.
@@ -263,8 +315,21 @@ async function main() {
 
     const variantes = construirVariantes(p);
     if (variantes.length === 0) {
-      avisos.push(`"${nombre}": ninguna variante con precio, descartado.`);
+      avisos.push(`"${nombre}": ninguna variante con precio y peso, descartado.`);
       return;
+    }
+
+    // Control de coherencia: mas kilos por menos plata no existe. Si pasa,
+    // el JSON trae precios unitarios y LECTURA_PRECIO deberia ser 'unitario'.
+    const conPrecio = variantes.filter((v) => v.tipo === 'precio');
+    for (let k = 1; k < conPrecio.length; k++) {
+      if (conPrecio[k].precio < conPrecio[k - 1].precio) {
+        invertidos.push(
+          `${nombre}: ${conPrecio[k - 1].label} $${conPrecio[k - 1].precio} > ` +
+            `${conPrecio[k].label} $${conPrecio[k].precio}`
+        );
+        break;
+      }
     }
 
     // `slug` tiene unique en la tabla: hay que desambiguar dentro del lote.
@@ -301,6 +366,18 @@ async function main() {
   if (avisos.length > 0) {
     console.log(`\nAvisos (${avisos.length}):`);
     avisos.forEach((a) => console.log(`   - ${a}`));
+  }
+
+  if (invertidos.length > 0) {
+    console.log(
+      `\n[!] ${invertidos.length} productos quedan con la presentacion grande MAS BARATA que la chica:`
+    );
+    invertidos.slice(0, 8).forEach((a) => console.log(`   - ${a}`));
+    if (invertidos.length > 8) console.log(`   ... y ${invertidos.length - 8} mas.`);
+    console.log(
+      '    Eso pasa cuando el JSON trae precio por kg/unidad y se publica como total.\n' +
+        "    Si es el caso, poner LECTURA_PRECIO = 'unitario' arriba del script."
+    );
   }
 
   if (filas.length === 0) {
