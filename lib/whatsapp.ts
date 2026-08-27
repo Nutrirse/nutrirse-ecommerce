@@ -5,8 +5,8 @@ const FALLBACK_NUMBER = '5493874870997';
 
 /**
  * Envio bonificado a partir de este subtotal DE PRODUCTOS (sin contar el
- * envio). Lo anuncia components/AvisoEnvioGratis.tsx: si se cambia el
- * numero aca, el cartel se actualiza solo. Poner 0 desactiva la promo.
+ * envio). Lo aplica `calcularTotales`; ya no hay cartel flotante que lo
+ * anuncie. Poner 0 desactiva la promo.
  */
 export const ENVIO_GRATIS_DESDE = 100_000;
 

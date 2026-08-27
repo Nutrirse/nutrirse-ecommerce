@@ -141,21 +141,28 @@ export default function ShippingCalculator({ compact = false, tone = 'claro', pe
               Zona detectada: {zona} · {peso} kg
             </p>
           )}
-          <ul className="grid gap-2 sm:grid-cols-2">
+          <ul className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
             {opciones.map((o) => {
               const activo = shipping?.id === o.id;
               return (
-                <li key={o.id}>
+                <li key={o.id} className="min-w-0">
                   <button
                     onClick={() => setShipping(activo ? null : o)}
-                    className={`flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
+                    /* `items-start` + `min-w-0`: en pantallas angostas el
+                       nombre del servicio baja de linea en vez de estirar la
+                       tarjeta y forzar scroll horizontal. */
+                    className={`flex w-full items-start justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
                       activo ? cls.optOn : cls.optOff
                     }`}
                   >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium">{o.label}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block whitespace-normal break-words text-sm font-medium">
+                        {o.label}
+                      </span>
                       <span
-                        className={`block text-xs ${activo ? cls.optSubOn : cls.optSubOff}`}
+                        className={`block whitespace-normal break-words text-xs ${
+                          activo ? cls.optSubOn : cls.optSubOff
+                        }`}
                       >
                         {o.eta_dias[0]}–{o.eta_dias[1]} días hábiles
                       </span>

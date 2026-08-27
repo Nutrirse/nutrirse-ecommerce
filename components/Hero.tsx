@@ -1,7 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -16,6 +18,11 @@ type Slide = {
   title: string;
   /** Nombre corto para el rotulo manuscrito junto al producto. */
   label: string;
+  /**
+   * Slug de categoria del catalogo (el mismo que usa el mega menu y
+   * `/productos?cat=`). Alimenta el CTA "Ver categoria" del slide.
+   */
+  cat: string;
   doypackImg: string;
   floatingImgs: string[];
 };
@@ -25,6 +32,7 @@ const SLIDES: Slide[] = [
     id: 'almendra',
     title: 'A L M E N D R A',
     label: 'Almendra',
+    cat: 'frutos-secos',
     doypackImg: '/images/hero/doypack-almendra.png',
     floatingImgs: [
       '/images/hero/fruto-almendra-1.png',
@@ -38,6 +46,7 @@ const SLIDES: Slide[] = [
     id: 'nuez',
     title: 'N U E Z',
     label: 'Nuez',
+    cat: 'frutos-secos',
     doypackImg: '/images/hero/doypack-nuez.png',
     floatingImgs: [
       '/images/hero/fruto-nuez-1.png',
@@ -51,6 +60,7 @@ const SLIDES: Slide[] = [
     id: 'pasas',
     title: 'P A S A S',
     label: 'Pasas',
+    cat: 'secos',
     doypackImg: '/images/hero/doypack-pasas.png',
     floatingImgs: [
       '/images/hero/fruto-pasas-1.png',
@@ -64,6 +74,7 @@ const SLIDES: Slide[] = [
     id: 'pistacho',
     title: 'P I S T A C H O',
     label: 'Pistacho',
+    cat: 'frutos-secos',
     doypackImg: '/images/hero/doypack-pistacho.png',
     floatingImgs: [
       '/images/hero/fruto-pistacho-1.png',
@@ -72,6 +83,82 @@ const SLIDES: Slide[] = [
       '/images/hero/fruto-pistacho-4.png',
       '/images/hero/fruto-pistacho-5.png',
     ],
+  },
+  {
+    id: 'aceites-esenciales',
+    title: 'A C E I T E S',
+    label: 'Aceites Esenciales',
+    cat: 'aceites',
+    doypackImg: '/images/hero/aceites-esenciales.png',
+    floatingImgs: [
+      '/images/hero/aceites-esenciales-1.png',
+      '/images/hero/aceites-esenciales-2.png',
+      '/images/hero/aceites-esenciales-3.png',
+    ],
+  },
+  {
+    id: 'chocolates',
+    title: 'C H O C O L A T E S',
+    label: 'Chocolates',
+    cat: 'chocolates',
+    doypackImg: '/images/hero/chocolates.png',
+    floatingImgs: [
+      '/images/hero/chocolates-1.png',
+      '/images/hero/chocolates-2.png',
+      '/images/hero/chocolates-3.png',
+    ],
+  },
+  {
+    id: 'frutas-desecadas',
+    title: 'D E S E C A D A S',
+    label: 'Frutas Desecadas',
+    cat: 'secos',
+    doypackImg: '/images/hero/frutas-desecadas.png',
+    floatingImgs: [
+      '/images/hero/frutas-desecadas-1.png',
+      '/images/hero/frutas-desecadas-2.png',
+    ],
+  },
+  {
+    id: 'semillas',
+    title: 'S E M I L L A S',
+    label: 'Semillas',
+    cat: 'semillas',
+    doypackImg: '/images/hero/semillas.png',
+    floatingImgs: [
+      '/images/hero/semillas-1.png',
+      '/images/hero/semillas-2.png',
+    ],
+  },
+  {
+    id: 'confituras',
+    title: 'C O N F I T U R A S',
+    label: 'Confituras',
+    cat: 'chocolates',
+    doypackImg: '/images/hero/confituras.png',
+    floatingImgs: [
+      '/images/hero/confituras-1.png',
+      '/images/hero/confituras-2.png',
+    ],
+  },
+  {
+    id: 'granola',
+    title: 'G R A N O L A',
+    label: 'Granola y Cereales',
+    cat: 'granola',
+    doypackImg: '/images/hero/granola-cereales.png',
+    floatingImgs: [
+      '/images/hero/granola-cereales-1.png',
+      '/images/hero/granola-cereales-2.png',
+    ],
+  },
+  {
+    id: 'infusiones',
+    title: 'I N F U S I O N E S',
+    label: 'Infusiones',
+    cat: 'infusiones',
+    doypackImg: '/images/hero/infusiones.png',
+    floatingImgs: ['/images/hero/infusiones-2.png'],
   },
 ];
 
@@ -205,13 +292,24 @@ const DUR = { out: 0.55, in: 0.85, fade: 0.5 };
 
 /* ------------------------------------------------------------------ */
 
+/** Cadencia del autoplay del carrusel, en ms. */
+const AUTOPLAY_MS = 5000;
+
 export default function Hero() {
+  const router = useRouter();
   const root = useRef<HTMLElement>(null);
   const activeRef = useRef(0);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   // Tweens de vuelo agrupados por slide, para pausar los invisibles.
   const drifts = useRef<gsap.core.Tween[][]>([]);
   const [active, setActive] = useState(0);
+  const [query, setQuery] = useState('');
+
+  /* Autoplay. `pausado` es transitorio (hover); `detenido` es definitivo:
+     si el usuario tomo el control del carrusel (flecha, punto o swipe) no
+     tiene sentido que la pagina se lo siga moviendo sola. */
+  const [pausado, setPausado] = useState(false);
+  const [detenido, setDetenido] = useState(false);
 
   const { contextSafe } = useGSAP(
     () => {
@@ -412,8 +510,40 @@ export default function Hero() {
     );
   });
 
-  const prev = () => go((activeRef.current - 1 + SLIDES.length) % SLIDES.length);
-  const next = () => go((activeRef.current + 1) % SLIDES.length);
+  const avanzar = () => go((activeRef.current + 1) % SLIDES.length);
+
+  /** Interaccion explicita del usuario: corta el autoplay para siempre. */
+  const tomarControl = () => setDetenido(true);
+
+  const prev = () => {
+    tomarControl();
+    go((activeRef.current - 1 + SLIDES.length) % SLIDES.length);
+  };
+  const next = () => {
+    tomarControl();
+    avanzar();
+  };
+
+  /* ---------------- Autoplay ----------------
+     El efecto se re-arma en cada cambio de slide, asi el reloj vuelve a
+     cero despues de una transicion y no queda un salto corto pendiente.
+     `go()` ignora el pedido si hay una transicion en curso, de modo que un
+     tick que caiga encima de una animacion simplemente no hace nada. */
+  useEffect(() => {
+    if (pausado || detenido) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = setInterval(avanzar, AUTOPLAY_MS);
+    return () => clearInterval(id);
+    // `active` entra como dependencia a proposito: reinicia el temporizador.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pausado, detenido, active]);
+
+  /* ---------------- Buscador ---------------- */
+  const buscar = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    router.push(q ? `/productos?q=${encodeURIComponent(q)}` : '/productos');
+  };
 
   /* ---------------- Swipe tactil (mobile) ----------------
      No se puede usar `scroll-snap`: los slides no estan uno al lado del otro
@@ -431,6 +561,9 @@ export default function Hero() {
   const SWIPE_MIN = 45;
 
   const onTouchStart = (e: React.TouchEvent) => {
+    // Cualquier toque sobre el hero corta el autoplay: en mobile el hover
+    // no existe y el usuario esta mirando lo que toco.
+    tomarControl();
     const t = e.touches[0];
     touch.current = { x: t.clientX, y: t.clientY };
   };
@@ -498,6 +631,8 @@ export default function Hero() {
       onTouchCancel={() => {
         touch.current = null;
       }}
+      onMouseEnter={() => setPausado(true)}
+      onMouseLeave={() => setPausado(false)}
       /* `touch-pan-y`: le avisa al navegador que solo el scroll vertical es
          suyo, asi el gesto horizontal no dispara el "volver atras" por
          deslizamiento de iOS/Android antes de que lleguen los eventos. */
@@ -595,14 +730,45 @@ export default function Hero() {
         </svg>
       </button>
 
-      <div className="absolute inset-x-0 bottom-10 z-30 flex flex-col items-center gap-6 px-5">
-        <div className="hero-ui flex flex-wrap justify-center gap-3">
-          <a
-            href="#catalogo"
-            className="inline-flex h-12 items-center rounded-full bg-[#f5ebd9] px-7 text-sm font-medium text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
+      <div className="absolute inset-x-0 bottom-8 z-30 flex flex-col items-center gap-5 px-5">
+        {/* Buscador global: manda a /productos?q= y ahi filtra la grilla. */}
+        <form
+          onSubmit={buscar}
+          role="search"
+          className="hero-ui flex w-full max-w-md items-center gap-2 rounded-full border border-[#f5ebd9]/20 bg-[#0b1c0f]/45 p-1.5 pl-4 backdrop-blur-md"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 text-[#f5ebd9]/60" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.2-3.2" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            type="search"
+            aria-label="Buscar productos"
+            placeholder="Buscar almendras, semillas, granola…"
+            /* 16 px en mobile: evita el auto-zoom de iOS al enfocar. */
+            className="h-10 min-w-0 flex-1 bg-transparent text-base text-[#f5ebd9] outline-none placeholder:text-[#f5ebd9]/45 sm:text-sm"
+          />
+          <button
+            type="submit"
+            className="h-10 shrink-0 rounded-full bg-[#f5ebd9] px-5 text-sm font-medium text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
           >
-            Ver catálogo
-          </a>
+            Buscar
+          </button>
+        </form>
+
+        <div className="hero-ui flex flex-wrap justify-center gap-3">
+          {/* CTA del slide visible: entra directo a su categoria. */}
+          <Link
+            href={`/productos?cat=${SLIDES[active].cat}`}
+            className="inline-flex h-12 items-center gap-2 rounded-full bg-[#d6b26a] px-7 text-sm font-medium text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
+          >
+            Ver {SLIDES[active].label}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M5 12h13M12 5l7 7-7 7" />
+            </svg>
+          </Link>
           <a
             href="#envios"
             className="inline-flex h-12 items-center rounded-full border border-[#f5ebd9]/25 px-7 text-sm font-medium text-[#f5ebd9] backdrop-blur transition-colors hover:bg-[#f5ebd9]/10"
@@ -618,7 +784,10 @@ export default function Hero() {
               role="tab"
               aria-selected={i === active}
               aria-label={s.label}
-              onClick={() => go(i)}
+              onClick={() => {
+                tomarControl();
+                go(i);
+              }}
               className={`h-1.5 rounded-full transition-all duration-500 ${
                 i === active ? 'w-9 bg-[#d6b26a]' : 'w-1.5 bg-[#f5ebd9]/30 hover:bg-[#f5ebd9]/55'
               }`}

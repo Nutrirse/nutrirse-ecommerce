@@ -29,14 +29,25 @@ const ORDENES = [
 const precioBase = (p: Product) =>
   p.precios_por_variante.find((v) => v.tipo === 'precio')?.precio ?? 0;
 
+/** Normaliza para buscar: minusculas y sin tildes ("mani" encuentra "maní"). */
+const normalizar = (t: string) =>
+  t
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
 export default function CatalogView({
   products,
   initialCat = 'todos',
+  initialQuery = '',
 }: {
   products: Product[];
   initialCat?: string;
+  /** Termino que llega por `?q=` desde el buscador del hero. */
+  initialQuery?: string;
 }) {
   const [cat, setCat] = useState(initialCat);
+  const [q, setQ] = useState(initialQuery);
   const [rango, setRango] = useState('todos');
   const [marcas, setMarcas] = useState<string[]>([]);
   const [orden, setOrden] = useState('destacados');
@@ -54,9 +65,18 @@ export default function CatalogView({
 
   const visibles = useMemo(() => {
     const r = RANGOS_PRECIO.find((x) => x.id === rango) ?? RANGOS_PRECIO[0];
+    // Cada palabra del termino tiene que aparecer en algun lado: asi
+    // "almendra 5" o "nuez light" siguen encontrando el producto.
+    const terminos = normalizar(q).split(/\s+/).filter(Boolean);
 
     const filtrados = products.filter((p) => {
       if (cat !== 'todos' && p.categoria !== cat) return false;
+      if (terminos.length > 0) {
+        const texto = normalizar(
+          `${p.nombre} ${p.descripcion ?? ''} ${p.categoria ?? ''}`
+        );
+        if (!terminos.every((t) => texto.includes(t))) return false;
+      }
       const precio = precioBase(p);
       return precio >= r.min && precio <= r.max;
     });
@@ -66,12 +86,13 @@ export default function CatalogView({
     if (orden === 'precio-desc') ordenados.sort((a, b) => precioBase(b) - precioBase(a));
     if (orden === 'alfabetico') ordenados.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     return ordenados;
-  }, [products, cat, rango, orden]);
+  }, [products, cat, rango, orden, q]);
 
   const toggleMarca = (m: string) =>
     setMarcas((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
 
   const limpiar = () => {
+    setQ('');
     setCat('todos');
     setRango('todos');
     setMarcas([]);
@@ -79,7 +100,8 @@ export default function CatalogView({
     setFiltrosAbiertos(false);
   };
 
-  const hayFiltros = cat !== 'todos' || rango !== 'todos' || marcas.length > 0;
+  const hayFiltros =
+    cat !== 'todos' || rango !== 'todos' || marcas.length > 0 || q.trim() !== '';
 
   /**
    * Elegir categoria cierra el panel mobile. El sidebar es el mismo nodo en
@@ -189,9 +211,41 @@ export default function CatalogView({
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+      {/* Buscador del catalogo: filtra en vivo, sin recargar la ruta. */}
+      <div className="pt-6">
+        <div className="flex h-12 items-center gap-2 rounded-full border border-black/10 bg-hueso px-4">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 text-humo" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.2-3.2" />
+          </svg>
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            type="search"
+            role="searchbox"
+            aria-label="Buscar en el catálogo"
+            placeholder="Buscar por nombre, descripción o categoría…"
+            /* 16 px en mobile: evita el auto-zoom de iOS al enfocar. */
+            className="h-full min-w-0 flex-1 bg-transparent text-base text-carbon outline-none placeholder:text-humo/70 sm:text-sm"
+          />
+          {q && (
+            <button
+              onClick={() => setQ('')}
+              aria-label="Borrar búsqueda"
+              className="shrink-0 rounded-full p-1 text-humo transition-colors hover:bg-black/5 hover:text-carbon"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="flex items-center justify-between gap-4 border-b border-black/10 py-5">
-        <p className="text-sm text-humo">
+        <p className="min-w-0 text-sm text-humo">
           {visibles.length} {visibles.length === 1 ? 'producto' : 'productos'}
+          {q.trim() && <span className="break-words"> para “{q.trim()}”</span>}
         </p>
         <button
           onClick={() => setFiltrosAbiertos((v) => !v)}
@@ -232,7 +286,11 @@ export default function CatalogView({
 
           {visibles.length === 0 && (
             <div className="rounded-2xl border border-black/5 bg-hueso py-20 text-center">
-              <p className="text-humo">No hay productos con estos filtros.</p>
+              <p className="text-humo">
+                {q.trim()
+                  ? `No encontramos productos para “${q.trim()}”.`
+                  : 'No hay productos con estos filtros.'}
+              </p>
               <button
                 onClick={limpiar}
                 className="mt-4 rounded-full bg-carbon px-6 py-2.5 text-sm text-hueso"

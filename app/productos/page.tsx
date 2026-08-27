@@ -24,9 +24,9 @@ export const revalidate = 3600;
 export default async function ProductosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cat?: string }>;
+  searchParams: Promise<{ cat?: string; q?: string }>;
 }) {
-  const { cat } = await searchParams;
+  const { cat, q } = await searchParams;
   const products = await getProducts();
 
   return (
@@ -43,7 +43,7 @@ export default async function ProductosPage({
         </p>
       </div>
 
-      <CatalogView products={products} initialCat={cat ?? 'todos'} />
+      <CatalogView products={products} initialCat={cat ?? 'todos'} initialQuery={q ?? ''} />
     </div>
   );
 }

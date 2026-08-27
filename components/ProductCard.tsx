@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useCart } from '@/store/cart';
-import { formatARS } from '@/lib/format';
+import { formatARS, formatPrecioPorKg } from '@/lib/format';
 import ProductModal from './ProductModal';
 import type { Product } from '@/types';
 
@@ -25,6 +25,9 @@ export default function ProductCard({
   if (!variant) return null;
 
   const esConsultar = variant.tipo === 'consultar';
+
+  /* En la variante de 5 kg el mayorista compara por kilo, no por bolsa. */
+  const porKg = variant.peso_kg === 5 ? formatPrecioPorKg(variant.precio, variant.peso_kg) : null;
 
   const onAdd = () => {
     addItem(product, variant);
@@ -105,7 +108,10 @@ export default function ProductCard({
             {esConsultar ? (
               <p className="text-base font-bold text-black">Precio a Consultar</p>
             ) : (
-              <p className="text-xl font-bold text-black">{formatARS(variant.precio ?? 0)}</p>
+              <>
+                <p className="text-xl font-bold text-black">{formatARS(variant.precio ?? 0)}</p>
+                {porKg && <p className="text-[11px] text-gray-500">({porKg})</p>}
+              </>
             )}
             <p className="mt-0.5 text-[11px] text-gray-400">{variant.label}</p>
           </div>
