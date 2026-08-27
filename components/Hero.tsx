@@ -29,59 +29,19 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
-    id: 'almendra',
-    title: 'A L M E N D R A',
-    label: 'Almendra',
-    cat: 'frutos-secos',
-    doypackImg: '/images/hero/doypack-almendra.png',
-    floatingImgs: [
-      '/images/hero/fruto-almendra-1.png',
-      '/images/hero/fruto-almendra-2.png',
-      '/images/hero/fruto-almendra-3.png',
-      '/images/hero/fruto-almendra-4.png',
-      '/images/hero/fruto-almendra-5.png',
-    ],
-  },
-  {
-    id: 'nuez',
-    title: 'N U E Z',
-    label: 'Nuez',
+    id: 'frutos-secos',
+    title: 'F R U T O S   S E C O S',
+    label: 'Frutos Secos',
     cat: 'frutos-secos',
     doypackImg: '/images/hero/doypack-nuez.png',
+    // Mix de las tres variedades: el slide representa la categoria entera,
+    // no un producto puntual.
     floatingImgs: [
       '/images/hero/fruto-nuez-1.png',
-      '/images/hero/fruto-nuez-2.png',
-      '/images/hero/fruto-nuez-3.png',
-      '/images/hero/fruto-nuez-4.png',
-      '/images/hero/fruto-nuez-5.png',
-    ],
-  },
-  {
-    id: 'pasas',
-    title: 'P A S A S',
-    label: 'Pasas',
-    cat: 'secos',
-    doypackImg: '/images/hero/doypack-pasas.png',
-    floatingImgs: [
-      '/images/hero/fruto-pasas-1.png',
-      '/images/hero/fruto-pasas-2.png',
-      '/images/hero/fruto-pasas-3.png',
-      '/images/hero/fruto-pasas-4.png',
-      '/images/hero/fruto-pasas-5.png',
-    ],
-  },
-  {
-    id: 'pistacho',
-    title: 'P I S T A C H O',
-    label: 'Pistacho',
-    cat: 'frutos-secos',
-    doypackImg: '/images/hero/doypack-pistacho.png',
-    floatingImgs: [
-      '/images/hero/fruto-pistacho-1.png',
-      '/images/hero/fruto-pistacho-2.png',
+      '/images/hero/fruto-almendra-2.png',
       '/images/hero/fruto-pistacho-3.png',
-      '/images/hero/fruto-pistacho-4.png',
-      '/images/hero/fruto-pistacho-5.png',
+      '/images/hero/fruto-almendra-4.png',
+      '/images/hero/fruto-nuez-5.png',
     ],
   },
   {
@@ -293,13 +253,20 @@ const DUR = { out: 0.55, in: 0.85, fade: 0.5 };
 /* ------------------------------------------------------------------ */
 
 /** Cadencia del autoplay del carrusel, en ms. */
-const AUTOPLAY_MS = 5000;
+const AUTOPLAY_MS = 3000;
 
 export default function Hero() {
   const router = useRouter();
   const root = useRef<HTMLElement>(null);
   const activeRef = useRef(0);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  /**
+   * Lock de transicion. `tl.isActive()` no alcanza: con la pestana en
+   * segundo plano el ticker de GSAP se detiene y la timeline queda
+   * congelada a mitad de camino, mientras el autoplay sigue disparando.
+   * Ahi es donde se apilaban dos o tres slides visibles a la vez.
+   */
+  const animando = useRef(false);
   // Tweens de vuelo agrupados por slide, para pausar los invisibles.
   const drifts = useRef<gsap.core.Tween[][]>([]);
   const [active, setActive] = useState(0);
@@ -319,8 +286,17 @@ export default function Hero() {
       /* ---- Estado inicial: solo el slide 0 visible ---- */
       SLIDES.forEach((_, i) => {
         const on = i === 0;
-        gsap.set(q(`[data-label="${i}"]`), { autoAlpha: on ? 1 : 0, y: on ? 0 : 18, scale: on ? 1 : 0.9 });
-        gsap.set(q(`[data-doypack="${i}"]`), { autoAlpha: on ? 1 : 0, yPercent: on ? 0 : 100 });
+        gsap.set(q(`[data-label="${i}"]`), {
+          autoAlpha: on ? 1 : 0,
+          y: on ? 0 : 18,
+          scale: on ? 1 : 0.9,
+          pointerEvents: 'none',
+        });
+        gsap.set(q(`[data-doypack="${i}"]`), {
+          autoAlpha: on ? 1 : 0,
+          yPercent: on ? 0 : 100,
+          pointerEvents: 'none',
+        });
         gsap.set(q(`[data-slide="${i}"] .fruit`), { autoAlpha: on ? 1 : 0 });
       });
 
@@ -432,39 +408,88 @@ export default function Hero() {
 
   /* ---------------- Transicion entre slides ---------------- */
 
+  /**
+   * Deja el DOM exactamente en el estado del slide `idx`, sin animar: mata
+   * los tweens de transicion pendientes y apaga TODO lo que no sea ese
+   * slide (`autoAlpha: 0` ya escribe `visibility: hidden`, asi que un slide
+   * apagado no puede quedar semitransparente ni capturar clics).
+   *
+   * Es la red de seguridad del carrusel: se llama al terminar cada
+   * transicion y al volver a la pestana. Cualquier estado intermedio raro
+   * se colapsa al estado correcto.
+   */
+  const fijarSlide = contextSafe((idx: number) => {
+    const q = gsap.utils.selector(root);
+
+    SLIDES.forEach((_, i) => {
+      const on = i === idx;
+      const label = q(`[data-label="${i}"]`);
+      const doypack = q(`[data-doypack="${i}"]`);
+      const frutos = q(`[data-slide="${i}"] .fruit`);
+
+      // Solo las capas de transicion. El vuelo de los frutos vive en
+      // `.fruit-drift` y la levitacion en `.doypack-float`: no se tocan.
+      gsap.killTweensOf([...label, ...doypack, ...frutos]);
+
+      gsap.set(label, { autoAlpha: on ? 1 : 0, y: 0, scale: on ? 1 : 0.9, pointerEvents: 'none' });
+      gsap.set(doypack, { autoAlpha: on ? 1 : 0, yPercent: on ? 0 : 100, pointerEvents: 'none' });
+      gsap.set(frutos, { autoAlpha: on ? 1 : 0 });
+
+      if (on) drifts.current[i]?.forEach((t) => t.resume());
+      else drifts.current[i]?.forEach((t) => t.pause());
+    });
+  });
+
   const go = contextSafe((next: number) => {
     const cur = activeRef.current;
     if (next === cur) return;
-    if (tlRef.current?.isActive()) return; // ignora clics durante la animacion
+    // Lock explicito: un clic rapido o un tick de autoplay desincronizado
+    // no pueden abrir una segunda transicion sobre la primera.
+    if (animando.current) return;
 
     const q = gsap.utils.selector(root);
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    animando.current = true;
     activeRef.current = next;
     setActive(next);
+
+    // Restos de la transicion anterior (una timeline congelada por un
+    // cambio de pestana, por ejemplo) se descartan antes de empezar.
+    tlRef.current?.kill();
+    tlRef.current = null;
 
     // El vuelo del slide entrante arranca ANTES del crossfade, asi ya viene
     // en movimiento cuando aparece. El saliente se pausa al terminar.
     drifts.current[next]?.forEach((t) => t.resume());
 
     if (reduce) {
-      drifts.current[cur]?.forEach((t) => t.pause());
-      gsap.set(q(`[data-label="${cur}"]`), { autoAlpha: 0 });
-      gsap.set(q(`[data-doypack="${cur}"]`), { autoAlpha: 0, yPercent: 100 });
-      gsap.set(q(`[data-slide="${cur}"] .fruit`), { autoAlpha: 0 });
-      gsap.set(q(`[data-label="${next}"]`), { autoAlpha: 1, y: 0, scale: 1 });
-      gsap.set(q(`[data-doypack="${next}"]`), { autoAlpha: 1, yPercent: 0 });
-      gsap.set(q(`[data-slide="${next}"] .fruit`), { autoAlpha: 1 });
+      fijarSlide(next);
+      animando.current = false;
       return;
     }
 
-    const tl = gsap.timeline({
-      onComplete: () => {
-        // Solo se pausa si el usuario no volvio a cambiar de slide.
-        if (activeRef.current !== cur) drifts.current[cur]?.forEach((t) => t.pause());
-      },
-    });
+    const soltar = () => {
+      animando.current = false;
+      // Colapsa al estado limpio del slide vigente: si mientras tanto hubo
+      // otro cambio, `activeRef` ya apunta al correcto.
+      fijarSlide(activeRef.current);
+    };
+
+    const tl = gsap.timeline({ onComplete: soltar, onInterrupt: () => { animando.current = false; } });
     tlRef.current = tl;
+
+    // Mata cualquier tween previo sobre los dos slides implicados: sin esto,
+    // un fade a medio camino sigue escribiendo opacidad sobre el mismo nodo
+    // que la timeline nueva esta animando.
+    gsap.killTweensOf([
+      ...q(`[data-label="${cur}"]`),
+      ...q(`[data-doypack="${cur}"]`),
+      ...q(`[data-slide="${cur}"] .fruit`),
+      ...q(`[data-label="${next}"]`),
+      ...q(`[data-doypack="${next}"]`),
+      ...q(`[data-slide="${next}"] .fruit`),
+    ]);
 
     /* --- Doypack: la bolsa actual baja y se desvanece; la nueva sube. --- */
     tl.to(
@@ -527,16 +552,42 @@ export default function Hero() {
   /* ---------------- Autoplay ----------------
      El efecto se re-arma en cada cambio de slide, asi el reloj vuelve a
      cero despues de una transicion y no queda un salto corto pendiente.
-     `go()` ignora el pedido si hay una transicion en curso, de modo que un
-     tick que caiga encima de una animacion simplemente no hace nada. */
+
+     Dos guardas dentro del tick:
+     - `document.hidden`: en segundo plano el ticker de GSAP se frena pero
+       `setInterval` sigue corriendo. Sin esta guarda se encolaban cambios
+       de slide que al volver a la pestana se resolvian todos juntos.
+     - `animando`: un tick que cae encima de una transicion no hace nada. */
   useEffect(() => {
     if (pausado || detenido) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const id = setInterval(avanzar, AUTOPLAY_MS);
+
+    const id = setInterval(() => {
+      if (document.hidden || animando.current) return;
+      avanzar();
+    }, AUTOPLAY_MS);
+
     return () => clearInterval(id);
     // `active` entra como dependencia a proposito: reinicia el temporizador.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pausado, detenido, active]);
+
+  /* ---- Cambio de pestana. Al irse se descarta la transicion en curso
+         (quedaria congelada a mitad y el lock nunca se liberaria); al
+         volver se re-sincroniza el DOM con el slide vigente. ---- */
+  useEffect(() => {
+    const onVisibilidad = () => {
+      if (document.hidden) {
+        tlRef.current?.kill();
+        tlRef.current = null;
+        animando.current = false;
+      } else {
+        fijarSlide(activeRef.current);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilidad);
+    return () => document.removeEventListener('visibilitychange', onVisibilidad);
+  }, [fijarSlide]);
 
   /* ---------------- Buscador ---------------- */
   const buscar = (e: React.FormEvent) => {
@@ -650,6 +701,36 @@ export default function Hero() {
         style={{ background: 'radial-gradient(75% 70% at 50% 50%, transparent 45%, rgba(0,0,0,0.5))' }}
       />
 
+      {/* ---------- Z-30 · buscador global, apenas debajo del navbar ---------- */}
+      <div className="absolute inset-x-0 top-[4.5rem] z-30 flex justify-center px-5 sm:top-24">
+        {/* Buscador global: manda a /productos?q= y ahi filtra la grilla. */}
+        <form
+          onSubmit={buscar}
+          role="search"
+          className="hero-ui flex w-full max-w-md items-center gap-2 rounded-full border border-[#f5ebd9]/20 bg-[#0b1c0f]/45 p-1.5 pl-4 backdrop-blur-md"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 text-[#f5ebd9]/60" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.2-3.2" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            type="search"
+            aria-label="Buscar productos"
+            placeholder="Buscar almendras, semillas, granola…"
+            /* 16 px en mobile: evita el auto-zoom de iOS al enfocar. */
+            className="h-10 min-w-0 flex-1 bg-transparent text-base text-[#f5ebd9] outline-none placeholder:text-[#f5ebd9]/45 sm:text-sm"
+          />
+          <button
+            type="submit"
+            className="h-10 shrink-0 rounded-full bg-[#f5ebd9] px-5 text-sm font-medium text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
+          >
+            Buscar
+          </button>
+        </form>
+      </div>
+
       {/* ---------- Z-[25] · rótulo manuscrito + flecha hacia el producto.
            Va por encima del doypack para que se lea siempre. ---------- */}
       <div className="pointer-events-none absolute inset-0 z-[25]">
@@ -730,34 +811,7 @@ export default function Hero() {
         </svg>
       </button>
 
-      <div className="absolute inset-x-0 bottom-8 z-30 flex flex-col items-center gap-5 px-5">
-        {/* Buscador global: manda a /productos?q= y ahi filtra la grilla. */}
-        <form
-          onSubmit={buscar}
-          role="search"
-          className="hero-ui flex w-full max-w-md items-center gap-2 rounded-full border border-[#f5ebd9]/20 bg-[#0b1c0f]/45 p-1.5 pl-4 backdrop-blur-md"
-        >
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 text-[#f5ebd9]/60" aria-hidden>
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.2-3.2" />
-          </svg>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            type="search"
-            aria-label="Buscar productos"
-            placeholder="Buscar almendras, semillas, granola…"
-            /* 16 px en mobile: evita el auto-zoom de iOS al enfocar. */
-            className="h-10 min-w-0 flex-1 bg-transparent text-base text-[#f5ebd9] outline-none placeholder:text-[#f5ebd9]/45 sm:text-sm"
-          />
-          <button
-            type="submit"
-            className="h-10 shrink-0 rounded-full bg-[#f5ebd9] px-5 text-sm font-medium text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
-          >
-            Buscar
-          </button>
-        </form>
-
+      <div className="absolute inset-x-0 bottom-10 z-30 flex flex-col items-center gap-6 px-5">
         <div className="hero-ui flex flex-wrap justify-center gap-3">
           {/* CTA del slide visible: entra directo a su categoria. */}
           <Link
