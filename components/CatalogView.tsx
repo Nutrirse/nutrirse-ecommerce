@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import ProductCard from './ProductCard';
 import type { Product } from '@/types';
+import { esDeCategoria, etiquetaCategoria, normalizarCategoria } from '@/lib/categorias';
 
 /* ------------------------------------------------------------------ */
 /* Filtros                                                             */
@@ -46,7 +47,8 @@ export default function CatalogView({
   /** Termino que llega por `?q=` desde el buscador del hero. */
   initialQuery?: string;
 }) {
-  const [cat, setCat] = useState(initialCat);
+  // `?cat=reposteria-harinas` y compania caen bajo la unica "Repostería".
+  const [cat, setCat] = useState(normalizarCategoria(initialCat));
   const [q, setQ] = useState(initialQuery);
   const [rango, setRango] = useState('todos');
   const [marcas, setMarcas] = useState<string[]>([]);
@@ -55,11 +57,17 @@ export default function CatalogView({
 
   const categorias = useMemo(() => {
     const propias = Array.from(
-      new Set(products.map((p) => p.categoria).filter(Boolean) as string[])
+      new Set(
+        products
+          .map((p) => p.categoria)
+          .filter(Boolean)
+          .map((c) => normalizarCategoria(c as string))
+      )
     );
     // Una categoría que llega por ?cat= y no existe en el catálogo igual se
     // muestra activa, para que el filtro no mienta sobre lo que aplicó.
-    if (initialCat !== 'todos' && !propias.includes(initialCat)) propias.push(initialCat);
+    const inicial = normalizarCategoria(initialCat);
+    if (inicial !== 'todos' && !propias.includes(inicial)) propias.push(inicial);
     return ['todos', ...propias];
   }, [products, initialCat]);
 
@@ -70,7 +78,7 @@ export default function CatalogView({
     const terminos = normalizar(q).split(/\s+/).filter(Boolean);
 
     const filtrados = products.filter((p) => {
-      if (cat !== 'todos' && p.categoria !== cat) return false;
+      if (!esDeCategoria(p.categoria, cat)) return false;
       if (terminos.length > 0) {
         const texto = normalizar(
           `${p.nombre} ${p.descripcion ?? ''} ${p.categoria ?? ''}`
@@ -126,11 +134,11 @@ export default function CatalogView({
             <li key={c}>
               <button
                 onClick={() => elegirCategoria(c)}
-                className={`w-full rounded-md px-2 py-1.5 text-left text-sm capitalize transition-colors ${
+                className={`w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
                   cat === c ? 'bg-carbon text-hueso' : 'text-humo hover:bg-black/5 hover:text-carbon'
                 }`}
               >
-                {c.replace(/-/g, ' ')}
+                {etiquetaCategoria(c)}
               </button>
             </li>
           ))}

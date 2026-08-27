@@ -33,16 +33,9 @@ const MEGA: MenuGroup[][] = [
   ],
   // Columna 3
   [
-    {
-      title: 'Repostería',
-      cat: 'reposteria',
-      items: [
-        { label: 'Insumos', cat: 'reposteria-insumos' },
-        { label: 'Chocolates', cat: 'reposteria-chocolates' },
-        { label: 'Coco', cat: 'reposteria-coco' },
-        { label: 'Harinas', cat: 'reposteria-harinas' },
-      ],
-    },
+    // Una sola entrada: insumos, chocolates, coco y harinas viajan todas
+    // bajo `reposteria` (ver lib/categorias.ts).
+    { title: 'Repostería', cat: 'reposteria', items: [] },
   ],
   // Columna 4
   [

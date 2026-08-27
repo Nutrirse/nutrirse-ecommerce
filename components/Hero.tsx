@@ -53,7 +53,6 @@ const SLIDES: Slide[] = [
     floatingImgs: [
       '/images/hero/aceites-esenciales-1.png',
       '/images/hero/aceites-esenciales-2.png',
-      '/images/hero/aceites-esenciales-3.png',
     ],
   },
   {
@@ -65,12 +64,11 @@ const SLIDES: Slide[] = [
     floatingImgs: [
       '/images/hero/chocolates-1.png',
       '/images/hero/chocolates-2.png',
-      '/images/hero/chocolates-3.png',
     ],
   },
   {
     id: 'frutas-desecadas',
-    title: 'D E S E C A D A S',
+    title: 'F R U T A S   D E S E C A D A S',
     label: 'Frutas Desecadas',
     cat: 'secos',
     doypackImg: '/images/hero/frutas-desecadas.png',
@@ -272,7 +270,8 @@ export default function Hero() {
   const [active, setActive] = useState(0);
   const [query, setQuery] = useState('');
 
-  /* Autoplay. `pausado` es transitorio (hover); `detenido` es definitivo:
+  /* Autoplay. `pausado` es transitorio (puntero sobre los controles);
+     `detenido` es definitivo:
      si el usuario tomo el control del carrusel (flecha, punto o swipe) no
      tiene sentido que la pagina se lo siga moviendo sola. */
   const [pausado, setPausado] = useState(false);
@@ -450,14 +449,16 @@ export default function Hero() {
     const q = gsap.utils.selector(root);
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /* Restos de la transicion anterior (una timeline congelada por un cambio
+       de pestana, por ejemplo) se descartan ANTES de tomar el lock: `kill()`
+       dispara el `onInterrupt` de esa timeline, que libera el lock. Tomarlo
+       primero lo perderia en el mismo tick. */
+    tlRef.current?.kill();
+    tlRef.current = null;
+
     animando.current = true;
     activeRef.current = next;
     setActive(next);
-
-    // Restos de la transicion anterior (una timeline congelada por un
-    // cambio de pestana, por ejemplo) se descartan antes de empezar.
-    tlRef.current?.kill();
-    tlRef.current = null;
 
     // El vuelo del slide entrante arranca ANTES del crossfade, asi ya viene
     // en movimiento cuando aparece. El saliente se pausa al terminar.
@@ -469,15 +470,29 @@ export default function Hero() {
       return;
     }
 
-    const soltar = () => {
+    /* Red de seguridad del lock: si la timeline no llega a disparar sus
+       callbacks (contexto revertido, pestana oculta toda la transicion), el
+       temporizador libera igual y el autoplay no queda muerto. */
+    let rescate: ReturnType<typeof setTimeout> | undefined;
+
+    const liberar = () => {
+      clearTimeout(rescate);
       animando.current = false;
+    };
+
+    const soltar = () => {
+      liberar();
       // Colapsa al estado limpio del slide vigente: si mientras tanto hubo
       // otro cambio, `activeRef` ya apunta al correcto.
       fijarSlide(activeRef.current);
     };
 
-    const tl = gsap.timeline({ onComplete: soltar, onInterrupt: () => { animando.current = false; } });
+    // `onInterrupt` solo suelta el lock: re-sincronizar el DOM ahi pisaria
+    // la transicion nueva que acaba de matar a esta.
+    const tl = gsap.timeline({ onComplete: soltar, onInterrupt: liberar });
     tlRef.current = tl;
+
+    rescate = setTimeout(soltar, (DUR.out + DUR.in + 0.8) * 1000);
 
     // Mata cualquier tween previo sobre los dos slides implicados: sin esto,
     // un fade a medio camino sigue escribiendo opacidad sobre el mismo nodo
@@ -589,6 +604,17 @@ export default function Hero() {
     return () => document.removeEventListener('visibilitychange', onVisibilidad);
   }, [fijarSlide]);
 
+  /**
+   * El hero ocupa el viewport completo, asi que pausar por hover sobre la
+   * <section> dejaba el autoplay muerto apenas el puntero entraba (y el
+   * `mouseleave` no llega nunca mientras se scrollea la home). El pausado
+   * se limita a los controles: flechas, puntos, buscador y CTAs.
+   */
+  const hoverControles = {
+    onMouseEnter: () => setPausado(true),
+    onMouseLeave: () => setPausado(false),
+  };
+
   /* ---------------- Buscador ---------------- */
   const buscar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -682,8 +708,6 @@ export default function Hero() {
       onTouchCancel={() => {
         touch.current = null;
       }}
-      onMouseEnter={() => setPausado(true)}
-      onMouseLeave={() => setPausado(false)}
       /* `touch-pan-y`: le avisa al navegador que solo el scroll vertical es
          suyo, asi el gesto horizontal no dispara el "volver atras" por
          deslizamiento de iOS/Android antes de que lleguen los eventos. */
@@ -702,7 +726,10 @@ export default function Hero() {
       />
 
       {/* ---------- Z-30 · buscador global, apenas debajo del navbar ---------- */}
-      <div className="absolute inset-x-0 top-[4.5rem] z-30 flex justify-center px-5 sm:top-24">
+      <div
+        {...hoverControles}
+        className="absolute inset-x-0 top-[4.5rem] z-30 flex justify-center px-5 sm:top-24"
+      >
         {/* Buscador global: manda a /productos?q= y ahi filtra la grilla. */}
         <form
           onSubmit={buscar}
@@ -793,6 +820,7 @@ export default function Hero() {
       {/* ---------- Z-30 · UI ---------- */}
       <button
         onClick={prev}
+        {...hoverControles}
         aria-label="Producto anterior"
         className="hero-ui absolute left-3 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-[#f5ebd9]/20 bg-[#f5ebd9]/10 text-[#f5ebd9] backdrop-blur transition-colors hover:bg-[#f5ebd9]/20 sm:left-6"
       >
@@ -803,6 +831,7 @@ export default function Hero() {
 
       <button
         onClick={next}
+        {...hoverControles}
         aria-label="Producto siguiente"
         className="hero-ui absolute right-3 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-[#f5ebd9]/20 bg-[#f5ebd9]/10 text-[#f5ebd9] backdrop-blur transition-colors hover:bg-[#f5ebd9]/20 sm:right-6"
       >
@@ -811,7 +840,10 @@ export default function Hero() {
         </svg>
       </button>
 
-      <div className="absolute inset-x-0 bottom-10 z-30 flex flex-col items-center gap-6 px-5">
+      <div
+        {...hoverControles}
+        className="absolute inset-x-0 bottom-10 z-30 flex flex-col items-center gap-6 px-5"
+      >
         <div className="hero-ui flex flex-wrap justify-center gap-3">
           {/* CTA del slide visible: entra directo a su categoria. */}
           <Link
