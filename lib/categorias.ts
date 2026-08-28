@@ -12,17 +12,31 @@ export const ETIQUETA_CATEGORIA: Record<string, string> = {
   snacks: 'Snacks',
   secos: 'Frutas Desecadas',
   semillas: 'Semillas',
-  aceites: 'Aceites y Condimentos',
+  aceites: 'Aceites Naturales',
   chocolates: 'Chocolates y Confituras',
   reposteria: 'Repostería',
   granola: 'Granola y Cereales',
-  infusiones: 'Infusiones',
-  suplementos: 'Suplementos',
   todos: 'Todos',
 };
 
 /** Prefijo de las subcategorias que se unificaron bajo "Repostería". */
 const PREFIJO_REPOSTERIA = 'reposteria';
+
+/**
+ * Categorias dadas de baja del menu que igual tienen productos vivos en la
+ * base. Sin este alias el producto queda huerfano: `CatalogView` arma los
+ * chips desde `p.categoria`, asi que volveria a aparecer un chip
+ * "Infusiones" y el mega menu no tendria como enlazarlo.
+ *
+ * - `infusiones`  -> Flor de Jamaica, un desecado.
+ * - `suplementos` -> Psylium molido, cascara de semilla de Plantago.
+ *
+ * Es solo de presentacion: el slug fino sigue intacto en la base.
+ */
+const ALIAS_CATEGORIA: Record<string, string> = {
+  infusiones: 'secos',
+  suplementos: 'semillas',
+};
 
 /**
  * Colapsa las subcategorias de reposteria (`reposteria-insumos`,
@@ -31,7 +45,7 @@ const PREFIJO_REPOSTERIA = 'reposteria';
  * la base, asi que no hace falta migrar nada.
  */
 export const normalizarCategoria = (cat: string) =>
-  cat.startsWith(PREFIJO_REPOSTERIA) ? PREFIJO_REPOSTERIA : cat;
+  cat.startsWith(PREFIJO_REPOSTERIA) ? PREFIJO_REPOSTERIA : ALIAS_CATEGORIA[cat] ?? cat;
 
 /** Nombre visible de un slug. Si no esta mapeado, se muestra legible. */
 export const etiquetaCategoria = (cat: string) =>

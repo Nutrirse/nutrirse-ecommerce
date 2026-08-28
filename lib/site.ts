@@ -81,8 +81,9 @@ export const FAQ = [
   {
     pregunta: '¿Tienen envíos gratis?',
     respuesta:
-      'Sí, bonificamos el envío en compras de productos superiores a $100.000. Por debajo de ese ' +
-      'monto el costo de envío se calcula desde el carrito o desde cualquier ficha de producto.',
+      'No. Los costos de envío están a cargo del comprador y se calculan según el destino y el ' +
+      'peso del pedido, directamente en el checkout o al confirmar por WhatsApp. La única ' +
+      'modalidad sin costo de envío es el retiro por nuestro depósito en Salta Capital.',
   },
   {
     pregunta: '¿Hacen envíos a todo el país?',
@@ -100,7 +101,8 @@ export const FAQ = [
  */
 export const REDES = {
   instagram: 'https://www.instagram.com/nutrirse.hoy/' as string | null,
-  tiktok: null as string | null,
+  facebook: 'https://www.facebook.com/nutrirsehoy' as string | null,
+  tiktok: 'https://www.tiktok.com/@nutrirse.hoy' as string | null,
 };
 
 export const NEGOCIO = {

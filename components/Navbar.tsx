@@ -28,7 +28,7 @@ const MEGA: MenuGroup[][] = [
   ],
   // Columna 2
   [
-    { title: 'Aceites y Condimentos', cat: 'aceites', items: [] },
+    { title: 'Aceites Naturales', cat: 'aceites', items: [] },
     { title: 'Chocolates y Confituras', cat: 'chocolates', items: [] },
   ],
   // Columna 3
@@ -40,9 +40,7 @@ const MEGA: MenuGroup[][] = [
   // Columna 4
   [
     { title: 'Semillas', cat: 'semillas', items: [] },
-    { title: 'Suplementos', cat: 'suplementos', items: [] },
     { title: 'Granola y Cereales', cat: 'granola', items: [] },
-    { title: 'Infusiones', cat: 'infusiones', items: [] },
   ],
 ];
 

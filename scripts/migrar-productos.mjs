@@ -82,9 +82,11 @@ const CATEGORIAS = {
   Coco: 'reposteria-coco',
   Harinas: 'reposteria-harinas',
   Semillas: 'semillas',
-  Suplementos: 'suplementos',
+  // Psylium molido: cascara de semilla. La categoria propia se dio de baja.
+  Suplementos: 'semillas',
   'Granola y Cereales': 'granola',
-  Infusiones: 'infusiones',
+  // Flor de Jamaica: es un desecado. La categoria propia se dio de baja.
+  Infusiones: 'secos',
 };
 
 /** Orden de las secciones en /productos. Define el campo `orden`. */
@@ -101,8 +103,6 @@ const ORDEN_CATEGORIAS = [
   'reposteria-coco',
   'reposteria-harinas',
   'granola',
-  'infusiones',
-  'suplementos',
 ];
 
 /* ------------------------------------------------------------------ */

@@ -18,9 +18,7 @@ const CATEGORIAS = [
   'reposteria-coco',
   'reposteria-harinas',
   'semillas',
-  'suplementos',
   'granola',
-  'infusiones',
 ];
 
 /** Plantilla del alta: el mismo esquema de 3 variantes del catalogo actual. */

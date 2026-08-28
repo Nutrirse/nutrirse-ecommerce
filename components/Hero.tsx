@@ -111,10 +111,12 @@ const SLIDES: Slide[] = [
     ],
   },
   {
-    id: 'infusiones',
-    title: 'I N F U S I O N E S',
-    label: 'Infusiones',
-    cat: 'infusiones',
+    // La categoria "Infusiones" se dio de baja: el slide pasa a destacar el
+    // producto y enlaza a "Frutas Desecadas", donde vive la Flor de Jamaica.
+    id: 'flor-de-jamaica',
+    title: 'F L O R   D E   J A M A I C A',
+    label: 'Flor De Jamaica',
+    cat: 'secos',
     doypackImg: '/images/hero/infusiones.png',
     floatingImgs: ['/images/hero/infusiones-2.png'],
   },

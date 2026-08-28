@@ -1,19 +1,12 @@
 import { formatARS } from './format';
 import type { CartItem, Customer, MetodoPago, ShippingOption } from '@/types';
 
-const FALLBACK_NUMBER = '5493874870997';
-
-/**
- * Envio bonificado a partir de este subtotal DE PRODUCTOS (sin contar el
- * envio). Lo aplica `calcularTotales`; ya no hay cartel flotante que lo
- * anuncie. Poner 0 desactiva la promo.
- */
-export const ENVIO_GRATIS_DESDE = 100_000;
+const FALLBACK_NUMBER = '5493875383979';
 
 /**
  * wa.me solo acepta digitos: sin '+', sin espacios, guiones, parentesis ni
  * puntos. Tambien tolera que el .env venga con comillas o con prefijo '00'.
- * Ej: "+54 9 387 487-0997" -> "5493874870997"
+ * Ej: "+54 9 3875 38-3979" -> "5493875383979"
  */
 export function sanitizeWhatsAppNumber(raw: string | undefined | null): string {
   const digits = String(raw ?? '')
@@ -79,22 +72,14 @@ export function calcularTotales(
   const descuento = Math.round(subtotal * m.descuento);
   const peso = items.reduce((a, i) => a + i.peso_kg * i.cantidad, 0);
 
-  const costoEnvio = m.requiereEnvio ? shipping?.price ?? 0 : 0;
-  // El retiro en deposito ya no paga envio: no cuenta como bonificado.
-  const envioBonificado =
-    m.requiereEnvio && ENVIO_GRATIS_DESDE > 0 && subtotal >= ENVIO_GRATIS_DESDE;
-  const envio = envioBonificado ? 0 : costoEnvio;
+  // No hay envio bonificado: el flete siempre lo paga el comprador.
+  // El retiro en deposito es la unica modalidad sin costo de envio.
+  const envio = m.requiereEnvio ? shipping?.price ?? 0 : 0;
 
   return {
     subtotal,
     descuento,
     envio,
-    /** Lo que se habria cobrado de envio si no aplicara la promo. */
-    envioSinPromo: costoEnvio,
-    envioBonificado,
-    /** Cuanto falta de subtotal para llegar al envio gratis. 0 si ya llego. */
-    faltaParaEnvioGratis:
-      ENVIO_GRATIS_DESDE > 0 ? Math.max(0, ENVIO_GRATIS_DESDE - subtotal) : 0,
     peso,
     total: subtotal - descuento + envio,
     hayConsultar: items.some((i) => i.tipo === 'consultar'),
@@ -151,9 +136,7 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
           B('ENVÍO'),
           shipping.label,
           `Entrega estimada: ${shipping.eta_dias[0]}–${shipping.eta_dias[1]} días hábiles`,
-          t.envioBonificado
-            ? `Costo: BONIFICADO (compra mayor a ${formatARS(ENVIO_GRATIS_DESDE)})`
-            : `Costo: ${formatARS(shipping.price)}`,
+          `Costo: ${formatARS(shipping.price)}`,
         ].join('\n')
       : `${B('ENVÍO')}\nA coordinar`;
 

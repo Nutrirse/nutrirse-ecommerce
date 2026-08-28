@@ -364,21 +364,17 @@ export default function CheckoutForm() {
               value={
                 !t.metodo.requiereEnvio
                   ? 'Retiro'
-                  : t.envioBonificado
-                    ? 'Gratis'
-                    : shipping
-                      ? formatARS(t.envio)
-                      : 'a calcular'
+                  : shipping
+                    ? formatARS(t.envio)
+                    : 'a calcular'
               }
-              acento={t.envioBonificado}
             />
           </dl>
 
-          {/* Empuje al envio gratis. Solo con envio a domicilio y si falta poco. */}
-          {t.metodo.requiereEnvio && t.faltaParaEnvioGratis > 0 && (
-            <p className="mt-3 rounded-lg bg-[#28a745]/8 px-3 py-2 text-[11px] leading-relaxed text-[#218838]">
-              Te faltan <strong>{formatARS(t.faltaParaEnvioGratis)}</strong> en productos para
-              que el envío sea gratis.
+          {/* El costo de envio siempre corre por cuenta del comprador. */}
+          {t.metodo.requiereEnvio && !shipping && (
+            <p className="mt-3 rounded-lg bg-black/[0.03] px-3 py-2 text-[11px] leading-relaxed text-gray-500">
+              El costo de envío corre por cuenta del comprador y se calcula según el destino.
             </p>
           )}
 
