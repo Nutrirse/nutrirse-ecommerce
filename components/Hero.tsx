@@ -24,6 +24,17 @@ type Slide = {
    */
   cat: string;
   doypackImg: string;
+  /**
+   * Correccion de escala del doypack, solo para los PNG que traen mas aire
+   * transparente que el resto. Todos los assets son cuadrados, asi que
+   * `object-contain` les da la misma caja: el producto se ve mas chico
+   * cuando ocupa menos de su propio canvas, no por culpa del contenedor.
+   *
+   * Va sobre el <Image>, el nodo mas interno: los dos ancestros
+   * (`[data-doypack]` y `.doypack-float`) tienen su `transform` escrito
+   * inline por GSAP y cualquier `scale-*` de Tailwind ahi se pierde.
+   */
+  doypackScale?: string;
   floatingImgs: string[];
 };
 
@@ -61,6 +72,9 @@ const SLIDES: Slide[] = [
     label: 'Chocolates',
     cat: 'chocolates',
     doypackImg: '/images/hero/chocolates.png',
+    // El arte ocupa solo el 63% del alto de su canvas; el resto de los
+    // doypacks llega al 88%. 88.1 / 63.1 = 1.4: lo empareja visualmente.
+    doypackScale: 'scale-[1.4]',
     floatingImgs: [
       '/images/hero/chocolates-1.png',
       '/images/hero/chocolates-2.png',
@@ -118,7 +132,10 @@ const SLIDES: Slide[] = [
     label: 'Flor De Jamaica',
     cat: 'secos',
     doypackImg: '/images/hero/infusiones.png',
-    floatingImgs: ['/images/hero/infusiones-2.png'],
+    floatingImgs: [
+      '/images/hero/infusiones-1.png',
+      '/images/hero/infusiones-2.png',
+    ],
   },
 ];
 
@@ -802,7 +819,7 @@ export default function Hero() {
                   fill
                   priority={i === 0}
                   sizes="(max-width: 640px) 88vw, 30rem"
-                  className="object-contain drop-shadow-[0_45px_55px_rgba(0,0,0,0.55)]"
+                  className={`object-contain drop-shadow-[0_45px_55px_rgba(0,0,0,0.55)] ${s.doypackScale ?? ''}`}
                 />
               </div>
             </div>
