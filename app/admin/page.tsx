@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductoModal from '@/components/admin/ProductoModal';
+import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { formatARS } from '@/lib/format';
 import { NEGOCIO } from '@/lib/site';
 import type { Product, Variant } from '@/types';
@@ -57,8 +58,7 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password, recordarme }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'No pudimos validar la contraseña.');
+      await leerJson<{ ok: true }>(res);
       try {
         localStorage.setItem(RECORDARME_KEY, recordarme ? '1' : '0');
       } catch {
@@ -66,7 +66,7 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
       }
       onOk();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error inesperado');
+      setError(mensajeDeError(err, 'No pudimos validar la contraseña.'));
       setPassword('');
     } finally {
       setCargando(false);
@@ -329,7 +329,7 @@ export default function AdminPage() {
   /* ---- Sesion ---- */
   useEffect(() => {
     fetch('/api/admin/login')
-      .then((r) => r.json())
+      .then((r) => leerJson<{ configurado?: boolean; autenticado?: boolean }>(r))
       .then((d) => {
         setConfigurado(Boolean(d.configurado));
         setSesion(d.autenticado ? 'si' : 'no');
@@ -343,15 +343,14 @@ export default function AdminPage() {
     setErrorCarga(null);
     try {
       const res = await fetch('/api/admin/products');
-      const data = await res.json();
       if (res.status === 401) {
         setSesion('no');
         return;
       }
-      if (!res.ok) throw new Error(data.error ?? 'No pudimos cargar el catálogo.');
-      setProductos(data.products as Product[]);
+      const data = await leerJson<{ products: Product[] }>(res);
+      setProductos(data.products);
     } catch (e) {
-      setErrorCarga(e instanceof Error ? e.message : 'Error inesperado');
+      setErrorCarga(mensajeDeError(e, 'No pudimos cargar el catálogo.'));
     } finally {
       setCargando(false);
     }
@@ -381,20 +380,19 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cambios),
       });
-      const data = await res.json();
       if (res.status === 401) {
         setSesion('no');
         return;
       }
-      if (!res.ok) throw new Error(data.error ?? 'No pudimos guardar.');
+      const data = await leerJson<{ product: Product }>(res);
 
-      setProductos((ps) => ps.map((x) => (x.id === p.id ? (data.product as Product) : x)));
+      setProductos((ps) => ps.map((x) => (x.id === p.id ? data.product : x)));
       marcar(p.id, 'ok');
       push(`${etiqueta} guardado`);
     } catch (e) {
       setProductos(previo);
       marcar(p.id, 'error');
-      push(e instanceof Error ? e.message : 'Error al guardar', 'error');
+      push(mensajeDeError(e, 'Error al guardar'), 'error');
     }
   };
 
@@ -416,13 +414,12 @@ export default function AdminPage() {
     marcar(p.id, 'guardando');
     try {
       const res = await fetch(`/api/admin/products/${p.id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'No pudimos eliminar.');
+      await leerJson<{ ok: true }>(res);
       setProductos((ps) => ps.filter((x) => x.id !== p.id));
       push(`"${p.nombre}" eliminado`);
     } catch (e) {
       marcar(p.id, 'error');
-      push(e instanceof Error ? e.message : 'Error al eliminar', 'error');
+      push(mensajeDeError(e, 'Error al eliminar'), 'error');
     }
   };
 

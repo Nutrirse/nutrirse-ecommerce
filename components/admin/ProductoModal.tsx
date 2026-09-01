@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import type { Product, Variant } from '@/types';
+import { comprimirImagen, formatearBytes } from '@/lib/image-compress';
+import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 
 /** Categorias del mega menu (components/Navbar.tsx). */
 const CATEGORIAS = [
@@ -20,6 +22,13 @@ const CATEGORIAS = [
   'semillas',
   'granola',
 ];
+
+/**
+ * Techo del payload que aceptamos mandar. Las Serverless Functions de Vercel
+ * cortan en 4.5 MB y responden texto plano, no JSON: nos quedamos por debajo
+ * para fallar con un mensaje nuestro y no con un 413 opaco.
+ */
+const LIMITE_SUBIDA_BYTES = 4 * 1024 * 1024;
 
 /** Plantilla del alta: el mismo esquema de 3 variantes del catalogo actual. */
 const VARIANTES_BASE: Variant[] = [
@@ -53,6 +62,8 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
   );
 
   const [subiendo, setSubiendo] = useState(false);
+  const [faseImagen, setFaseImagen] = useState<'optimizando' | 'subiendo' | null>(null);
+  const [infoImagen, setInfoImagen] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -86,21 +97,50 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
 
   /* ---------------- Imagen ---------------- */
 
-  const subir = async (file: File) => {
+  /**
+   * Comprime en el navegador y despues sube. La compresion es obligatoria, no
+   * un lujo: Vercel corta el request a los 4.5 MB y devuelve un HTML plano,
+   * asi que una foto de celular sin tocar nunca llegaria al endpoint.
+   */
+  const subir = async (original: File) => {
     setSubiendo(true);
     setError(null);
+    setInfoImagen(null);
+
     try {
+      setFaseImagen('optimizando');
+      const file = await comprimirImagen(original);
+
+      // Red de contencion: si la compresion no alcanzo (imagen enorme o
+      // navegador sin canvas), cortamos aca en vez de comerse el 413.
+      if (file.size > LIMITE_SUBIDA_BYTES) {
+        throw new Error(
+          `La imagen sigue pesando ${formatearBytes(file.size)} después de optimizarla. ` +
+            'Recortala o exportala más chica antes de subirla.'
+        );
+      }
+
+      setFaseImagen('subiendo');
       const fd = new FormData();
       fd.append('file', file);
       fd.append('slug', nombre || producto?.slug || 'producto');
+
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'No pudimos subir la imagen.');
-      setImagenUrl(data.url as string);
+      const data = await leerJson<{ url: string; path: string }>(res);
+
+      setImagenUrl(data.url);
+      setInfoImagen(
+        file.size < original.size
+          ? `Optimizada: ${formatearBytes(original.size)} → ${formatearBytes(file.size)}.`
+          : `Subida (${formatearBytes(file.size)}).`
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al subir la imagen.');
+      setError(mensajeDeError(e, 'Error al subir la imagen.'));
     } finally {
       setSubiendo(false);
+      setFaseImagen(null);
+      // Reset del input: sin esto, reintentar con el mismo archivo no dispara
+      // el onChange.
       if (fileRef.current) fileRef.current.value = '';
     }
   };
@@ -131,11 +171,10 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
           body: JSON.stringify(body),
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'No pudimos guardar.');
-      onGuardado(data.product as Product, esNuevo);
+      const data = await leerJson<{ product: Product }>(res);
+      onGuardado(data.product, esNuevo);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al guardar.');
+      setError(mensajeDeError(e, 'Error al guardar.'));
     } finally {
       setGuardando(false);
     }
@@ -191,7 +230,7 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                 )}
                 {subiendo && (
                   <span className="absolute inset-0 flex items-center justify-center bg-white/80 text-xs font-medium text-humo">
-                    Subiendo…
+                    {faseImagen === 'optimizando' ? 'Optimizando…' : 'Subiendo…'}
                   </span>
                 )}
               </div>
@@ -200,13 +239,20 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                 ref={fileRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/avif"
+                disabled={ocupado}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) void subir(f);
                 }}
                 className="mt-2 block w-full text-xs text-humo file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#143620] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#f5ebd9] hover:file:bg-[#0b1c0f]"
               />
-              <p className="mt-1 text-[11px] text-humo/60">JPG, PNG, WEBP o AVIF. Máx 5 MB.</p>
+              <p className="mt-1 text-[11px] text-humo/60">
+                JPG, PNG, WEBP o AVIF. Se optimiza sola: subí la foto original sin
+                preocuparte por el peso.
+              </p>
+              {infoImagen && (
+                <p className="mt-1 text-[11px] font-medium text-[#175427]">{infoImagen}</p>
+              )}
               {imagenUrl && (
                 <button
                   type="button"
