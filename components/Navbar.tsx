@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import { useCart, selectCount } from '@/store/cart';
+import { indiceCategorias, type Categoria } from '@/lib/categorias';
 
 /* ------------------------------------------------------------------ */
 /* Estructura del mega menu                                            */
@@ -13,7 +14,12 @@ import { useCart, selectCount } from '@/store/cart';
 type MenuItem = { label: string; cat: string };
 type MenuGroup = { title: string; cat: string; items: MenuItem[] };
 
-const MEGA: MenuGroup[][] = [
+/**
+ * Fallback del mega menu: la estructura que se usaba antes de que las
+ * categorias fueran una tabla. Solo se muestra si `categorias` llega vacio
+ * (Supabase sin configurar, o la migracion sin correr).
+ */
+const MEGA_FALLBACK: MenuGroup[][] = [
   // Columna 1
   [
     {
@@ -54,7 +60,43 @@ const NAV = [
 
 /* ------------------------------------------------------------------ */
 
-export default function Navbar() {
+/**
+ * Reparte las categorias raiz en 4 columnas, cada una con sus hijas debajo.
+ * El mega menu deja de ser una constante: lo define el admin desde el ABM.
+ */
+function columnasDesde(categorias: Categoria[]): MenuGroup[][] {
+  const indice = indiceCategorias(categorias);
+  const grupos: MenuGroup[] = indice.raices.map((raiz) => ({
+    title: raiz.nombre,
+    cat: raiz.slug,
+    items: indice.hijas(raiz.slug).map((h) => ({ label: h.nombre, cat: h.slug })),
+  }));
+
+  if (grupos.length === 0) return MEGA_FALLBACK;
+
+  // Reparto por columnas contando filas (titulo + hijas), no grupos: si no,
+  // "Reposteria" con 4 hijas deja una columna larga y tres vacias.
+  const COLUMNAS = 4;
+  const filas = grupos.reduce((n, g) => n + 1 + g.items.length, 0);
+  const tope = Math.ceil(filas / COLUMNAS);
+
+  const columnas: MenuGroup[][] = [[]];
+  let alto = 0;
+  for (const g of grupos) {
+    const suyo = 1 + g.items.length;
+    if (alto > 0 && alto + suyo > tope && columnas.length < COLUMNAS) {
+      columnas.push([]);
+      alto = 0;
+    }
+    columnas[columnas.length - 1].push(g);
+    alto += suyo;
+  }
+  return columnas;
+}
+
+export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }) {
+  const mega = useMemo(() => columnasDesde(categorias), [categorias]);
+
   const openCart = useCart((s) => s.open);
   const count = useCart(selectCount);
   const pathname = usePathname();
@@ -225,7 +267,7 @@ export default function Navbar() {
         }`}
       >
         <div className="mx-auto grid max-w-7xl grid-cols-4 gap-10 px-8 py-10">
-          {MEGA.map((col, ci) => (
+          {mega.map((col, ci) => (
             <div key={ci} className="space-y-7">
               {col.map((group) => (
                 <div key={group.title}>
@@ -314,7 +356,7 @@ export default function Navbar() {
             Productos
           </p>
           <div className="mt-3 space-y-5">
-            {MEGA.flat().map((group) => (
+            {mega.flat().map((group) => (
               <div key={group.title} className="px-3">
                 <Link href={`/productos?cat=${group.cat}`} className="font-semibold text-carbon">
                   {group.title}

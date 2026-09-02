@@ -3,9 +3,11 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductoModal from '@/components/admin/ProductoModal';
+import CategoriasPanel from '@/components/admin/CategoriasPanel';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { imagenesDe } from '@/lib/imagenes';
-import { etiquetaCategoria } from '@/lib/categorias';
+import { indiceCategorias } from '@/lib/categorias';
+import type { CategoriaAdmin } from '@/lib/admin-categorias';
 import { formatARS } from '@/lib/format';
 import { NEGOCIO } from '@/lib/site';
 import type { Product, Variant } from '@/types';
@@ -326,6 +328,12 @@ export default function AdminPage() {
     producto: null,
   });
 
+  /* ---- Categorias (tabla `categories`) ---- */
+  const [vista, setVista] = useState<'productos' | 'categorias'>('productos');
+  const [categorias, setCategorias] = useState<CategoriaAdmin[]>([]);
+  const [sueltos, setSueltos] = useState<{ slug: string; productos: number }[]>([]);
+  const [cargandoCats, setCargandoCats] = useState(false);
+
   const { toasts, push } = useToasts();
 
   /* ---- Sesion ---- */
@@ -358,9 +366,44 @@ export default function AdminPage() {
     }
   }, []);
 
+  const cargarCategorias = useCallback(async () => {
+    setCargandoCats(true);
+    try {
+      const res = await fetch('/api/admin/categories');
+      if (res.status === 401) {
+        setSesion('no');
+        return;
+      }
+      const data = await leerJson<{
+        categories: CategoriaAdmin[];
+        sueltos: { slug: string; productos: number }[];
+      }>(res);
+      setCategorias(data.categories);
+      setSueltos(data.sueltos ?? []);
+    } catch (e) {
+      // No es fatal para la vista de productos: el selector del modal cae a
+      // las categorias que ya usan los productos.
+      setErrorCarga(mensajeDeError(e, 'No pudimos cargar las categorías.'));
+    } finally {
+      setCargandoCats(false);
+    }
+  }, []);
+
+  /**
+   * Renombrar una categoria reetiqueta productos via el CASCADE de la FK, asi
+   * que despues de tocar categorias hay que releer las dos tablas.
+   */
+  const recargarTodo = useCallback(() => {
+    void cargar();
+    void cargarCategorias();
+  }, [cargar, cargarCategorias]);
+
   useEffect(() => {
-    if (sesion === 'si') void cargar();
-  }, [sesion, cargar]);
+    if (sesion === 'si') {
+      void cargar();
+      void cargarCategorias();
+    }
+  }, [sesion, cargar, cargarCategorias]);
 
   const marcar = (id: string, estado: EstadoFila) => {
     setEstados((s) => ({ ...s, [id]: estado }));
@@ -451,6 +494,11 @@ export default function AdminPage() {
     return <Login configurado={configurado} onOk={() => setSesion('si')} />;
   }
 
+  // Indice del arbol de categorias: resuelve nombres visibles con la tabla
+  // real y cae a los mapas hardcodeados si todavia no se migro.
+  const indice = indiceCategorias(categorias);
+  const conocidas = new Set(categorias.map((c) => c.slug));
+
   const q = busqueda.trim().toLowerCase();
   const filtrados = q
     ? productos.filter(
@@ -474,32 +522,60 @@ export default function AdminPage() {
               Catálogo
             </h1>
             <p className="text-xs text-humo">
-              {productos.length} productos · {productos.filter((p) => p.activo).length} visibles
+              {productos.length} productos · {productos.filter((p) => p.activo).length} visibles ·{' '}
+              {categorias.length} categorías
             </p>
           </div>
 
-          <input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre o categoría…"
-            aria-label="Buscar"
-            className="h-10 w-full max-w-xs rounded-full border border-carbon/10 bg-white px-4 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/12 sm:w-64"
-          />
+          {/* Pestañas: catálogo y ABM de categorías. */}
+          <div
+            role="tablist"
+            aria-label="Secciones del panel"
+            className="flex rounded-full bg-crema p-1"
+          >
+            {(['productos', 'categorias'] as const).map((v) => (
+              <button
+                key={v}
+                role="tab"
+                aria-selected={vista === v}
+                onClick={() => setVista(v)}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  vista === v
+                    ? 'bg-[#143620] text-[#f5ebd9] shadow-sm'
+                    : 'text-humo hover:text-carbon'
+                }`}
+              >
+                {v === 'productos' ? 'Productos' : 'Categorías'}
+              </button>
+            ))}
+          </div>
+
+          {vista === 'productos' && (
+            <input
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por nombre o categoría…"
+              aria-label="Buscar"
+              className="h-10 w-full max-w-xs rounded-full border border-carbon/10 bg-white px-4 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/12 sm:w-64"
+            />
+          )}
 
           <button
-            onClick={() => void cargar()}
-            disabled={cargando}
+            onClick={recargarTodo}
+            disabled={cargando || cargandoCats}
             className="h-10 rounded-full px-4 text-sm font-medium text-humo transition-colors hover:bg-crema hover:text-carbon disabled:opacity-40"
           >
-            {cargando ? 'Actualizando…' : 'Actualizar'}
+            {cargando || cargandoCats ? 'Actualizando…' : 'Actualizar'}
           </button>
 
-          <button
-            onClick={() => setModal({ abierto: true, producto: null })}
-            className="h-10 rounded-full bg-[#1e6b32] px-5 text-sm font-semibold text-white shadow-[0_12px_26px_-12px_rgba(30,107,50,0.9)] transition-all duration-200 hover:bg-[#175427] hover:shadow-[0_16px_30px_-12px_rgba(30,107,50,0.95)] active:scale-95"
-          >
-            + Agregar producto
-          </button>
+          {vista === 'productos' && (
+            <button
+              onClick={() => setModal({ abierto: true, producto: null })}
+              className="h-10 rounded-full bg-[#1e6b32] px-5 text-sm font-semibold text-white shadow-[0_12px_26px_-12px_rgba(30,107,50,0.9)] transition-all duration-200 hover:bg-[#175427] hover:shadow-[0_16px_30px_-12px_rgba(30,107,50,0.95)] active:scale-95"
+            >
+              + Agregar producto
+            </button>
+          )}
 
           <button
             onClick={() => void salir()}
@@ -515,6 +591,16 @@ export default function AdminPage() {
           <p className="mb-4 rounded-xl border border-[#b3261e]/20 bg-[#b3261e]/8 px-4 py-3 text-sm text-[#b3261e]">{errorCarga}</p>
         )}
 
+        {vista === 'categorias' ? (
+          <CategoriasPanel
+            categorias={categorias}
+            sueltos={sueltos}
+            cargando={cargandoCats}
+            onRecargar={recargarTodo}
+            push={push}
+          />
+        ) : (
+        <>
         <p className="mb-3 text-xs text-humo">
           Los precios y el estado se guardan solos al salir de la celda. Los cambios impactan en
           la web al instante.
@@ -584,8 +670,15 @@ export default function AdminPage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-crema px-2.5 py-1 text-xs text-humo">
-                        {p.categoria ? etiquetaCategoria(p.categoria) : '—'}
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs ${
+                          p.categoria && !conocidas.has(p.categoria)
+                            ? 'bg-[#b3261e]/10 text-[#b3261e]'
+                            : 'bg-crema text-humo'
+                        }`}
+                        title={p.categoria ?? undefined}
+                      >
+                        {p.categoria ? indice.etiqueta(p.categoria) : 'Sin categoría'}
                       </span>
                     </td>
 
@@ -670,6 +763,8 @@ export default function AdminPage() {
           </table>
           </div>
         </div>
+        </>
+        )}
       </main>
 
       {/* ---------- Toasts ---------- */}
@@ -691,7 +786,8 @@ export default function AdminPage() {
       {modal.abierto && (
         <ProductoModal
           producto={modal.producto}
-          catalogo={productos}
+          categorias={categorias}
+          onCategoriaCreada={() => void cargarCategorias()}
           onClose={() => setModal({ abierto: false, producto: null })}
           onGuardado={onGuardado}
         />

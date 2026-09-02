@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import ProductCard from './ProductCard';
 import type { Product } from '@/types';
-import { esDeCategoria, etiquetaCategoria, normalizarCategoria } from '@/lib/categorias';
+import { indiceCategorias, normalizarCategoria, type Categoria } from '@/lib/categorias';
 
 /* ------------------------------------------------------------------ */
 /* Filtros                                                             */
@@ -39,14 +39,18 @@ const normalizar = (t: string) =>
 
 export default function CatalogView({
   products,
+  categorias: filas = [],
   initialCat = 'todos',
   initialQuery = '',
 }: {
   products: Product[];
+  /** Categorias reales (tabla `categories`). Vacio => fallback hardcodeado. */
+  categorias?: Categoria[];
   initialCat?: string;
   /** Termino que llega por `?q=` desde el buscador del hero. */
   initialQuery?: string;
 }) {
+  const indice = useMemo(() => indiceCategorias(filas), [filas]);
   // `?cat=reposteria-harinas` y compania caen bajo la unica "Repostería".
   const [cat, setCat] = useState(normalizarCategoria(initialCat));
   const [q, setQ] = useState(initialQuery);
@@ -55,21 +59,32 @@ export default function CatalogView({
   const [orden, setOrden] = useState('destacados');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
+  /**
+   * Chips del filtro: las categorías principales de la tabla que tengan al
+   * menos un producto (contando los de sus subcategorías). Antes se derivaban
+   * de `products`, así que una categoría recién creada no aparecía hasta
+   * cargarle un producto, y una renombrada mostraba el slug viejo.
+   */
   const categorias = useMemo(() => {
-    const propias = Array.from(
-      new Set(
-        products
-          .map((p) => p.categoria)
-          .filter(Boolean)
-          .map((c) => normalizarCategoria(c as string))
-      )
+    const conProductos = new Set(
+      products
+        .map((p) => p.categoria)
+        .filter((c): c is string => Boolean(c))
+        .map((c) => indice.raiz(c))
     );
+
+    const propias = indice.raices.map((c) => c.slug).filter((slug) => conProductos.has(slug));
+
+    // Sin tabla (fallback) las raíces vienen vacías: se cae a lo que digan
+    // los productos, como antes.
+    const base = propias.length > 0 ? propias : [...conProductos];
+
     // Una categoría que llega por ?cat= y no existe en el catálogo igual se
     // muestra activa, para que el filtro no mienta sobre lo que aplicó.
-    const inicial = normalizarCategoria(initialCat);
-    if (inicial !== 'todos' && !propias.includes(inicial)) propias.push(inicial);
-    return ['todos', ...propias];
-  }, [products, initialCat]);
+    const inicial = indice.raiz(initialCat);
+    if (inicial !== 'todos' && !base.includes(inicial)) base.push(inicial);
+    return ['todos', ...base];
+  }, [products, initialCat, indice]);
 
   const visibles = useMemo(() => {
     const r = RANGOS_PRECIO.find((x) => x.id === rango) ?? RANGOS_PRECIO[0];
@@ -78,7 +93,7 @@ export default function CatalogView({
     const terminos = normalizar(q).split(/\s+/).filter(Boolean);
 
     const filtrados = products.filter((p) => {
-      if (!esDeCategoria(p.categoria, cat)) return false;
+      if (!indice.incluye(p.categoria, cat)) return false;
       if (terminos.length > 0) {
         const texto = normalizar(
           `${p.nombre} ${p.descripcion ?? ''} ${p.categoria ?? ''}`
@@ -94,7 +109,7 @@ export default function CatalogView({
     if (orden === 'precio-desc') ordenados.sort((a, b) => precioBase(b) - precioBase(a));
     if (orden === 'alfabetico') ordenados.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     return ordenados;
-  }, [products, cat, rango, orden, q]);
+  }, [products, cat, rango, orden, q, indice]);
 
   const toggleMarca = (m: string) =>
     setMarcas((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
@@ -138,7 +153,7 @@ export default function CatalogView({
                   cat === c ? 'bg-carbon text-hueso' : 'text-humo hover:bg-black/5 hover:text-carbon'
                 }`}
               >
-                {etiquetaCategoria(c)}
+                {c === 'todos' ? 'Todos' : indice.etiqueta(c)}
               </button>
             </li>
           ))}

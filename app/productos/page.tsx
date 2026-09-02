@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import CatalogView from '@/components/CatalogView';
 import { getProducts } from '@/lib/products';
+import { getCategorias } from '@/lib/categorias-db';
 
 export const metadata: Metadata = {
   title: 'Catálogo Mayorista',
@@ -27,7 +28,7 @@ export default async function ProductosPage({
   searchParams: Promise<{ cat?: string; q?: string }>;
 }) {
   const { cat, q } = await searchParams;
-  const products = await getProducts();
+  const [products, categorias] = await Promise.all([getProducts(), getCategorias()]);
 
   return (
     <div className="min-h-dvh bg-crema pt-28">
@@ -43,7 +44,12 @@ export default async function ProductosPage({
         </p>
       </div>
 
-      <CatalogView products={products} initialCat={cat ?? 'todos'} initialQuery={q ?? ''} />
+      <CatalogView
+        products={products}
+        categorias={categorias}
+        initialCat={cat ?? 'todos'}
+        initialQuery={q ?? ''}
+      />
     </div>
   );
 }

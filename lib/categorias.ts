@@ -80,19 +80,116 @@ export const slugCategoria = (texto: string) =>
 /** Las del mega menu. `todos` es un filtro, no una categoria real. */
 export const CATEGORIAS_BASE = Object.keys(ETIQUETA_CATEGORIA).filter((c) => c !== 'todos');
 
+
+/* ================================================================== */
+/* Categorias como entidad real (tabla `categories`)                   */
+/*                                                                     */
+/* Todo lo de arriba es el fallback: los mapas hardcodeados que se      */
+/* usaban antes de que existiera la tabla. Siguen vivos porque         */
+/* lib/fallback-products.ts y los entornos sin Supabase configurado    */
+/* no tienen de donde leer, pero la fuente de verdad es la base.       */
+/* ================================================================== */
+
+export type Categoria = {
+  id: string;
+  nombre: string;
+  slug: string;
+  /** null = categoria raiz (la que entra al mega menu). */
+  padre_slug: string | null;
+  orden: number;
+};
+
 /**
- * Categorias que el panel ofrece en el selector: las del menu mas las que
- * ya existen en la base (incluidas las que el admin creo a mano). Asi una
- * categoria nueva queda disponible para el resto de los productos sin
- * pasar por el codigo.
+ * Vista consultable del arbol de categorias. La arman igual el servidor
+ * (Navbar via layout) y el cliente (CatalogView, panel admin) con las filas
+ * que devuelve la API, para que los dos resuelvan etiquetas y filtros con
+ * la misma regla.
+ *
+ * Con `cats` vacio cae al comportamiento viejo (mapas hardcodeados), asi la
+ * web sigue en pie si la tabla todavia no se migro.
  */
-export function categoriasDisponibles(
-  productos: { categoria: string | null }[]
-): string[] {
-  const usadas = productos
-    .map((p) => p.categoria)
-    .filter((c): c is string => Boolean(c));
-  return [...new Set([...CATEGORIAS_BASE, ...usadas])].sort((a, b) =>
-    etiquetaCategoria(a).localeCompare(etiquetaCategoria(b), 'es')
-  );
+export type IndiceCategorias = {
+  /** Todas, ordenadas por `orden` y nombre. */
+  todas: Categoria[];
+  /** Solo las raices, ordenadas. Es la estructura del mega menu. */
+  raices: Categoria[];
+  /** Hijas directas de un slug, ordenadas. */
+  hijas: (slug: string) => Categoria[];
+  /** Nombre visible de un slug. Nunca devuelve vacio. */
+  etiqueta: (slug: string) => string;
+  /** Raiz de un slug: `reposteria-harinas` -> `reposteria`. */
+  raiz: (slug: string) => string;
+  /** ¿El producto entra en el filtro? Una raiz abarca a sus hijas. */
+  incluye: (categoriaProducto: string | null, filtro: string) => boolean;
+  /**
+   * Encuentra la categoria vigente a partir de una referencia fija escrita
+   * en el codigo (los slides del Hero). Devuelve null si no existe ninguna.
+   */
+  resolver: (ref: RefCategoria) => Categoria | null;
+};
+
+/**
+ * Referencia estable a una categoria desde codigo. El slug puede cambiar
+ * (el admin lo renombra desde el ABM), asi que se guardan las dos claves y
+ * se resuelve por la que siga viva.
+ */
+export type RefCategoria = {
+  /** Slug con el que nacio la categoria en la migracion. */
+  slug: string;
+  /** Nombre visible con el que nacio. Es la segunda clave de busqueda. */
+  nombre: string;
+};
+
+/** Compara nombres ignorando tildes, mayusculas y espacios de sobra. */
+const clave = (t: string) =>
+  t
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const porOrden = (a: Categoria, b: Categoria) =>
+  a.orden - b.orden || a.nombre.localeCompare(b.nombre, 'es');
+
+export function indiceCategorias(cats: Categoria[] = []): IndiceCategorias {
+  const todas = [...cats].sort(porOrden);
+  const porSlug = new Map(todas.map((c) => [c.slug, c]));
+  // Un nombre repetido no deberia existir, pero si pasa gana el primero por
+  // `orden`: es el que el menu muestra mas arriba.
+  const porNombre = new Map<string, Categoria>();
+  for (const c of todas) if (!porNombre.has(clave(c.nombre))) porNombre.set(clave(c.nombre), c);
+  const vacio = todas.length === 0;
+
+  const raiz = (slug: string): string => {
+    if (vacio) return normalizarCategoria(slug);
+    return porSlug.get(slug)?.padre_slug ?? slug;
+  };
+
+  return {
+    todas,
+    raices: todas.filter((c) => c.padre_slug === null),
+    hijas: (slug) => todas.filter((c) => c.padre_slug === slug),
+    etiqueta: (slug) => porSlug.get(slug)?.nombre ?? etiquetaCategoria(slug),
+    raiz,
+    /**
+     * Orden de busqueda: primero el slug (lo normal), despues el nombre
+     * visible (el admin renombro el slug pero no el rotulo). Si las dos
+     * fallan, null: quien llama decide como degradar, y nunca se arma un
+     * `?cat=` que apunte a una categoria inexistente.
+     */
+    resolver: ({ slug, nombre }) => porSlug.get(slug) ?? porNombre.get(clave(nombre)) ?? null,
+    incluye: (categoriaProducto, filtro) => {
+      if (filtro === 'todos') return true;
+      if (!categoriaProducto) return false;
+      if (vacio) return esDeCategoria(categoriaProducto, filtro);
+      // Coincide la categoria exacta o su raiz: filtrar por "Repostería"
+      // trae tambien harinas, coco e insumos.
+      return (
+        categoriaProducto === filtro ||
+        raiz(categoriaProducto) === filtro ||
+        raiz(categoriaProducto) === raiz(filtro)
+      );
+    },
+  };
 }

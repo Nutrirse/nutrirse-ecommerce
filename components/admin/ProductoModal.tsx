@@ -6,7 +6,7 @@ import type { Product, Variant } from '@/types';
 import { comprimirImagen, formatearBytes } from '@/lib/image-compress';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { imagenesDe, MAX_IMAGENES } from '@/lib/imagenes';
-import { categoriasDisponibles, etiquetaCategoria, slugCategoria } from '@/lib/categorias';
+import { indiceCategorias, slugCategoria, type Categoria } from '@/lib/categorias';
 
 /**
  * Techo del payload que aceptamos mandar. Las Serverless Functions de Vercel
@@ -26,26 +26,36 @@ type Props = {
   /** null => alta. Con producto => edicion. */
   producto: Product | null;
   /**
-   * Catalogo completo. Solo se usa para juntar las categorias que ya existen
-   * y ofrecerlas en el selector, incluidas las que el admin creo a mano.
+   * Categorias reales (tabla `categories`). El selector no acepta texto
+   * libre: crear una categoria nueva la da de alta en la tabla, para que
+   * despues se pueda renombrar o borrar desde su propio ABM.
    */
-  catalogo?: Product[];
+  categorias?: Categoria[];
   onClose: () => void;
   onGuardado: (p: Product, esNuevo: boolean) => void;
+  /** Avisa al panel que la lista de categorias cambio, para releerla. */
+  onCategoriaCreada?: (slug: string) => void;
 };
 
 const input =
   'w-full rounded-xl border border-carbon/10 bg-white px-3 py-2 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/12';
 const label = 'text-xs font-semibold uppercase tracking-wider text-tostado';
 
-export default function ProductoModal({ producto, catalogo = [], onClose, onGuardado }: Props) {
+export default function ProductoModal({
+  producto,
+  categorias = [],
+  onClose,
+  onGuardado,
+  onCategoriaCreada,
+}: Props) {
   const esNuevo = producto === null;
 
   const [nombre, setNombre] = useState(producto?.nombre ?? '');
-  const [categoria, setCategoria] = useState(producto?.categoria ?? 'frutos-secos');
+  const [categoria, setCategoria] = useState(producto?.categoria ?? '');
   // `nuevaCategoria` solo se usa mientras el selector esta en modo "crear".
   const [creandoCategoria, setCreandoCategoria] = useState(false);
   const [nuevaCategoria, setNuevaCategoria] = useState('');
+  const [guardandoCategoria, setGuardandoCategoria] = useState(false);
   const [descripcion, setDescripcion] = useState(producto?.descripcion ?? '');
   const [imagenes, setImagenes] = useState<string[]>(producto ? imagenesDe(producto) : []);
   const [activo, setActivo] = useState(producto?.activo ?? true);
@@ -61,12 +71,10 @@ export default function ProductoModal({ producto, catalogo = [], onClose, onGuar
   const fileRef = useRef<HTMLInputElement>(null);
   const nuevaCatRef = useRef<HTMLInputElement>(null);
 
-  // Las del mega menu + las que ya existen en la base. La del producto en
-  // edicion entra siempre, por si su categoria se dio de baja del menu.
-  const categorias = useMemo(
-    () => categoriasDisponibles([...catalogo, { categoria: producto?.categoria ?? null }]),
-    [catalogo, producto?.categoria]
-  );
+  // Arbol de categorias: el selector las agrupa por principal, igual que el
+  // mega menu, asi el admin ve donde va a caer el producto.
+  const indice = useMemo(() => indiceCategorias(categorias), [categorias]);
+  const conocidas = useMemo(() => new Set(categorias.map((c) => c.slug)), [categorias]);
 
   const libres = MAX_IMAGENES - imagenes.length;
 
@@ -103,21 +111,54 @@ export default function ProductoModal({ producto, catalogo = [], onClose, onGuar
 
   /* ---------------- Categoria creable ---------------- */
 
-  /**
-   * Confirma la categoria escrita a mano. Se guarda el slug y no el texto:
-   * es lo que viaja en `?cat=` y lo que compara `esDeCategoria()`. Si el slug
-   * ya existia, esto simplemente la selecciona.
-   */
-  const confirmarCategoria = () => {
-    const slug = slugCategoria(nuevaCategoria);
-    if (slug) setCategoria(slug);
+  const cancelarCategoria = () => {
     setCreandoCategoria(false);
     setNuevaCategoria('');
   };
 
-  const cancelarCategoria = () => {
-    setCreandoCategoria(false);
-    setNuevaCategoria('');
+  /**
+   * Da de alta la categoria en la tabla `categories` y la selecciona.
+   *
+   * No alcanza con guardar el string en el producto: la FK
+   * `products_categoria_fkey` exige que el slug exista como fila, y una
+   * categoria que no es fila no se puede renombrar ni borrar desde el ABM.
+   */
+  const confirmarCategoria = async () => {
+    const nombre = nuevaCategoria.trim();
+    const slug = slugCategoria(nombre);
+    if (!slug) {
+      cancelarCategoria();
+      return;
+    }
+
+    // Ya esta en la lista: no hace falta ir al servidor.
+    if (conocidas.has(slug)) {
+      setCategoria(slug);
+      cancelarCategoria();
+      return;
+    }
+
+    setGuardandoCategoria(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, slug }),
+      });
+
+      // 409 = el slug ya existia (creado en otra pestana, o fuera del menu).
+      // Igual sirve: se selecciona esa y listo.
+      if (res.status !== 409) await leerJson<{ category: Categoria }>(res);
+
+      setCategoria(slug);
+      onCategoriaCreada?.(slug);
+      cancelarCategoria();
+    } catch (e) {
+      setError(mensajeDeError(e, 'No pudimos crear la categoria.'));
+    } finally {
+      setGuardandoCategoria(false);
+    }
   };
 
   /* ---------------- Imagenes ---------------- */
@@ -405,7 +446,7 @@ export default function ProductoModal({ producto, catalogo = [], onClose, onGuar
                         // confirma la categoria, no guarda el producto.
                         if (e.key === 'Enter') {
                           e.preventDefault();
-                          confirmarCategoria();
+                          void confirmarCategoria();
                         }
                         if (e.key === 'Escape') {
                           e.preventDefault();
@@ -417,15 +458,17 @@ export default function ProductoModal({ producto, catalogo = [], onClose, onGuar
                     />
                     <button
                       type="button"
-                      onClick={confirmarCategoria}
-                      className="shrink-0 rounded-xl bg-[#1e6b32] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#175427]"
+                      onClick={() => void confirmarCategoria()}
+                      disabled={guardandoCategoria || !nuevaCategoria.trim()}
+                      className="shrink-0 rounded-xl bg-[#1e6b32] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#175427] disabled:opacity-40"
                     >
-                      Usar
+                      {guardandoCategoria ? 'Creando...' : 'Crear'}
                     </button>
                     <button
                       type="button"
                       onClick={cancelarCategoria}
-                      className="shrink-0 rounded-xl px-2 text-sm text-humo transition-colors hover:text-carbon"
+                      disabled={guardandoCategoria}
+                      className="shrink-0 rounded-xl px-2 text-sm text-humo transition-colors hover:text-carbon disabled:opacity-40"
                     >
                       Cancelar
                     </button>
@@ -437,14 +480,29 @@ export default function ProductoModal({ producto, catalogo = [], onClose, onGuar
                     onChange={(e) => setCategoria(e.target.value)}
                     className={`mt-1.5 ${input}`}
                   >
-                    {/* Una categoria recien creada (o dada de baja del menu)
-                        tiene que poder verse seleccionada igual. */}
-                    {categoria && !categorias.includes(categoria) && (
-                      <option value={categoria}>{etiquetaCategoria(categoria)}</option>
+                    <option value="">&mdash; Sin categoria &mdash;</option>
+
+                    {/* Una categoria que no es fila de la tabla (base sin
+                        migrar) tiene que poder verse seleccionada igual, o el
+                        select la cambiaria en silencio al guardar. */}
+                    {categoria && !conocidas.has(categoria) && (
+                      <option value={categoria}>{categoria} (sin registrar)</option>
                     )}
-                    {categorias.map((c) => (
-                      <option key={c} value={c}>{etiquetaCategoria(c)}</option>
-                    ))}
+
+                    {indice.raices.map((raiz) => {
+                      const hijas = indice.hijas(raiz.slug);
+                      if (hijas.length === 0) {
+                        return <option key={raiz.id} value={raiz.slug}>{raiz.nombre}</option>;
+                      }
+                      return (
+                        <optgroup key={raiz.id} label={raiz.nombre}>
+                          <option value={raiz.slug}>{raiz.nombre} (general)</option>
+                          {hijas.map((h) => (
+                            <option key={h.id} value={h.slug}>{h.nombre}</option>
+                          ))}
+                        </optgroup>
+                      );
+                    })}
                   </select>
                 )}
 

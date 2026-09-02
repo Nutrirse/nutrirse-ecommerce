@@ -6,6 +6,7 @@ import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import Footer from '@/components/Footer';
 import SoloSitioPublico from '@/components/SoloSitioPublico';
 import { schemaSitio } from '@/lib/schema';
+import { getCategorias } from '@/lib/categorias-db';
 import {
   OG_IMAGE,
   SITE_DESCRIPTION,
@@ -67,7 +68,14 @@ export const viewport: Viewport = {
   themeColor: '#F7F3EC',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * El mega menu sale de la tabla `categories`, asi que el layout pasa a ser
+ * async. La lectura se cachea con el ISR del catalogo: no hay un fetch por
+ * navegacion.
+ */
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const categorias = await getCategorias();
+
   return (
     <html lang="es-AR">
       <head>
@@ -88,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-dvh antialiased">
         <SoloSitioPublico>
-          <Navbar />
+          <Navbar categorias={categorias} />
         </SoloSitioPublico>
         <main>{children}</main>
         <SoloSitioPublico>

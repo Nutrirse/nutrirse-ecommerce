@@ -3,9 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { indiceCategorias, type Categoria, type RefCategoria } from '@/lib/categorias';
 
 gsap.registerPlugin(useGSAP);
 
@@ -19,10 +20,14 @@ type Slide = {
   /** Nombre corto para el rotulo manuscrito junto al producto. */
   label: string;
   /**
-   * Slug de categoria del catalogo (el mismo que usa el mega menu y
-   * `/productos?cat=`). Alimenta el CTA "Ver categoria" del slide.
+   * Categoria del catalogo a la que enlaza el CTA "Ver categoria".
+   *
+   * No es un slug suelto: el admin puede renombrarlo desde el ABM, y un
+   * slug hardcodeado dejaria el boton apuntando a un filtro vacio. Se
+   * guardan slug y nombre de origen, y en runtime se busca la fila vigente
+   * (ver `hrefDe()`).
    */
-  cat: string;
+  cat: RefCategoria;
   doypackImg: string;
   /**
    * Correccion de escala del doypack, solo para los PNG que traen mas aire
@@ -43,7 +48,7 @@ const SLIDES: Slide[] = [
     id: 'frutos-secos',
     title: 'F R U T O S   S E C O S',
     label: 'Frutos Secos',
-    cat: 'frutos-secos',
+    cat: { slug: 'frutos-secos', nombre: 'Frutos Secos' },
     doypackImg: '/images/hero/doypack-nuez.png',
     // Mix de las tres variedades: el slide representa la categoria entera,
     // no un producto puntual.
@@ -59,7 +64,7 @@ const SLIDES: Slide[] = [
     id: 'aceites-esenciales',
     title: 'A C E I T E S',
     label: 'Aceites Esenciales',
-    cat: 'aceites',
+    cat: { slug: 'aceites', nombre: 'Aceites Naturales' },
     doypackImg: '/images/hero/aceites-esenciales.png',
     floatingImgs: [
       '/images/hero/aceites-esenciales-1.png',
@@ -70,7 +75,7 @@ const SLIDES: Slide[] = [
     id: 'chocolates',
     title: 'C H O C O L A T E S',
     label: 'Chocolates',
-    cat: 'chocolates',
+    cat: { slug: 'chocolates', nombre: 'Chocolates y Confituras' },
     doypackImg: '/images/hero/chocolates.png',
     // El arte ocupa solo el 63% del alto de su canvas; el resto de los
     // doypacks llega al 88%. 88.1 / 63.1 = 1.4: lo empareja visualmente.
@@ -84,7 +89,7 @@ const SLIDES: Slide[] = [
     id: 'frutas-desecadas',
     title: 'F R U T A S   D E S E C A D A S',
     label: 'Frutas Desecadas',
-    cat: 'secos',
+    cat: { slug: 'secos', nombre: 'Frutas Desecadas' },
     doypackImg: '/images/hero/frutas-desecadas.png',
     floatingImgs: [
       '/images/hero/frutas-desecadas-1.png',
@@ -95,7 +100,7 @@ const SLIDES: Slide[] = [
     id: 'semillas',
     title: 'S E M I L L A S',
     label: 'Semillas',
-    cat: 'semillas',
+    cat: { slug: 'semillas', nombre: 'Semillas' },
     doypackImg: '/images/hero/semillas.png',
     floatingImgs: [
       '/images/hero/semillas-1.png',
@@ -106,7 +111,7 @@ const SLIDES: Slide[] = [
     id: 'confituras',
     title: 'C O N F I T U R A S',
     label: 'Confituras',
-    cat: 'chocolates',
+    cat: { slug: 'chocolates', nombre: 'Chocolates y Confituras' },
     doypackImg: '/images/hero/confituras.png',
     floatingImgs: [
       '/images/hero/confituras-1.png',
@@ -117,7 +122,7 @@ const SLIDES: Slide[] = [
     id: 'granola',
     title: 'G R A N O L A',
     label: 'Granola y Cereales',
-    cat: 'granola',
+    cat: { slug: 'granola', nombre: 'Granola y Cereales' },
     doypackImg: '/images/hero/granola-cereales.png',
     floatingImgs: [
       '/images/hero/granola-cereales-1.png',
@@ -130,7 +135,7 @@ const SLIDES: Slide[] = [
     id: 'flor-de-jamaica',
     title: 'F L O R   D E   J A M A I C A',
     label: 'Flor De Jamaica',
-    cat: 'secos',
+    cat: { slug: 'secos', nombre: 'Frutas Desecadas' },
     doypackImg: '/images/hero/infusiones.png',
     floatingImgs: [
       '/images/hero/infusiones-1.png',
@@ -272,7 +277,20 @@ const DUR = { out: 0.55, in: 0.85, fade: 0.5 };
 /** Cadencia del autoplay del carrusel, en ms. */
 const AUTOPLAY_MS = 3000;
 
-export default function Hero() {
+export default function Hero({ categorias = [] }: { categorias?: Categoria[] }) {
+  const indice = useMemo(() => indiceCategorias(categorias), [categorias]);
+
+  /**
+   * Categoria vigente de cada slide, resuelta una sola vez por render.
+   * `null` = la categoria ya no existe (la borraron desde el ABM): el CTA
+   * cae al catalogo completo en vez de a un filtro que no devuelve nada.
+   */
+  const catsResueltas = useMemo(
+    () => SLIDES.map((s) => indice.resolver(s.cat)),
+    [indice]
+  );
+
+
   const router = useRouter();
   const root = useRef<HTMLElement>(null);
   const activeRef = useRef(0);
@@ -288,6 +306,18 @@ export default function Hero() {
   const drifts = useRef<gsap.core.Tween[][]>([]);
   const [active, setActive] = useState(0);
   const [query, setQuery] = useState('');
+
+  /* ---- CTA del slide visible ----
+     El href sale del slug vigente, no del hardcodeado: renombrar la
+     categoria en el panel reapunta el boton solo. Si la borraron, no se arma
+     `?cat=` y el CTA lleva al catalogo completo: mejor eso que un filtro que
+     no devuelve nada.
+
+     El rotulo NO se toca: "Flor De Jamaica" y "Confituras" son copy del
+     slide, no el nombre de su categoria (las dos enlazan a una categoria mas
+     amplia). */
+  const catActiva = catsResueltas[active] ?? null;
+  const hrefActivo = catActiva ? `/productos?cat=${catActiva.slug}` : '/productos';
 
   /* Autoplay. `pausado` es transitorio (puntero sobre los controles);
      `detenido` es definitivo:
@@ -866,7 +896,7 @@ export default function Hero() {
         <div className="hero-ui flex flex-wrap justify-center gap-3">
           {/* CTA del slide visible: entra directo a su categoria. */}
           <Link
-            href={`/productos?cat=${SLIDES[active].cat}`}
+            href={hrefActivo}
             className="inline-flex h-12 items-center gap-2 rounded-full bg-[#d6b26a] px-7 text-sm font-medium text-[#0b1c0f] transition-transform hover:scale-[1.03] active:scale-95"
           >
             Ver {SLIDES[active].label}
