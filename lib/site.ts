@@ -92,6 +92,20 @@ export const FAQ = [
       'OCA, Correo Argentino, Buspack y Flechabus, entre otros, con entrega a domicilio o a sucursal. ' +
       'También se puede retirar sin cargo por el depósito coordinando turno previo por WhatsApp.',
   },
+  {
+    pregunta: '¿Puedo usar mi propio transporte si soy de otra provincia?',
+    respuesta:
+      'Sí, por supuesto. Si ya contás con un comisionista o transporte de confianza, podés elegir ' +
+      'la opción de retiro por depósito y coordinar para que pasen a buscar tu pedido por nuestro ' +
+      'local en Salta Capital.',
+  },
+  {
+    pregunta: '¿A quiénes están dirigidas las ventas?',
+    respuesta:
+      'Somos mayoristas B2B. Abastecemos a dietéticas, panaderías, restaurantes, negocios de ' +
+      'meriendas y cafeterías, gimnasios, fábricas de alfajores y comercios en general que busquen ' +
+      'mercadería de primera calidad con excelentes precios por volumen.',
+  },
 ];
 
 /**

@@ -13,7 +13,18 @@ export type Product = {
   slug: string;
   nombre: string;
   descripcion: string | null;
+  /**
+   * Imagen principal. Denormaliza `imagenes[0]`: la usan el carrito ya
+   * persistido en localStorage, el JSON-LD y el fallback estatico, que no
+   * saben de galerias. El servidor la mantiene en sync.
+   */
   imagen_url: string | null;
+  /**
+   * Galeria ordenada, hasta 3. Opcional: las filas viejas y
+   * lib/fallback-products.ts no la traen. Leerla siempre con
+   * `imagenesDe()` (lib/imagenes.ts), nunca directo.
+   */
+  imagenes?: string[] | null;
   categoria: string | null;
   precios_por_variante: Variant[];
   activo: boolean;

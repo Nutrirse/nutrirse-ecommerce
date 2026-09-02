@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductoModal from '@/components/admin/ProductoModal';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
+import { imagenesDe } from '@/lib/imagenes';
+import { etiquetaCategoria } from '@/lib/categorias';
 import { formatARS } from '@/lib/format';
 import { NEGOCIO } from '@/lib/site';
 import type { Product, Variant } from '@/types';
@@ -528,7 +530,6 @@ export default function AdminPage() {
                 <th className="w-40 px-4 py-3 font-semibold">Categoría</th>
                 <th className="px-4 py-3 font-semibold">Precios</th>
                 <th className="w-36 px-4 py-3 font-semibold">Estado</th>
-                <th className="w-20 px-4 py-3 font-semibold">Orden</th>
                 <th className="w-28 px-4 py-3 font-semibold">Acciones</th>
               </tr>
             </thead>
@@ -536,6 +537,7 @@ export default function AdminPage() {
               {filtrados.map((p) => {
                 const estado = estados[p.id] ?? 'idle';
                 const conPrecio = p.precios_por_variante.filter((v) => v.tipo === 'precio');
+                const fotos = imagenesDe(p);
                 return (
                   <tr
                     key={p.id}
@@ -548,19 +550,24 @@ export default function AdminPage() {
                     } ${p.activo ? '' : 'opacity-55'}`}
                   >
                     <td className="px-4 py-3">
-                      <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-carbon/[0.07] bg-crema">
-                        {p.imagen_url ? (
+                      <div className="relative h-11 w-11 overflow-hidden rounded-xl bg-crema">
+                        {fotos[0] ? (
                           <Image
-                            src={p.imagen_url}
+                            src={fotos[0]}
                             alt=""
                             fill
                             sizes="44px"
                             unoptimized
-                            className="object-contain p-0.5"
+                            className="h-full w-full rounded-xl object-cover"
                           />
                         ) : (
                           <span className="flex h-full items-center justify-center font-[family-name:var(--font-display)] text-lg text-tostado/60">
                             {p.nombre.charAt(0)}
+                          </span>
+                        )}
+                        {fotos.length > 1 && (
+                          <span className="absolute bottom-0 right-0 rounded-tl-md bg-carbon/75 px-1 text-[9px] font-semibold text-white">
+                            {fotos.length}
                           </span>
                         )}
                       </div>
@@ -577,8 +584,8 @@ export default function AdminPage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-crema px-2.5 py-1 text-xs capitalize text-humo">
-                        {(p.categoria ?? '—').replace(/-/g, ' ')}
+                      <span className="rounded-full bg-crema px-2.5 py-1 text-xs text-humo">
+                        {p.categoria ? etiquetaCategoria(p.categoria) : '—'}
                       </span>
                     </td>
 
@@ -622,19 +629,6 @@ export default function AdminPage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      <input
-                        type="number"
-                        defaultValue={p.orden}
-                        onBlur={(e) => {
-                          const n = Number(e.target.value);
-                          if (Number.isFinite(n) && n !== p.orden) void patch(p, { orden: n }, 'Orden');
-                        }}
-                        aria-label={`Orden de ${p.nombre}`}
-                        className="w-16 rounded-lg border border-transparent px-2 py-1 text-sm font-medium tabular-nums text-carbon outline-none transition-colors hover:border-carbon/15 hover:bg-white focus:border-[#143620]/40 focus:bg-white focus:ring-2 focus:ring-[#143620]/12"
-                      />
-                    </td>
-
-                    <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => setModal({ abierto: true, producto: p })}
@@ -665,7 +659,7 @@ export default function AdminPage() {
 
               {filtrados.length === 0 && !cargando && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center text-sm text-humo/70">
+                  <td colSpan={6} className="px-4 py-16 text-center text-sm text-humo/70">
                     {productos.length === 0
                       ? 'Todavía no hay productos. Empezá con "Agregar producto".'
                       : 'Ningún producto coincide con la búsqueda.'}
@@ -697,6 +691,7 @@ export default function AdminPage() {
       {modal.abierto && (
         <ProductoModal
           producto={modal.producto}
+          catalogo={productos}
           onClose={() => setModal({ abierto: false, producto: null })}
           onGuardado={onGuardado}
         />

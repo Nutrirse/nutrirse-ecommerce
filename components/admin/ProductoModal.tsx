@@ -1,27 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Product, Variant } from '@/types';
 import { comprimirImagen, formatearBytes } from '@/lib/image-compress';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
-
-/** Categorias del mega menu (components/Navbar.tsx). */
-const CATEGORIAS = [
-  'frutos-secos',
-  'mixes',
-  'snacks',
-  'secos',
-  'aceites',
-  'chocolates',
-  'reposteria',
-  'reposteria-insumos',
-  'reposteria-chocolates',
-  'reposteria-coco',
-  'reposteria-harinas',
-  'semillas',
-  'granola',
-];
+import { imagenesDe, MAX_IMAGENES } from '@/lib/imagenes';
+import { categoriasDisponibles, etiquetaCategoria, slugCategoria } from '@/lib/categorias';
 
 /**
  * Techo del payload que aceptamos mandar. Las Serverless Functions de Vercel
@@ -40,6 +25,11 @@ const VARIANTES_BASE: Variant[] = [
 type Props = {
   /** null => alta. Con producto => edicion. */
   producto: Product | null;
+  /**
+   * Catalogo completo. Solo se usa para juntar las categorias que ya existen
+   * y ofrecerlas en el selector, incluidas las que el admin creo a mano.
+   */
+  catalogo?: Product[];
   onClose: () => void;
   onGuardado: (p: Product, esNuevo: boolean) => void;
 };
@@ -48,25 +38,37 @@ const input =
   'w-full rounded-xl border border-carbon/10 bg-white px-3 py-2 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/12';
 const label = 'text-xs font-semibold uppercase tracking-wider text-tostado';
 
-export default function ProductoModal({ producto, onClose, onGuardado }: Props) {
+export default function ProductoModal({ producto, catalogo = [], onClose, onGuardado }: Props) {
   const esNuevo = producto === null;
 
   const [nombre, setNombre] = useState(producto?.nombre ?? '');
   const [categoria, setCategoria] = useState(producto?.categoria ?? 'frutos-secos');
+  // `nuevaCategoria` solo se usa mientras el selector esta en modo "crear".
+  const [creandoCategoria, setCreandoCategoria] = useState(false);
+  const [nuevaCategoria, setNuevaCategoria] = useState('');
   const [descripcion, setDescripcion] = useState(producto?.descripcion ?? '');
-  const [imagenUrl, setImagenUrl] = useState(producto?.imagen_url ?? '');
+  const [imagenes, setImagenes] = useState<string[]>(producto ? imagenesDe(producto) : []);
   const [activo, setActivo] = useState(producto?.activo ?? true);
-  const [orden, setOrden] = useState(String(producto?.orden ?? 0));
   const [variantes, setVariantes] = useState<Variant[]>(
     producto?.precios_por_variante?.length ? producto.precios_por_variante : VARIANTES_BASE
   );
 
   const [subiendo, setSubiendo] = useState(false);
-  const [faseImagen, setFaseImagen] = useState<'optimizando' | 'subiendo' | null>(null);
+  const [faseImagen, setFaseImagen] = useState<string | null>(null);
   const [infoImagen, setInfoImagen] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const nuevaCatRef = useRef<HTMLInputElement>(null);
+
+  // Las del mega menu + las que ya existen en la base. La del producto en
+  // edicion entra siempre, por si su categoria se dio de baja del menu.
+  const categorias = useMemo(
+    () => categoriasDisponibles([...catalogo, { categoria: producto?.categoria ?? null }]),
+    [catalogo, producto?.categoria]
+  );
+
+  const libres = MAX_IMAGENES - imagenes.length;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -80,6 +82,10 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
       document.body.style.overflow = prev;
     };
   }, [onClose, guardando, subiendo]);
+
+  useEffect(() => {
+    if (creandoCategoria) nuevaCatRef.current?.focus();
+  }, [creandoCategoria]);
 
   /* ---------------- Variantes ---------------- */
 
@@ -95,48 +101,92 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
   const quitarVariante = (i: number) =>
     setVariantes((vs) => (vs.length > 1 ? vs.filter((_, k) => k !== i) : vs));
 
-  /* ---------------- Imagen ---------------- */
+  /* ---------------- Categoria creable ---------------- */
 
   /**
-   * Comprime en el navegador y despues sube. La compresion es obligatoria, no
-   * un lujo: Vercel corta el request a los 4.5 MB y devuelve un HTML plano,
-   * asi que una foto de celular sin tocar nunca llegaria al endpoint.
+   * Confirma la categoria escrita a mano. Se guarda el slug y no el texto:
+   * es lo que viaja en `?cat=` y lo que compara `esDeCategoria()`. Si el slug
+   * ya existia, esto simplemente la selecciona.
    */
-  const subir = async (original: File) => {
+  const confirmarCategoria = () => {
+    const slug = slugCategoria(nuevaCategoria);
+    if (slug) setCategoria(slug);
+    setCreandoCategoria(false);
+    setNuevaCategoria('');
+  };
+
+  const cancelarCategoria = () => {
+    setCreandoCategoria(false);
+    setNuevaCategoria('');
+  };
+
+  /* ---------------- Imagenes ---------------- */
+
+  /**
+   * Comprime en el navegador y despues sube, de a una y en orden. La
+   * compresion es obligatoria, no un lujo: Vercel corta el request a los
+   * 4.5 MB y devuelve un HTML plano, asi que una foto de celular sin tocar
+   * nunca llegaria al endpoint.
+   */
+  const subir = async (elegidos: File[]) => {
+    if (elegidos.length === 0) return;
+
+    const cupo = elegidos.slice(0, libres);
+    const sobrantes = elegidos.length - cupo.length;
+
     setSubiendo(true);
     setError(null);
     setInfoImagen(null);
 
-    try {
-      setFaseImagen('optimizando');
-      const file = await comprimirImagen(original);
+    let pesoOriginal = 0;
+    let pesoFinal = 0;
+    const subidas: string[] = [];
 
-      // Red de contencion: si la compresion no alcanzo (imagen enorme o
-      // navegador sin canvas), cortamos aca en vez de comerse el 413.
-      if (file.size > LIMITE_SUBIDA_BYTES) {
-        throw new Error(
-          `La imagen sigue pesando ${formatearBytes(file.size)} después de optimizarla. ` +
-            'Recortala o exportala más chica antes de subirla.'
-        );
+    try {
+      for (let i = 0; i < cupo.length; i++) {
+        const original = cupo[i];
+        const de = cupo.length > 1 ? ` (${i + 1} de ${cupo.length})` : '';
+
+        setFaseImagen(`Optimizando…${de}`);
+        const file = await comprimirImagen(original);
+
+        // Red de contencion: si la compresion no alcanzo (imagen enorme o
+        // navegador sin canvas), cortamos aca en vez de comerse el 413.
+        if (file.size > LIMITE_SUBIDA_BYTES) {
+          throw new Error(
+            `"${original.name}" sigue pesando ${formatearBytes(file.size)} después de ` +
+              'optimizarla. Recortala o exportala más chica antes de subirla.'
+          );
+        }
+
+        setFaseImagen(`Subiendo…${de}`);
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('slug', nombre || producto?.slug || 'producto');
+
+        const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+        const data = await leerJson<{ url: string; path: string }>(res);
+
+        subidas.push(data.url);
+        pesoOriginal += original.size;
+        pesoFinal += file.size;
       }
 
-      setFaseImagen('subiendo');
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('slug', nombre || producto?.slug || 'producto');
-
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const data = await leerJson<{ url: string; path: string }>(res);
-
-      setImagenUrl(data.url);
+      const cuenta = `${subidas.length} ${subidas.length === 1 ? 'imagen' : 'imágenes'}`;
+      const info = `${cuenta}: ${formatearBytes(pesoOriginal)} → ${formatearBytes(pesoFinal)}.`;
       setInfoImagen(
-        file.size < original.size
-          ? `Optimizada: ${formatearBytes(original.size)} → ${formatearBytes(file.size)}.`
-          : `Subida (${formatearBytes(file.size)}).`
+        sobrantes > 0
+          ? `${info} Se ignoraron ${sobrantes} porque el máximo es ${MAX_IMAGENES}.`
+          : info
       );
     } catch (e) {
       setError(mensajeDeError(e, 'Error al subir la imagen.'));
     } finally {
+      // Lo que alcanzo a subir se conserva: descartarlo obligaria a subir
+      // todo de nuevo por un fallo en la ultima foto.
+      if (subidas.length > 0) {
+        setImagenes((prev) => [...new Set([...prev, ...subidas])].slice(0, MAX_IMAGENES));
+      }
       setSubiendo(false);
       setFaseImagen(null);
       // Reset del input: sin esto, reintentar con el mismo archivo no dispara
@@ -144,6 +194,12 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
       if (fileRef.current) fileRef.current.value = '';
     }
   };
+
+  const quitarImagen = (i: number) => setImagenes((xs) => xs.filter((_, k) => k !== i));
+
+  /** Manda una foto al frente: la posicion 0 es la que ve todo el sitio. */
+  const hacerPrincipal = (i: number) =>
+    setImagenes((xs) => (i === 0 ? xs : [xs[i], ...xs.filter((_, k) => k !== i)]));
 
   /* ---------------- Guardado ---------------- */
 
@@ -156,9 +212,11 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
       nombre: nombre.trim(),
       categoria: categoria || null,
       descripcion: descripcion.trim() || null,
-      imagen_url: imagenUrl.trim() || null,
+      // La principal la deriva el servidor de imagenes[0]. Se manda igual
+      // para que la fila quede consistente incluso sin galeria.
+      imagen_url: imagenes[0] ?? null,
+      imagenes,
       activo,
-      orden: Number(orden) || 0,
       precios_por_variante: variantes,
     };
 
@@ -209,58 +267,99 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
         </div>
 
         <form onSubmit={guardar} className="thin-scroll flex-1 overflow-y-auto px-6 py-5">
-          <div className="grid gap-5 sm:grid-cols-[180px_1fr]">
-            {/* ---------- Imagen ---------- */}
+          <div className="grid gap-5 sm:grid-cols-[220px_1fr]">
+            {/* ---------- Galeria ---------- */}
             <div>
-              <p className={label}>Imagen</p>
-              <div className="mt-2 relative aspect-square w-full overflow-hidden rounded-xl border border-dashed border-carbon/20 bg-crema">
-                {imagenUrl ? (
+              <div className="flex items-baseline justify-between">
+                <p className={label}>Imágenes</p>
+                <span className="text-[11px] text-humo/60">
+                  {imagenes.length}/{MAX_IMAGENES}
+                </span>
+              </div>
+
+              {/* La principal ocupa todo el contenedor: la foto llega al borde
+                  y el redondeo se aplica sobre la imagen, sin marco blanco. */}
+              <div className="mt-2 relative aspect-square w-full overflow-hidden rounded-xl bg-crema">
+                {imagenes[0] ? (
                   <Image
-                    src={imagenUrl}
+                    src={imagenes[0]}
                     alt=""
                     fill
-                    sizes="180px"
+                    sizes="220px"
                     unoptimized
-                    className="object-contain p-2"
+                    className="h-full w-full rounded-xl object-cover"
                   />
                 ) : (
-                  <span className="flex h-full items-center justify-center text-xs text-humo/60">
+                  <span className="flex h-full items-center justify-center rounded-xl border border-dashed border-carbon/20 text-xs text-humo/60">
                     Sin imagen
                   </span>
                 )}
                 {subiendo && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-white/80 text-xs font-medium text-humo">
-                    {faseImagen === 'optimizando' ? 'Optimizando…' : 'Subiendo…'}
+                  <span className="absolute inset-0 flex items-center justify-center bg-white/85 text-xs font-medium text-humo">
+                    {faseImagen ?? 'Subiendo…'}
                   </span>
                 )}
               </div>
 
+              {/* Miniaturas. La primera es la principal; tocar otra la asciende. */}
+              {imagenes.length > 0 && (
+                <ul className="mt-2 grid grid-cols-3 gap-2">
+                  {imagenes.map((url, i) => (
+                    <li key={url} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => hacerPrincipal(i)}
+                        disabled={ocupado || i === 0}
+                        title={i === 0 ? 'Imagen principal' : 'Usar como principal'}
+                        aria-label={
+                          i === 0 ? 'Imagen principal' : `Usar imagen ${i + 1} como principal`
+                        }
+                        className={`relative block aspect-square w-full overflow-hidden rounded-lg ring-2 transition-all disabled:cursor-default ${
+                          i === 0 ? 'ring-[#1e6b32]' : 'ring-transparent hover:ring-carbon/25'
+                        }`}
+                      >
+                        <Image src={url} alt="" fill sizes="70px" unoptimized className="h-full w-full object-cover" />
+                        {i === 0 && (
+                          <span className="absolute inset-x-0 bottom-0 bg-[#1e6b32] py-0.5 text-center text-[9px] font-semibold uppercase tracking-wide text-white">
+                            Principal
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => quitarImagen(i)}
+                        disabled={ocupado}
+                        aria-label={`Quitar imagen ${i + 1}`}
+                        className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#b3261e] text-white shadow-md transition-transform hover:scale-110 disabled:opacity-40"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
+                          <path d="M18 6 6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               <input
                 ref={fileRef}
                 type="file"
+                multiple
                 accept="image/jpeg,image/png,image/webp,image/avif"
-                disabled={ocupado}
+                disabled={ocupado || libres === 0}
                 onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void subir(f);
+                  const files = Array.from(e.target.files ?? []);
+                  if (files.length) void subir(files);
                 }}
-                className="mt-2 block w-full text-xs text-humo file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#143620] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#f5ebd9] hover:file:bg-[#0b1c0f]"
+                className="mt-2 block w-full text-xs text-humo file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#143620] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#f5ebd9] hover:file:bg-[#0b1c0f] disabled:opacity-50"
               />
               <p className="mt-1 text-[11px] text-humo/60">
-                JPG, PNG, WEBP o AVIF. Se optimiza sola: subí la foto original sin
-                preocuparte por el peso.
+                {libres === 0
+                  ? `Llegaste al máximo de ${MAX_IMAGENES}. Quitá una para subir otra.`
+                  : `Hasta ${MAX_IMAGENES} fotos (podés elegir varias juntas). Se optimizan solas: subí la original sin preocuparte por el peso.`}
               </p>
               {infoImagen && (
                 <p className="mt-1 text-[11px] font-medium text-[#175427]">{infoImagen}</p>
-              )}
-              {imagenUrl && (
-                <button
-                  type="button"
-                  onClick={() => setImagenUrl('')}
-                  className="mt-1 text-[11px] text-[#b3261e] hover:underline"
-                >
-                  Quitar imagen
-                </button>
               )}
             </div>
 
@@ -278,30 +377,84 @@ export default function ProductoModal({ producto, onClose, onGuardado }: Props) 
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="sm:col-span-2">
-                  <label className={label} htmlFor="p-cat">Categoría</label>
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <label className={label} htmlFor={creandoCategoria ? 'p-cat-nueva' : 'p-cat'}>
+                    Categoría
+                  </label>
+                  {!creandoCategoria && (
+                    <button
+                      type="button"
+                      onClick={() => setCreandoCategoria(true)}
+                      className="text-xs font-medium text-[#175427] transition-colors hover:text-[#0b1c0f] hover:underline"
+                    >
+                      + Crear categoría
+                    </button>
+                  )}
+                </div>
+
+                {creandoCategoria ? (
+                  <div className="mt-1.5 flex gap-2">
+                    <input
+                      ref={nuevaCatRef}
+                      id="p-cat-nueva"
+                      value={nuevaCategoria}
+                      onChange={(e) => setNuevaCategoria(e.target.value)}
+                      onKeyDown={(e) => {
+                        // Enter dentro de un form haria submit: aca la tecla
+                        // confirma la categoria, no guarda el producto.
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          confirmarCategoria();
+                        }
+                        if (e.key === 'Escape') {
+                          e.preventDefault();
+                          cancelarCategoria();
+                        }
+                      }}
+                      placeholder="Frutas Confitadas"
+                      className={input}
+                    />
+                    <button
+                      type="button"
+                      onClick={confirmarCategoria}
+                      className="shrink-0 rounded-xl bg-[#1e6b32] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#175427]"
+                    >
+                      Usar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelarCategoria}
+                      className="shrink-0 rounded-xl px-2 text-sm text-humo transition-colors hover:text-carbon"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
                   <select
                     id="p-cat"
                     value={categoria}
                     onChange={(e) => setCategoria(e.target.value)}
                     className={`mt-1.5 ${input}`}
                   >
-                    {CATEGORIAS.map((c) => (
-                      <option key={c} value={c}>{c.replace(/-/g, ' ')}</option>
+                    {/* Una categoria recien creada (o dada de baja del menu)
+                        tiene que poder verse seleccionada igual. */}
+                    {categoria && !categorias.includes(categoria) && (
+                      <option value={categoria}>{etiquetaCategoria(categoria)}</option>
+                    )}
+                    {categorias.map((c) => (
+                      <option key={c} value={c}>{etiquetaCategoria(c)}</option>
                     ))}
                   </select>
-                </div>
-                <div>
-                  <label className={label} htmlFor="p-orden">Orden</label>
-                  <input
-                    id="p-orden"
-                    type="number"
-                    value={orden}
-                    onChange={(e) => setOrden(e.target.value)}
-                    className={`mt-1.5 ${input}`}
-                  />
-                </div>
+                )}
+
+                <p className="mt-1 text-[11px] text-humo/60">
+                  {creandoCategoria
+                    ? nuevaCategoria.trim()
+                      ? `Se guardará como “${slugCategoria(nuevaCategoria) || '—'}”.`
+                      : 'Escribí el nombre visible; el slug se genera solo.'
+                    : 'Las categorías nuevas aparecen en el filtro del catálogo al guardar.'}
+                </p>
               </div>
 
               <div>

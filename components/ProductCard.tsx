@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useCart } from '@/store/cart';
 import { formatARS, formatPrecioPorKg } from '@/lib/format';
 import ProductModal from './ProductModal';
+import { imagenesDe } from '@/lib/imagenes';
 import type { Product } from '@/types';
 
 export default function ProductCard({
@@ -23,6 +24,10 @@ export default function ProductCard({
 
   const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
   if (!variant) return null;
+
+  // La card muestra la principal. El resto de la galeria vive en el quick
+  // view; aca solo se avisa que hay mas de una foto.
+  const galeria = imagenesDe(product);
 
   const esConsultar = variant.tipo === 'consultar';
 
@@ -44,22 +49,32 @@ export default function ProductCard({
         <button
           onClick={openModal}
           aria-label={`Ver detalles de ${product.nombre}`}
-          className="relative aspect-square w-full cursor-pointer p-6"
+          className="relative aspect-square w-full cursor-pointer overflow-hidden rounded-xl bg-gray-50"
         >
-          {product.imagen_url ? (
+          {galeria[0] ? (
             <Image
-              src={product.imagen_url}
+              src={galeria[0]}
               alt={product.nombre}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full items-center justify-center rounded-lg bg-gray-50">
+            <div className="flex h-full items-center justify-center">
               <span className="font-[family-name:var(--font-display)] text-6xl text-gray-200">
                 {product.nombre.charAt(0)}
               </span>
             </div>
+          )}
+
+          {galeria.length > 1 && (
+            <span className="pointer-events-none absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-carbon/70 px-2 py-0.5 text-[10px] font-medium text-white">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="3" y="3" width="13" height="13" rx="2" />
+                <path d="M8 21h11a2 2 0 0 0 2-2V8" />
+              </svg>
+              {galeria.length}
+            </span>
           )}
 
           <span className="pointer-events-none absolute inset-x-0 bottom-3 mx-auto w-fit rounded-full bg-carbon/85 px-3 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">

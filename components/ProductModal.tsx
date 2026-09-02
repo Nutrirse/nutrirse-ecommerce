@@ -6,6 +6,8 @@ import { useCart } from '@/store/cart';
 import { formatARS, formatPrecioPorKg } from '@/lib/format';
 import ShippingCalculator from './ShippingCalculator';
 import { maxCantidad as topeDeVariante, motivoTope } from '@/lib/variant-limits';
+import { imagenesDe } from '@/lib/imagenes';
+import { etiquetaCategoria } from '@/lib/categorias';
 import type { Product } from '@/types';
 
 type Props = {
@@ -27,6 +29,8 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   const variantes = activo.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [cantidad, setCantidad] = useState(1);
+  // Indice de la foto visible dentro de la galeria del producto activo.
+  const [foto, setFoto] = useState(0);
   const [added, setAdded] = useState(false);
   // Aviso efimero al tocar el tope de bultos.
   const [aviso, setAviso] = useState<string | null>(null);
@@ -45,6 +49,10 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
 
   const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
   const esConsultar = variant?.tipo === 'consultar';
+
+  // Galeria del producto activo. La posicion 0 es la principal.
+  const galeria = imagenesDe(activo);
+  const imagenActual = galeria[Math.min(foto, galeria.length - 1)] ?? null;
 
   /* ---- Tope de la variante activa. La regla vive en lib/variant-limits.ts,
          que tambien aplica el store del carrito: la UI solo la refleja.
@@ -78,6 +86,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
   useEffect(() => {
     setVariantId(activo.precios_por_variante[0]?.id ?? '');
     setCantidad(1);
+    setFoto(0);
     setAdded(false);
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activo.id, activo.precios_por_variante]);
@@ -240,16 +249,17 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                  margen - 1rem de `top-4`) y centra su unico hijo. El `max-w`
                  atado a la altura evita que el cuadrado se corte por abajo en
                  pantallas bajas: sin eso, `w-full` gana y rompe el 1:1. ---------- */}
-          <div className="flex items-center justify-center p-4 md:sticky md:top-4 md:h-[calc(100dvh-3rem)] md:p-6">
+          <div className="flex flex-col items-center justify-center p-4 md:sticky md:top-4 md:h-[calc(100dvh-3rem)] md:p-6">
             <div className="relative aspect-square w-full max-w-[min(100%,calc(100dvh-9rem))] overflow-hidden rounded-3xl bg-gray-50 shadow-sm">
-              {activo.imagen_url ? (
+              {imagenActual ? (
                 <Image
-                  src={activo.imagen_url}
+                  key={imagenActual}
+                  src={imagenActual}
                   alt={activo.nombre}
                   fill
                   sizes="(max-width: 768px) 100vw, 45vw"
                   priority
-                  className="object-contain p-3 md:p-4"
+                  className="h-full w-full rounded-3xl object-cover"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">
@@ -258,7 +268,66 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                   </span>
                 </div>
               )}
+
+              {/* Flechas: solo con galeria real, y solo en pantallas con
+                  cursor. En touch alcanza con tocar las miniaturas. */}
+              {galeria.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setFoto((f) => (f - 1 + galeria.length) % galeria.length)}
+                    aria-label="Foto anterior"
+                    className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-black md:flex"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="m15 18-6-6 6-6" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setFoto((f) => (f + 1) % galeria.length)}
+                    aria-label="Foto siguiente"
+                    className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-black md:flex"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </button>
+                  <span className="absolute bottom-3 right-3 rounded-full bg-carbon/70 px-2.5 py-1 text-[11px] font-medium text-white">
+                    {Math.min(foto, galeria.length - 1) + 1}/{galeria.length}
+                  </span>
+                </>
+              )}
             </div>
+
+            {/* Miniaturas */}
+            {galeria.length > 1 && (
+              <ul className="mt-3 flex w-full max-w-[min(100%,calc(100dvh-9rem))] gap-2">
+                {galeria.map((url, i) => {
+                  const seleccionada = i === Math.min(foto, galeria.length - 1);
+                  return (
+                    <li key={url} className="flex-1">
+                      <button
+                        onClick={() => setFoto(i)}
+                        aria-label={`Ver foto ${i + 1} de ${activo.nombre}`}
+                        aria-current={seleccionada}
+                        className={`relative block aspect-square w-full overflow-hidden rounded-xl ring-2 transition-all ${
+                          seleccionada
+                            ? 'ring-[#28a745]'
+                            : 'opacity-70 ring-transparent hover:opacity-100 hover:ring-gray-300'
+                        }`}
+                      >
+                        <Image
+                          src={url}
+                          alt=""
+                          fill
+                          sizes="120px"
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           {/* ---------- Derecha: info y cotizador ---------- */}
@@ -277,7 +346,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
 
             {activo.categoria && (
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-tostado">
-                {activo.categoria.replace(/-/g, ' ')}
+                {etiquetaCategoria(activo.categoria)}
               </p>
             )}
 
@@ -440,7 +509,7 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                                 alt={p.nombre}
                                 fill
                                 sizes="64px"
-                                className="object-contain p-1.5"
+                                className="h-full w-full object-cover"
                               />
                             ) : (
                               <span className="flex h-full items-center justify-center font-[family-name:var(--font-display)] text-2xl text-gray-200">

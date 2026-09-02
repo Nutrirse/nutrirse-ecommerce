@@ -1,4 +1,5 @@
 import { revalidatePath } from 'next/cache';
+import { MAX_IMAGENES } from './imagenes';
 import type { Variant } from '@/types';
 
 /**
@@ -13,6 +14,7 @@ export type ProductoPayload = {
   categoria: string | null;
   descripcion: string | null;
   imagen_url: string | null;
+  imagenes: string[];
   activo: boolean;
   orden: number;
   precios_por_variante: Variant[];
@@ -37,6 +39,31 @@ function urlImagen(v: unknown): string | null {
   if (!s) return null;
   if (!/^https?:\/\//i.test(s)) throw new PayloadError('La URL de imagen debe empezar con http(s).');
   return s;
+}
+
+/**
+ * Galeria: hasta MAX_IMAGENES urls http(s), en orden y sin repetidos.
+ * La posicion 0 es la principal.
+ */
+export function validarImagenes(v: unknown): string[] {
+  if (v == null) return [];
+  if (!Array.isArray(v)) throw new PayloadError('Las imágenes deben venir como lista.');
+
+  const urls = v
+    .map((raw) => (raw == null ? '' : String(raw).trim()))
+    .filter((s) => s.length > 0);
+
+  const unicas = [...new Set(urls)];
+  if (unicas.length > MAX_IMAGENES) {
+    throw new PayloadError(`Máximo ${MAX_IMAGENES} imágenes por producto.`);
+  }
+  for (const u of unicas) {
+    if (u.length > 600) throw new PayloadError('Una de las URLs de imagen es demasiado larga.');
+    if (!/^https?:\/\//i.test(u)) {
+      throw new PayloadError('La URL de imagen debe empezar con http(s).');
+    }
+  }
+  return unicas;
 }
 
 export function validarVariantes(v: unknown): Variant[] {
@@ -77,6 +104,23 @@ export function validarVariantes(v: unknown): Variant[] {
   });
 }
 
+/**
+ * Resuelve el par galeria + principal desde el body.
+ *
+ * La principal es siempre la primera de la galeria. Si el body trae solo
+ * `imagen_url` (clientes viejos, o el PATCH inline de la grilla), se la trata
+ * como una galeria de una sola foto.
+ */
+function conImagenPrincipal(o: Record<string, unknown>): {
+  imagen_url: string | null;
+  imagenes: string[];
+} {
+  const galeria =
+    'imagenes' in o ? validarImagenes(o.imagenes) : ([urlImagen(o.imagen_url)].filter(Boolean) as string[]);
+
+  return { imagen_url: galeria[0] ?? null, imagenes: galeria };
+}
+
 /** Payload completo (POST de alta). */
 export function validarProducto(body: unknown): ProductoPayload {
   const o = (body ?? {}) as Record<string, unknown>;
@@ -84,7 +128,7 @@ export function validarProducto(body: unknown): ProductoPayload {
     nombre: texto(o.nombre, 'el nombre', 160, true)!,
     categoria: texto(o.categoria, 'la categoría', 80),
     descripcion: texto(o.descripcion, 'la descripción', 2000),
-    imagen_url: urlImagen(o.imagen_url),
+    ...conImagenPrincipal(o),
     activo: o.activo !== false,
     orden: Number.isFinite(Number(o.orden)) ? Math.trunc(Number(o.orden)) : 0,
     precios_por_variante: validarVariantes(o.precios_por_variante),
@@ -99,7 +143,10 @@ export function validarParcial(body: unknown): Partial<ProductoPayload> {
   if ('nombre' in o) out.nombre = texto(o.nombre, 'el nombre', 160, true)!;
   if ('categoria' in o) out.categoria = texto(o.categoria, 'la categoría', 80);
   if ('descripcion' in o) out.descripcion = texto(o.descripcion, 'la descripción', 2000);
-  if ('imagen_url' in o) out.imagen_url = urlImagen(o.imagen_url);
+  // `imagenes` e `imagen_url` viajan juntas o no viajan: la base tiene un
+  // check que exige imagenes[1] = imagen_url, y un PATCH que toque solo una
+  // de las dos lo violaria.
+  if ('imagenes' in o || 'imagen_url' in o) Object.assign(out, conImagenPrincipal(o));
   if ('activo' in o) out.activo = Boolean(o.activo);
   if ('orden' in o) out.orden = Math.trunc(Number(o.orden) || 0);
   if ('precios_por_variante' in o) {

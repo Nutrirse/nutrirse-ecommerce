@@ -127,7 +127,19 @@ export function pathDesdeUrlPublica(url: string | null): string | null {
  * el borrado del producto.
  */
 export async function borrarImagenPorUrl(url: string | null): Promise<void> {
-  const path = pathDesdeUrlPublica(url);
-  if (!path || !supabaseAdmin) return;
-  await supabaseAdmin.storage.from(BUCKET).remove([path]);
+  return borrarImagenesPorUrl([url]);
+}
+
+/**
+ * Version en lote, para la galeria. Un solo `remove()` con todos los paths:
+ * las URLs externas (Unsplash y las del fallback) quedan afuera solas porque
+ * `pathDesdeUrlPublica` devuelve null.
+ */
+export async function borrarImagenesPorUrl(urls: (string | null)[]): Promise<void> {
+  if (!supabaseAdmin) return;
+  const paths = urls
+    .map(pathDesdeUrlPublica)
+    .filter((p): p is string => Boolean(p));
+  if (paths.length === 0) return;
+  await supabaseAdmin.storage.from(BUCKET).remove([...new Set(paths)]);
 }

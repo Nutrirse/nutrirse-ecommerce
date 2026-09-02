@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SELECT =
-  'id, slug, nombre, descripcion, imagen_url, categoria, precios_por_variante, activo, orden, updated_at';
+  'id, slug, nombre, descripcion, imagen_url, imagenes, categoria, precios_por_variante, activo, orden, updated_at';
 
 function sinSesion() {
   return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });

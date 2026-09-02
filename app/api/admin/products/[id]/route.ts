@@ -4,7 +4,7 @@ import {
   supabaseAdmin,
   isAdminConfigured,
   slugLibre,
-  borrarImagenPorUrl,
+  borrarImagenesPorUrl,
 } from '@/lib/supabase-admin';
 import { PayloadError, refrescarCatalogo, validarParcial } from '@/lib/admin-products';
 import type { Product } from '@/types';
@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SELECT =
-  'id, slug, nombre, descripcion, imagen_url, categoria, precios_por_variante, activo, orden, updated_at';
+  'id, slug, nombre, descripcion, imagen_url, imagenes, categoria, precios_por_variante, activo, orden, updated_at';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -47,6 +47,20 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const patch: Record<string, unknown> = { ...cambios };
   if (cambios.nombre) patch.slug = await slugLibre(cambios.nombre, id);
 
+  // Galeria previa: las fotos que el admin saco hay que borrarlas del bucket
+  // despues del update, o quedan pesando para siempre sin que nada las
+  // referencie.
+  let galeriaPrevia: string[] = [];
+  if (cambios.imagenes) {
+    const { data: previo } = await supabaseAdmin
+      .from('products')
+      .select('imagenes, imagen_url')
+      .eq('id', id)
+      .maybeSingle();
+    const p = previo as { imagenes?: string[] | null; imagen_url?: string | null } | null;
+    galeriaPrevia = p?.imagenes?.length ? p.imagenes : p?.imagen_url ? [p.imagen_url] : [];
+  }
+
   const { data, error } = await supabaseAdmin
     .from('products')
     .update(patch)
@@ -56,6 +70,11 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!data) return NextResponse.json({ error: 'Producto no encontrado.' }, { status: 404 });
+
+  if (galeriaPrevia.length > 0) {
+    const vigentes = new Set(cambios.imagenes ?? []);
+    await borrarImagenesPorUrl(galeriaPrevia.filter((u) => !vigentes.has(u)));
+  }
 
   refrescarCatalogo();
   return NextResponse.json({ product: data as Product });
@@ -70,7 +89,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   // Se lee la fila antes de borrarla para poder limpiar la imagen del bucket.
   const { data: previo } = await supabaseAdmin
     .from('products')
-    .select('imagen_url')
+    .select('imagen_url, imagenes')
     .eq('id', id)
     .maybeSingle();
 
@@ -79,7 +98,8 @@ export async function DELETE(_req: Request, { params }: Ctx) {
 
   // Best-effort: si falla, queda un huerfano en Storage pero el producto
   // ya no esta. No tiene sentido revertir el delete por esto.
-  await borrarImagenPorUrl((previo?.imagen_url as string | null) ?? null);
+  const fila = previo as { imagen_url?: string | null; imagenes?: string[] | null } | null;
+  await borrarImagenesPorUrl([fila?.imagen_url ?? null, ...(fila?.imagenes ?? [])]);
 
   refrescarCatalogo();
   return NextResponse.json({ ok: true });

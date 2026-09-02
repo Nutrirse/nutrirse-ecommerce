@@ -58,3 +58,41 @@ export const esDeCategoria = (categoriaProducto: string | null, filtro: string) 
   if (!categoriaProducto) return false;
   return normalizarCategoria(categoriaProducto) === normalizarCategoria(filtro);
 };
+
+/* ------------------------------------------------------------------ */
+/* Categorias creables desde el panel                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Slug de una categoria escrita a mano en el panel: "Frutas Confitadas"
+ * -> "frutas-confitadas". Gemelo de `slugify()` de lib/supabase-admin, pero
+ * este vive en un modulo que si puede importar el navegador.
+ */
+export const slugCategoria = (texto: string) =>
+  texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+
+/** Las del mega menu. `todos` es un filtro, no una categoria real. */
+export const CATEGORIAS_BASE = Object.keys(ETIQUETA_CATEGORIA).filter((c) => c !== 'todos');
+
+/**
+ * Categorias que el panel ofrece en el selector: las del menu mas las que
+ * ya existen en la base (incluidas las que el admin creo a mano). Asi una
+ * categoria nueva queda disponible para el resto de los productos sin
+ * pasar por el codigo.
+ */
+export function categoriasDisponibles(
+  productos: { categoria: string | null }[]
+): string[] {
+  const usadas = productos
+    .map((p) => p.categoria)
+    .filter((c): c is string => Boolean(c));
+  return [...new Set([...CATEGORIAS_BASE, ...usadas])].sort((a, b) =>
+    etiquetaCategoria(a).localeCompare(etiquetaCategoria(b), 'es')
+  );
+}
