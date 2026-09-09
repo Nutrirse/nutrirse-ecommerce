@@ -130,6 +130,44 @@ const SLIDES: Slide[] = [
     ],
   },
   {
+    id: 'harinas',
+    title: 'H A R I N A S',
+    label: 'Harinas',
+    // Las tres viven bajo "Reposteria" en la base: el slug fino es el que
+    // resuelve `indice.resolver()`, y el filtro por la hija ya funciona.
+    cat: { slug: 'reposteria-harinas', nombre: 'Harinas' },
+    doypackImg: '/images/hero/harinas.png',
+    floatingImgs: [
+      '/images/hero/harinas-1.png',
+      '/images/hero/harinas-2.png',
+    ],
+  },
+  {
+    // Agrupa rallado, aceite y derivados: el slide es la categoria entera.
+    id: 'coco',
+    title: 'C O C O',
+    label: 'Coco',
+    cat: { slug: 'reposteria-coco', nombre: 'Coco' },
+    doypackImg: '/images/hero/coco.png',
+    floatingImgs: [
+      '/images/hero/coco-1.png',
+      '/images/hero/coco-2.png',
+    ],
+  },
+  {
+    // Cacao en polvo y en grano se cargaron bajo los chocolates de
+    // reposteria; no hay una categoria "Cacao" propia en la base.
+    id: 'cacao',
+    title: 'C A C A O',
+    label: 'Cacao',
+    cat: { slug: 'reposteria-chocolates', nombre: 'Chocolates de Repostería' },
+    doypackImg: '/images/hero/cacao.png',
+    floatingImgs: [
+      '/images/hero/cacao-1.png',
+      '/images/hero/cacao-2.png',
+    ],
+  },
+  {
     // La categoria "Infusiones" se dio de baja: el slide pasa a destacar el
     // producto y enlaza a "Frutas Desecadas", donde vive la Flor de Jamaica.
     id: 'flor-de-jamaica',

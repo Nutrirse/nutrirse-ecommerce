@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useCart } from '@/store/cart';
-import { formatARS, formatPrecioPorKg } from '@/lib/format';
+import { formatARS, formatPrecioUnitario } from '@/lib/format';
 import ProductModal from './ProductModal';
 import { imagenesDe } from '@/lib/imagenes';
 import type { Product } from '@/types';
@@ -31,8 +31,9 @@ export default function ProductCard({
 
   const esConsultar = variant.tipo === 'consultar';
 
-  /* En la variante de 5 kg el mayorista compara por kilo, no por bolsa. */
-  const porKg = variant.peso_kg === 5 ? formatPrecioPorKg(variant.precio, variant.peso_kg) : null;
+  /* El mayorista compara por unidad de medida, no por bulto: toda variante
+     con un divisor util lleva el precio unitario debajo del principal. */
+  const porKg = formatPrecioUnitario(variant);
 
   const onAdd = () => {
     addItem(product, variant);
