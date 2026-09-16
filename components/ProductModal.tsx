@@ -358,6 +358,16 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
               {activo.nombre}
             </h2>
 
+            {/* Composicion: sub-descripcion corta. Va pegada al titulo y por
+                encima de los precios, separada de la descripcion comercial
+                larga por tamano y color. */}
+            {activo.composicion && (
+              <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                <span className="font-medium text-gray-600">Contiene:</span>{' '}
+                {activo.composicion}
+              </p>
+            )}
+
             {activo.descripcion && (
               <p className="mt-3 text-base leading-relaxed text-gray-600">{activo.descripcion}</p>
             )}

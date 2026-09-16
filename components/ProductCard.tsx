@@ -91,6 +91,12 @@ export default function ProductCard({
             </h3>
           </button>
 
+          {product.composicion && (
+            <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-gray-500">
+              <span className="font-medium">Contiene:</span> {product.composicion}
+            </p>
+          )}
+
           {product.descripcion && (
             <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-400">
               {product.descripcion}

@@ -57,6 +57,7 @@ export default function ProductoModal({
   const [nuevaCategoria, setNuevaCategoria] = useState('');
   const [guardandoCategoria, setGuardandoCategoria] = useState(false);
   const [descripcion, setDescripcion] = useState(producto?.descripcion ?? '');
+  const [composicion, setComposicion] = useState(producto?.composicion ?? '');
   const [imagenes, setImagenes] = useState<string[]>(producto ? imagenesDe(producto) : []);
   const [activo, setActivo] = useState(producto?.activo ?? true);
   const [variantes, setVariantes] = useState<Variant[]>(
@@ -253,6 +254,7 @@ export default function ProductoModal({
       nombre: nombre.trim(),
       categoria: categoria || null,
       descripcion: descripcion.trim() || null,
+      composicion: composicion.trim() || null,
       // La principal la deriva el servidor de imagenes[0]. Se manda igual
       // para que la fila quede consistente incluso sin galeria.
       imagen_url: imagenes[0] ?? null,
@@ -512,6 +514,22 @@ export default function ProductoModal({
                       ? `Se guardará como “${slugCategoria(nuevaCategoria) || '—'}”.`
                       : 'Escribí el nombre visible; el slug se genera solo.'
                     : 'Las categorías nuevas aparecen en el filtro del catálogo al guardar.'}
+                </p>
+              </div>
+
+              <div>
+                <label className={label} htmlFor="p-composicion">Composición</label>
+                <input
+                  id="p-composicion"
+                  maxLength={200}
+                  value={composicion}
+                  onChange={(e) => setComposicion(e.target.value)}
+                  className={`mt-1.5 ${input}`}
+                  placeholder="Almendra, Nuez, Pasas"
+                />
+                <p className="mt-1 text-[11px] text-humo/60">
+                  Opcional. Una línea con los ingredientes: se muestra como “Contiene: …”
+                  debajo del nombre, antes de los precios. Útil en los mixes.
                 </p>
               </div>
 

@@ -61,6 +61,19 @@ const SLIDES: Slide[] = [
     ],
   },
   {
+    // Subcategoria de frutos secos en la base ('Mixes de Frutos Secos'),
+    // pero el cliente la vende como linea propia: tiene su propio slide.
+    id: 'mixes',
+    title: 'M I X E S',
+    label: 'Mixes',
+    cat: { slug: 'mixes', nombre: 'Mixes de Frutos Secos' },
+    doypackImg: '/images/hero/mixes.png',
+    floatingImgs: [
+      '/images/hero/mixes-1.png',
+      '/images/hero/mixes-2.png',
+    ],
+  },
+  {
     id: 'aceites-esenciales',
     title: 'A C E I T E S',
     label: 'Aceites Esenciales',

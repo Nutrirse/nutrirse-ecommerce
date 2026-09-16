@@ -25,6 +25,13 @@ export type Product = {
    * `imagenesDe()` (lib/imagenes.ts), nunca directo.
    */
   imagenes?: string[] | null;
+  /**
+   * Ingredientes en una linea ("Almendra, Nuez, Pasas"). Se renderiza bajo
+   * el titulo y antes de los precios; no reemplaza a `descripcion`, que es
+   * el parrafo comercial largo. Opcional: las filas previas a
+   * `supabase/migracion_composicion.sql` y el fallback estatico no la traen.
+   */
+  composicion?: string | null;
   categoria: string | null;
   precios_por_variante: Variant[];
   activo: boolean;
