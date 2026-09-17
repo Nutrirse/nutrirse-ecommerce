@@ -7,6 +7,7 @@ import { comprimirImagen, formatearBytes } from '@/lib/image-compress';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { imagenesDe, MAX_IMAGENES } from '@/lib/imagenes';
 import { indiceCategorias, slugCategoria, type Categoria } from '@/lib/categorias';
+import { alcanzadasPorPrecioBase, aplicarPrecioBase } from '@/lib/precio-base';
 
 /**
  * Techo del payload que aceptamos mandar. Las Serverless Functions de Vercel
@@ -128,26 +129,14 @@ export default function ProductoModal({
    * Es un disparo puntual (no un useEffect): despues de aplicarlo el admin
    * sigue editando cada precio a mano, y un efecto que recalcule en cada
    * tecla le pisaria los redondeos (39.750 -> 39.000).
-   *
-   * Se saltean las variantes `consultar` (no llevan precio) y las que no
-   * tienen un peso util, para no escribir un 0 sobre un precio ya cargado.
    */
   const aplicarPrecioKg = () => {
     if (!kgValido) return;
-    setVariantes((vs) =>
-      vs.map((v) => {
-        if (v.tipo === 'consultar') return v;
-        const peso = Number(v.peso_kg);
-        if (!Number.isFinite(peso) || peso <= 0) return v;
-        return { ...v, precio: Math.round(kgNumero * peso) };
-      })
-    );
+    setVariantes((vs) => aplicarPrecioBase(vs, kgNumero));
   };
 
   /** Cuantas variantes tocaria el boton, para avisarlo antes de apretarlo. */
-  const alcanzadas = variantes.filter(
-    (v) => v.tipo !== 'consultar' && Number(v.peso_kg) > 0
-  ).length;
+  const alcanzadas = alcanzadasPorPrecioBase(variantes);
 
   /* ---------------- Categoria creable ---------------- */
 

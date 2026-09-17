@@ -9,6 +9,11 @@ import { imagenesDe } from '@/lib/imagenes';
 import { indiceCategorias } from '@/lib/categorias';
 import type { CategoriaAdmin } from '@/lib/admin-categorias';
 import { formatARS } from '@/lib/format';
+import {
+  alcanzadasPorPrecioBase,
+  aplicarPrecioBase,
+  derivarPrecioBase,
+} from '@/lib/precio-base';
 import { NEGOCIO } from '@/lib/site';
 import type { Product, Variant } from '@/types';
 
@@ -260,9 +265,12 @@ function Login({ onOk, configurado }: { onOk: () => void; configurado: boolean }
 function CeldaPrecio({
   variante,
   onGuardar,
+  movil = false,
 }: {
   variante: Variant;
   onGuardar: (nuevo: number) => Promise<void>;
+  /** En la tarjeta la etiqueta se estira y el input se va al borde derecho. */
+  movil?: boolean;
 }) {
   const [valor, setValor] = useState(String(variante.precio ?? 0));
   const original = useRef(String(variante.precio ?? 0));
@@ -286,8 +294,11 @@ function CeldaPrecio({
   };
 
   return (
-    <label className="flex items-center gap-1.5">
-      <span className="w-24 shrink-0 truncate text-[11px] text-humo/70" title={variante.label}>
+    <label className={`flex items-center gap-1.5 ${movil ? 'w-full' : ''}`}>
+      <span
+        className={`truncate text-[11px] text-humo/70 ${movil ? 'flex-1' : 'w-24 shrink-0'}`}
+        title={variante.label}
+      >
         {variante.label}
       </span>
       <span className="text-xs text-tostado">$</span>
@@ -302,9 +313,479 @@ function CeldaPrecio({
           if (e.key === 'Escape') setValor(original.current);
         }}
         aria-label={`Precio de ${variante.label}`}
-        className="w-24 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-medium tabular-nums text-carbon outline-none transition-colors hover:border-carbon/15 hover:bg-white focus:border-[#143620]/40 focus:bg-white focus:ring-2 focus:ring-[#143620]/12"
+        className={`rounded-lg border bg-transparent px-2 text-sm font-medium tabular-nums text-carbon outline-none transition-colors hover:border-carbon/15 hover:bg-white focus:border-[#143620]/40 focus:bg-white focus:ring-2 focus:ring-[#143620]/12 ${
+          movil ? 'h-9 w-28 border-carbon/10 bg-white/70 text-right' : 'w-24 border-transparent py-1'
+        }`}
       />
     </label>
+  );
+}
+
+/* ================================================================== */
+/* Celda de precio base (Kg/U)                                        */
+/* ================================================================== */
+
+/**
+ * Edicion masiva desde la grilla: un solo numero reescribe el precio de
+ * todas las variantes con peso.
+ *
+ * Es el uso real del cliente en el celular (actualizar la lista de precios
+ * sin abrir un modal por producto), asi que guarda solo al salir del input o
+ * con Enter, igual que {@link CeldaPrecio}, y no en cada tecla.
+ */
+function CeldaPrecioBase({
+  producto,
+  onGuardar,
+  grande = false,
+}: {
+  producto: Product;
+  onGuardar: (base: number) => Promise<void>;
+  /**
+   * Version tactil para la tarjeta: es la accion principal de la vista movil
+   * (el cliente actualiza la lista de precios desde el telefono), asi que ahi
+   * va a todo el ancho y con tipografia grande.
+   */
+  grande?: boolean;
+}) {
+  const derivado = derivarPrecioBase(producto.precios_por_variante);
+  const inicial = derivado === null ? '' : String(derivado);
+
+  const [valor, setValor] = useState(inicial);
+  const [guardando, setGuardando] = useState(false);
+  const [ok, setOk] = useState(false);
+  const original = useRef(inicial);
+
+  // El derivado cambia cuando el PATCH vuelve, cuando se edita una variante
+  // suelta o cuando se guarda desde el modal: el input tiene que seguirlo.
+  useEffect(() => {
+    setValor(inicial);
+    original.current = inicial;
+  }, [inicial]);
+
+  const alcanzadas = alcanzadasPorPrecioBase(producto.precios_por_variante);
+
+  // Las dos vistas se renderizan a la vez (una oculta por CSS): sin sufijo,
+  // el `htmlFor` apuntaria a dos inputs con el mismo id.
+  const idInput = `base-${producto.id}-${grande ? 'movil' : 'tabla'}`;
+
+  const commit = async () => {
+    if (guardando || valor === original.current) return;
+
+    const n = Number(valor);
+    // Un base en 0 o vacio pondria todos los precios en 0: se descarta y se
+    // vuelve al valor anterior en vez de vaciar el producto.
+    if (valor.trim() === '' || !Number.isFinite(n) || n <= 0) {
+      setValor(original.current);
+      return;
+    }
+
+    original.current = valor;
+    setGuardando(true);
+    try {
+      await onGuardar(Math.round(n));
+      setOk(true);
+      setTimeout(() => setOk(false), 1600);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <div
+      className={`rounded-xl border transition-colors ${grande ? 'px-3 py-2.5' : 'px-2.5 py-2'} ${
+        ok ? 'border-[#1e6b32]/45 bg-[#1e6b32]/12' : 'border-[#1e6b32]/25 bg-[#1e6b32]/[0.07]'
+      }`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <label
+          htmlFor={idInput}
+          className={`font-semibold uppercase tracking-wider text-[#175427] ${
+            grande ? 'text-[11px]' : 'text-[10px]'
+          }`}
+        >
+          Precio Base (Kg/U)
+        </label>
+        {guardando ? (
+          <span className="flex items-center gap-1 text-[10px] font-medium text-tostado">
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              className="animate-spin"
+              aria-hidden
+            >
+              <path d="M12 3a9 9 0 1 0 9 9" />
+            </svg>
+            Guardando
+          </span>
+        ) : (
+          ok && <span className="text-[10px] font-semibold text-[#175427]">✓ Guardado</span>
+        )}
+      </div>
+
+      <div className="mt-1 flex items-center gap-1.5">
+        <span className={`font-medium text-tostado ${grande ? 'text-lg' : 'text-sm'}`}>$</span>
+        <input
+          id={idInput}
+          type="number"
+          min={0}
+          step="any"
+          inputMode="decimal"
+          value={valor}
+          disabled={guardando || alcanzadas === 0}
+          onChange={(e) => setValor(e.target.value)}
+          onBlur={() => void commit()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+            if (e.key === 'Escape') setValor(original.current);
+          }}
+          placeholder={alcanzadas === 0 ? 'Sin peso' : '7950'}
+          aria-label={`Precio base por kg o unidad de ${producto.nombre}`}
+          className={`w-full rounded-lg border border-[#1e6b32]/25 bg-white font-semibold tabular-nums text-carbon outline-none transition-colors focus:border-[#143620]/50 focus:ring-2 focus:ring-[#143620]/12 disabled:bg-crema disabled:text-humo/50 ${
+            grande ? 'h-12 px-3 text-lg' : 'h-8 px-2 text-sm'
+          }`}
+        />
+      </div>
+
+      <p className="mt-1 text-[10px] leading-snug text-humo/70">
+        {alcanzadas === 0
+          ? 'Sin variantes con peso: cargá el peso desde el editor.'
+          : `Recalcula ${alcanzadas} ${alcanzadas === 1 ? 'variante' : 'variantes'} (base × kg) y guarda.`}
+      </p>
+    </div>
+  );
+}
+
+type EstadoFila = 'idle' | 'guardando' | 'ok' | 'error';
+
+/* ================================================================== */
+/* Piezas compartidas entre la tabla y la tarjeta                      */
+/* ================================================================== */
+
+/**
+ * Todo lo que una fila necesita para pintarse y guardar.
+ *
+ * Las dos vistas (tabla en `>= sm`, tarjetas en `< sm`) consumen este mismo
+ * objeto: los handlers viven una sola vez en el panel, asi que el PATCH
+ * optimista, el estado de la fila y los toasts se comportan igual en las dos.
+ * Si cada vista armara sus propios callbacks, arreglar un bug de guardado
+ * obligaria a arreglarlo dos veces.
+ */
+type FilaProps = {
+  producto: Product;
+  estado: EstadoFila;
+  /** Nombre visible de la categoria, ya resuelto contra el arbol. */
+  etiquetaCategoria: string;
+  /** false => el slug no existe como fila en `categories` (base sin migrar). */
+  categoriaRegistrada: boolean;
+  onEditar: () => void;
+  onEliminar: () => void;
+  onEstado: (activo: boolean) => void;
+  onPrecioBase: (base: number) => Promise<void>;
+  onPrecioVariante: (variantId: string, precio: number) => Promise<void>;
+};
+
+function Miniatura({ producto, clase }: { producto: Product; clase: string }) {
+  const fotos = imagenesDe(producto);
+  return (
+    <div className={`relative shrink-0 overflow-hidden rounded-xl bg-crema ${clase}`}>
+      {fotos[0] ? (
+        <Image
+          src={fotos[0]}
+          alt=""
+          fill
+          sizes="56px"
+          unoptimized
+          className="h-full w-full rounded-xl object-cover"
+        />
+      ) : (
+        <span className="flex h-full items-center justify-center font-[family-name:var(--font-display)] text-lg text-tostado/60">
+          {producto.nombre.charAt(0)}
+        </span>
+      )}
+      {fotos.length > 1 && (
+        <span className="absolute bottom-0 right-0 rounded-tl-md bg-carbon/75 px-1 text-[9px] font-semibold text-white">
+          {fotos.length}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function BadgeCategoria({
+  producto,
+  etiqueta,
+  registrada,
+}: {
+  producto: Product;
+  etiqueta: string;
+  registrada: boolean;
+}) {
+  return (
+    <span
+      className={`inline-block max-w-full truncate rounded-full px-2.5 py-1 text-xs ${
+        producto.categoria && !registrada
+          ? 'bg-[#b3261e]/10 text-[#b3261e]'
+          : 'bg-crema text-humo'
+      }`}
+      title={producto.categoria ?? undefined}
+    >
+      {producto.categoria ? etiqueta : 'Sin categoría'}
+    </span>
+  );
+}
+
+function SelectorEstado({
+  producto,
+  onEstado,
+  clase = '',
+}: {
+  producto: Product;
+  onEstado: (activo: boolean) => void;
+  clase?: string;
+}) {
+  return (
+    <select
+      value={producto.activo ? 'activo' : 'inactivo'}
+      onChange={(e) => onEstado(e.target.value === 'activo')}
+      aria-label={`Estado de ${producto.nombre}`}
+      className={`rounded-full border font-medium outline-none transition-colors ${
+        producto.activo
+          ? 'border-[#1e6b32]/25 bg-[#1e6b32]/10 text-[#175427]'
+          : 'border-carbon/10 bg-crema text-humo'
+      } ${clase}`}
+    >
+      <option value="activo">Activo</option>
+      <option value="inactivo">Sin stock</option>
+    </select>
+  );
+}
+
+function Acciones({
+  producto,
+  onEditar,
+  onEliminar,
+  guardando,
+  clase,
+}: {
+  producto: Product;
+  onEditar: () => void;
+  onEliminar: () => void;
+  guardando: boolean;
+  /** Tamano del area tactil: mas grande en la tarjeta. */
+  clase: string;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={onEditar}
+        aria-label={`Editar ${producto.nombre}`}
+        className={`flex items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#1e6b32]/10 hover:text-[#175427] ${clase}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+      </button>
+      <button
+        onClick={onEliminar}
+        aria-label={`Eliminar ${producto.nombre}`}
+        className={`flex items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#b3261e]/10 hover:text-[#b3261e] ${clase}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+        </svg>
+      </button>
+      {guardando && <span className="text-[11px] text-tostado">…</span>}
+    </div>
+  );
+}
+
+/** Variantes con precio, editables una por una. */
+function Desglose({
+  producto,
+  onPrecioVariante,
+  movil = false,
+}: {
+  producto: Product;
+  onPrecioVariante: FilaProps['onPrecioVariante'];
+  movil?: boolean;
+}) {
+  const conPrecio = producto.precios_por_variante.filter((v) => v.tipo === 'precio');
+
+  if (conPrecio.length === 0) {
+    return <span className="text-xs italic text-humo/60">Solo a consultar</span>;
+  }
+
+  return (
+    <div className={movil ? 'space-y-1' : 'space-y-0.5'}>
+      {conPrecio.map((v) => (
+        <CeldaPrecio
+          key={v.id}
+          variante={v}
+          movil={movil}
+          onGuardar={(n) => onPrecioVariante(v.id, n)}
+        />
+      ))}
+      <p className={`text-[11px] text-humo/60 ${movil ? '' : 'pl-[6.5rem]'}`}>
+        {formatARS(conPrecio[0].precio ?? 0)} el más bajo
+      </p>
+    </div>
+  );
+}
+
+/** Color de fondo segun el resultado del ultimo guardado. */
+function tintado(estado: EstadoFila, base: string): string {
+  if (estado === 'ok') return 'bg-[#1e6b32]/8';
+  if (estado === 'error') return 'bg-[#b3261e]/8';
+  return base;
+}
+
+/* ================================================================== */
+/* Vista movil: tarjeta apilada (< sm)                                 */
+/* ================================================================== */
+
+/**
+ * Orden deliberado: identificar el producto, cambiar el precio base, revisar
+ * como quedaron las variantes, y recien despues estado y acciones.
+ *
+ * El precio base va arriba del desglose porque es lo que el cliente viene a
+ * hacer desde el telefono; las acciones destructivas quedan al fondo, lejos
+ * del pulgar que tipea.
+ */
+function TarjetaProducto({
+  producto,
+  estado,
+  etiquetaCategoria,
+  categoriaRegistrada,
+  onEditar,
+  onEliminar,
+  onEstado,
+  onPrecioBase,
+  onPrecioVariante,
+}: FilaProps) {
+  return (
+    <li
+      className={`flex flex-col gap-3 rounded-xl border border-carbon/10 p-4 transition-colors duration-200 ${tintado(
+        estado,
+        'bg-hueso'
+      )} ${producto.activo ? '' : 'opacity-60'}`}
+    >
+      {/* Fila 1: identidad */}
+      <div className="flex items-start gap-3">
+        <Miniatura producto={producto} clase="h-14 w-14" />
+        <div className="min-w-0 flex-1">
+          {/* line-clamp-2: un nombre largo no puede empujar el badge fuera
+              de la tarjeta ni estirarla a cuatro lineas. */}
+          <button
+            onClick={onEditar}
+            className="block w-full overflow-hidden text-left font-semibold leading-snug text-carbon [-webkit-box-orient:vertical] [-webkit-line-clamp:2] [display:-webkit-box]"
+          >
+            {producto.nombre}
+          </button>
+          <div className="mt-1">
+            <BadgeCategoria
+              producto={producto}
+              etiqueta={etiquetaCategoria}
+              registrada={categoriaRegistrada}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Fila 2: la accion principal */}
+      <CeldaPrecioBase producto={producto} onGuardar={onPrecioBase} grande />
+
+      {/* Fila 3: como quedaron las variantes */}
+      <Desglose producto={producto} onPrecioVariante={onPrecioVariante} movil />
+
+      {/* Fila 4: estado y acciones */}
+      <div className="flex items-center justify-between gap-2 border-t border-carbon/[0.07] pt-3">
+        <SelectorEstado producto={producto} onEstado={onEstado} clase="h-10 px-4 text-sm" />
+        <Acciones
+          producto={producto}
+          onEditar={onEditar}
+          onEliminar={onEliminar}
+          guardando={estado === 'guardando'}
+          clase="h-10 w-10"
+        />
+      </div>
+    </li>
+  );
+}
+
+/* ================================================================== */
+/* Vista escritorio: fila de tabla (>= sm)                             */
+/* ================================================================== */
+
+function FilaProducto({
+  producto,
+  estado,
+  etiquetaCategoria,
+  categoriaRegistrada,
+  onEditar,
+  onEliminar,
+  onEstado,
+  onPrecioBase,
+  onPrecioVariante,
+}: FilaProps) {
+  return (
+    <tr
+      className={`border-b border-carbon/[0.07] transition-colors duration-200 last:border-0 ${tintado(
+        estado,
+        'hover:bg-crema/70'
+      )} ${producto.activo ? '' : 'opacity-55'}`}
+    >
+      <td className="px-4 py-3">
+        <Miniatura producto={producto} clase="h-11 w-11" />
+      </td>
+
+      <td className="px-4 py-3">
+        <button
+          onClick={onEditar}
+          className="text-left font-semibold text-carbon underline-offset-2 transition-colors hover:text-[#1e6b32] hover:underline"
+        >
+          {producto.nombre}
+        </button>
+        <p className="font-mono text-[11px] text-humo/60">/{producto.slug}</p>
+      </td>
+
+      <td className="px-4 py-3">
+        <BadgeCategoria
+          producto={producto}
+          etiqueta={etiquetaCategoria}
+          registrada={categoriaRegistrada}
+        />
+      </td>
+
+      <td className="px-4 py-3">
+        <div className="space-y-2">
+          <CeldaPrecioBase producto={producto} onGuardar={onPrecioBase} />
+          <Desglose producto={producto} onPrecioVariante={onPrecioVariante} />
+        </div>
+      </td>
+
+      <td className="px-4 py-3">
+        <SelectorEstado
+          producto={producto}
+          onEstado={onEstado}
+          clase="w-full px-3 py-1.5 text-xs"
+        />
+      </td>
+
+      <td className="px-4 py-3">
+        <Acciones
+          producto={producto}
+          onEditar={onEditar}
+          onEliminar={onEliminar}
+          guardando={estado === 'guardando'}
+          clase="h-8 w-8"
+        />
+      </td>
+    </tr>
   );
 }
 
@@ -312,7 +793,6 @@ function CeldaPrecio({
 /* Panel                                                              */
 /* ================================================================== */
 
-type EstadoFila = 'idle' | 'guardando' | 'ok' | 'error';
 
 export default function AdminPage() {
   const [sesion, setSesion] = useState<'cargando' | 'no' | 'si'>('cargando');
@@ -448,6 +928,15 @@ export default function AdminPage() {
     return patch(p, { precios_por_variante: variantes }, 'Precio');
   };
 
+  /**
+   * Reescribe todas las variantes desde el precio base y guarda el producto
+   * completo con el mismo PATCH optimista que usa el estado Activo/Inactivo.
+   */
+  const cambiarPrecioBase = (p: Product, base: number) => {
+    const variantes = aplicarPrecioBase(p.precios_por_variante, base);
+    return patch(p, { precios_por_variante: variantes }, 'Precio base');
+  };
+
   const eliminar = async (p: Product) => {
     // confirm() nativo: es un panel interno de un solo usuario, no justifica
     // un modal propio. Bloquea el hilo, pero aca no hay animaciones vivas.
@@ -498,6 +987,30 @@ export default function AdminPage() {
   // real y cae a los mapas hardcodeados si todavia no se migro.
   const indice = indiceCategorias(categorias);
   const conocidas = new Set(categorias.map((c) => c.slug));
+
+  /**
+   * Adapta un producto a las props que consumen las dos vistas. Vive aca (y
+   * no dentro de cada vista) para que la tarjeta y la fila compartan
+   * exactamente los mismos callbacks: mismo PATCH optimista, mismo estado de
+   * fila, mismos toasts.
+   */
+  const filaProps = (p: Product) => ({
+    producto: p,
+    estado: estados[p.id] ?? ('idle' as EstadoFila),
+    etiquetaCategoria: p.categoria ? indice.etiqueta(p.categoria) : '',
+    categoriaRegistrada: p.categoria ? conocidas.has(p.categoria) : true,
+    onEditar: () => setModal({ abierto: true, producto: p }),
+    onEliminar: () => void eliminar(p),
+    onEstado: (activo: boolean) => void patch(p, { activo }, 'Estado'),
+    onPrecioBase: (base: number) => cambiarPrecioBase(p, base),
+    onPrecioVariante: (variantId: string, precio: number) =>
+      cambiarPrecio(p, variantId, precio),
+  });
+
+  const vacio =
+    productos.length === 0
+      ? 'Todavía no hay productos. Empezá con "Agregar producto".'
+      : 'Ningún producto coincide con la búsqueda.';
 
   const q = busqueda.trim().toLowerCase();
   const filtrados = q
@@ -602,11 +1115,26 @@ export default function AdminPage() {
         ) : (
         <>
         <p className="mb-3 text-xs text-humo">
-          Los precios y el estado se guardan solos al salir de la celda. Los cambios impactan en
-          la web al instante.
+          Los precios y el estado se guardan solos al salir del campo. Cambiá el Precio Base y
+          se recalculan todas las variantes del producto.
         </p>
 
-        <div className="overflow-hidden rounded-2xl border border-carbon/10 bg-hueso shadow-[0_24px_50px_-35px_rgba(28,26,23,0.5)]">
+        {/* La vista movil no es un reflow de la tabla: con `min-w-[900px]`
+            el telefono obligaba a scrollear en horizontal hasta la columna de
+            precios, que es justo lo unico que el cliente viene a tocar. Las
+            dos vistas se arman con los mismos handlers (`filaProps`). */}
+        <ul className="space-y-3 sm:hidden">
+          {filtrados.map((p) => (
+            <TarjetaProducto key={p.id} {...filaProps(p)} />
+          ))}
+          {filtrados.length === 0 && !cargando && (
+            <li className="rounded-xl border border-carbon/10 bg-hueso px-4 py-12 text-center text-sm text-humo/70">
+              {vacio}
+            </li>
+          )}
+        </ul>
+
+        <div className="hidden overflow-hidden rounded-2xl border border-carbon/10 bg-hueso shadow-[0_24px_50px_-35px_rgba(28,26,23,0.5)] sm:block">
           <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-sm">
             <thead>
@@ -614,148 +1142,20 @@ export default function AdminPage() {
                 <th className="w-16 px-4 py-3 font-semibold">Foto</th>
                 <th className="px-4 py-3 font-semibold">Producto</th>
                 <th className="w-40 px-4 py-3 font-semibold">Categoría</th>
-                <th className="px-4 py-3 font-semibold">Precios</th>
+                <th className="w-64 px-4 py-3 font-semibold">Precios</th>
                 <th className="w-36 px-4 py-3 font-semibold">Estado</th>
                 <th className="w-28 px-4 py-3 font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtrados.map((p) => {
-                const estado = estados[p.id] ?? 'idle';
-                const conPrecio = p.precios_por_variante.filter((v) => v.tipo === 'precio');
-                const fotos = imagenesDe(p);
-                return (
-                  <tr
-                    key={p.id}
-                    className={`border-b border-carbon/[0.07] transition-colors duration-200 last:border-0 ${
-                      estado === 'ok'
-                        ? 'bg-[#1e6b32]/8'
-                        : estado === 'error'
-                          ? 'bg-[#b3261e]/8'
-                          : 'hover:bg-crema/70'
-                    } ${p.activo ? '' : 'opacity-55'}`}
-                  >
-                    <td className="px-4 py-3">
-                      <div className="relative h-11 w-11 overflow-hidden rounded-xl bg-crema">
-                        {fotos[0] ? (
-                          <Image
-                            src={fotos[0]}
-                            alt=""
-                            fill
-                            sizes="44px"
-                            unoptimized
-                            className="h-full w-full rounded-xl object-cover"
-                          />
-                        ) : (
-                          <span className="flex h-full items-center justify-center font-[family-name:var(--font-display)] text-lg text-tostado/60">
-                            {p.nombre.charAt(0)}
-                          </span>
-                        )}
-                        {fotos.length > 1 && (
-                          <span className="absolute bottom-0 right-0 rounded-tl-md bg-carbon/75 px-1 text-[9px] font-semibold text-white">
-                            {fotos.length}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => setModal({ abierto: true, producto: p })}
-                        className="text-left font-semibold text-carbon underline-offset-2 transition-colors hover:text-[#1e6b32] hover:underline"
-                      >
-                        {p.nombre}
-                      </button>
-                      <p className="font-mono text-[11px] text-humo/60">/{p.slug}</p>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs ${
-                          p.categoria && !conocidas.has(p.categoria)
-                            ? 'bg-[#b3261e]/10 text-[#b3261e]'
-                            : 'bg-crema text-humo'
-                        }`}
-                        title={p.categoria ?? undefined}
-                      >
-                        {p.categoria ? indice.etiqueta(p.categoria) : 'Sin categoría'}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <div className="space-y-0.5">
-                        {conPrecio.length > 0 ? (
-                          conPrecio.map((v) => (
-                            <CeldaPrecio
-                              key={v.id}
-                              variante={v}
-                              onGuardar={(n) => cambiarPrecio(p, v.id, n)}
-                            />
-                          ))
-                        ) : (
-                          <span className="text-xs italic text-humo/60">Solo a consultar</span>
-                        )}
-                        {conPrecio.length > 0 && (
-                          <p className="pl-[6.5rem] text-[11px] text-humo/60">
-                            {formatARS(conPrecio[0].precio ?? 0)} el más bajo
-                          </p>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <select
-                        value={p.activo ? 'activo' : 'inactivo'}
-                        onChange={(e) =>
-                          void patch(p, { activo: e.target.value === 'activo' }, 'Estado')
-                        }
-                        aria-label={`Estado de ${p.nombre}`}
-                        className={`w-full rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors ${
-                          p.activo
-                            ? 'border-[#1e6b32]/25 bg-[#1e6b32]/10 text-[#175427]'
-                            : 'border-carbon/10 bg-crema text-humo'
-                        }`}
-                      >
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Sin stock</option>
-                      </select>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setModal({ abierto: true, producto: p })}
-                          aria-label={`Editar ${p.nombre}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#1e6b32]/10 hover:text-[#175427]"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                            <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => void eliminar(p)}
-                          aria-label={`Eliminar ${p.nombre}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                          </svg>
-                        </button>
-                        {estado === 'guardando' && (
-                          <span className="text-[11px] text-tostado">…</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+              {filtrados.map((p) => (
+                <FilaProducto key={p.id} {...filaProps(p)} />
+              ))}
 
               {filtrados.length === 0 && !cargando && (
                 <tr>
                   <td colSpan={6} className="px-4 py-16 text-center text-sm text-humo/70">
-                    {productos.length === 0
-                      ? 'Todavía no hay productos. Empezá con "Agregar producto".'
-                      : 'Ningún producto coincide con la búsqueda.'}
+                    {vacio}
                   </td>
                 </tr>
               )}
