@@ -64,6 +64,13 @@ export default function ProductoModal({
     producto?.precios_por_variante?.length ? producto.precios_por_variante : VARIANTES_BASE
   );
 
+  /**
+   * Calculadora de carga: no se persiste ni viaja en el body. Solo sirve para
+   * derivar los precios de las variantes desde el precio por kilo y evitar que
+   * el admin haga la multiplicacion a mano.
+   */
+  const [precioKg, setPrecioKg] = useState('');
+
   const [subiendo, setSubiendo] = useState(false);
   const [faseImagen, setFaseImagen] = useState<string | null>(null);
   const [infoImagen, setInfoImagen] = useState<string | null>(null);
@@ -109,6 +116,38 @@ export default function ProductoModal({
 
   const quitarVariante = (i: number) =>
     setVariantes((vs) => (vs.length > 1 ? vs.filter((_, k) => k !== i) : vs));
+
+  /* ---------------- Calculadora por kilo ---------------- */
+
+  const kgNumero = Number(precioKg);
+  const kgValido = precioKg.trim() !== '' && Number.isFinite(kgNumero) && kgNumero > 0;
+
+  /**
+   * Rellena el precio de cada variante con `precio por kg * peso_kg`.
+   *
+   * Es un disparo puntual (no un useEffect): despues de aplicarlo el admin
+   * sigue editando cada precio a mano, y un efecto que recalcule en cada
+   * tecla le pisaria los redondeos (39.750 -> 39.000).
+   *
+   * Se saltean las variantes `consultar` (no llevan precio) y las que no
+   * tienen un peso util, para no escribir un 0 sobre un precio ya cargado.
+   */
+  const aplicarPrecioKg = () => {
+    if (!kgValido) return;
+    setVariantes((vs) =>
+      vs.map((v) => {
+        if (v.tipo === 'consultar') return v;
+        const peso = Number(v.peso_kg);
+        if (!Number.isFinite(peso) || peso <= 0) return v;
+        return { ...v, precio: Math.round(kgNumero * peso) };
+      })
+    );
+  };
+
+  /** Cuantas variantes tocaria el boton, para avisarlo antes de apretarlo. */
+  const alcanzadas = variantes.filter(
+    (v) => v.tipo !== 'consultar' && Number(v.peso_kg) > 0
+  ).length;
 
   /* ---------------- Categoria creable ---------------- */
 
@@ -568,6 +607,48 @@ export default function ProductoModal({
               >
                 + Agregar variante
               </button>
+            </div>
+
+            {/* ---------- Calculadora rapida ---------- */}
+            <div className="mt-3 rounded-xl border border-[#1e6b32]/20 bg-[#1e6b32]/[0.06] p-3">
+              <label className={label} htmlFor="p-precio-kg">
+                Calculadora rápida: Precio por Kg
+              </label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  id="p-precio-kg"
+                  type="number"
+                  min={0}
+                  step="any"
+                  inputMode="decimal"
+                  value={precioKg}
+                  onChange={(e) => setPrecioKg(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Enter dentro del form haria submit: aca aplica el calculo.
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      aplicarPrecioKg();
+                    }
+                  }}
+                  placeholder="7950"
+                  className={`${input} bg-white`}
+                />
+                <button
+                  type="button"
+                  onClick={aplicarPrecioKg}
+                  disabled={!kgValido || alcanzadas === 0}
+                  className="shrink-0 rounded-xl bg-[#1e6b32] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#175427] disabled:opacity-40"
+                >
+                  Aplicar a variantes
+                </button>
+              </div>
+              <p className="mt-1 text-[11px] text-humo/60">
+                {kgValido && alcanzadas > 0
+                  ? `Pisa el precio de ${alcanzadas} ${
+                      alcanzadas === 1 ? 'variante' : 'variantes'
+                    } con precio por kg × peso. Después podés ajustar cada uno a mano.`
+                  : 'Auxiliar de carga: no se guarda en la base. Calcula precio por kg × peso de cada variante (ignora las “a consultar” y las sin peso).'}
+              </p>
             </div>
 
             <div className="mt-3 space-y-2">
