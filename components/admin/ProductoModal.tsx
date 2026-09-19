@@ -7,7 +7,7 @@ import { comprimirImagen, formatearBytes } from '@/lib/image-compress';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { imagenesDe, MAX_IMAGENES } from '@/lib/imagenes';
 import { indiceCategorias, slugCategoria, type Categoria } from '@/lib/categorias';
-import { alcanzadasPorPrecioBase, aplicarPrecioBase } from '@/lib/precio-base';
+import { alcanzadasPorPrecioBase, aplicarPrecioBaseGlobal } from '@/lib/precio-base';
 
 /**
  * Techo del payload que aceptamos mandar. Las Serverless Functions de Vercel
@@ -132,7 +132,7 @@ export default function ProductoModal({
    */
   const aplicarPrecioKg = () => {
     if (!kgValido) return;
-    setVariantes((vs) => aplicarPrecioBase(vs, kgNumero));
+    setVariantes((vs) => aplicarPrecioBaseGlobal(vs, kgNumero));
   };
 
   /** Cuantas variantes tocaria el boton, para avisarlo antes de apretarlo. */

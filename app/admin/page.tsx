@@ -13,7 +13,9 @@ import {
   alcanzadasPorPrecioBase,
   aplicarPrecioBase,
   derivarPrecioBase,
+  escalasPresentes,
 } from '@/lib/precio-base';
+import type { EscalaPeso } from '@/lib/precio-base';
 import { NEGOCIO } from '@/lib/site';
 import type { Product, Variant } from '@/types';
 
@@ -322,32 +324,34 @@ function CeldaPrecio({
 }
 
 /* ================================================================== */
-/* Celda de precio base (Kg/U)                                        */
+/* Celda de precio base (una calculadora por escala de peso)           */
 /* ================================================================== */
 
+/** Textos de cada escala, para no repetirlos en el input y en la ayuda. */
+const ESCALAS: Record<EscalaPeso, { titulo: string; corto: string; placeholder: string }> = {
+  fraccionado: { titulo: 'Precio Base (5 kg)', corto: 'fraccionado', placeholder: '7950' },
+  bulto: { titulo: 'Precio Base (Bulto)', corto: 'bulto', placeholder: '6800' },
+};
+
 /**
- * Edicion masiva desde la grilla: un solo numero reescribe el precio de
- * todas las variantes con peso.
+ * Un input de precio base, atado a **una** escala.
  *
- * Es el uso real del cliente en el celular (actualizar la lista de precios
- * sin abrir un modal por producto), asi que guarda solo al salir del input o
- * con Enter, igual que {@link CeldaPrecio}, y no en cada tecla.
+ * Guarda solo al salir del input o con Enter, igual que {@link CeldaPrecio},
+ * y no en cada tecla: el cliente tipea la lista de precios en el celular y
+ * un guardado por tecla dispararia un PATCH por digito.
  */
-function CeldaPrecioBase({
+function InputPrecioBase({
   producto,
+  escala,
   onGuardar,
-  grande = false,
+  grande,
 }: {
   producto: Product;
-  onGuardar: (base: number) => Promise<void>;
-  /**
-   * Version tactil para la tarjeta: es la accion principal de la vista movil
-   * (el cliente actualiza la lista de precios desde el telefono), asi que ahi
-   * va a todo el ancho y con tipografia grande.
-   */
-  grande?: boolean;
+  escala: EscalaPeso;
+  onGuardar: (base: number, escala: EscalaPeso) => Promise<void>;
+  grande: boolean;
 }) {
-  const derivado = derivarPrecioBase(producto.precios_por_variante);
+  const derivado = derivarPrecioBase(producto.precios_por_variante, escala);
   const inicial = derivado === null ? '' : String(derivado);
 
   const [valor, setValor] = useState(inicial);
@@ -362,11 +366,12 @@ function CeldaPrecioBase({
     original.current = inicial;
   }, [inicial]);
 
-  const alcanzadas = alcanzadasPorPrecioBase(producto.precios_por_variante);
+  const alcanzadas = alcanzadasPorPrecioBase(producto.precios_por_variante, escala);
+  const texto = ESCALAS[escala];
 
   // Las dos vistas se renderizan a la vez (una oculta por CSS): sin sufijo,
   // el `htmlFor` apuntaria a dos inputs con el mismo id.
-  const idInput = `base-${producto.id}-${grande ? 'movil' : 'tabla'}`;
+  const idInput = `base-${producto.id}-${escala}-${grande ? 'movil' : 'tabla'}`;
 
   const commit = async () => {
     if (guardando || valor === original.current) return;
@@ -382,7 +387,7 @@ function CeldaPrecioBase({
     original.current = valor;
     setGuardando(true);
     try {
-      await onGuardar(Math.round(n));
+      await onGuardar(Math.round(n), escala);
       setOk(true);
       setTimeout(() => setOk(false), 1600);
     } finally {
@@ -391,22 +396,18 @@ function CeldaPrecioBase({
   };
 
   return (
-    <div
-      className={`rounded-xl border transition-colors ${grande ? 'px-3 py-2.5' : 'px-2.5 py-2'} ${
-        ok ? 'border-[#1e6b32]/45 bg-[#1e6b32]/12' : 'border-[#1e6b32]/25 bg-[#1e6b32]/[0.07]'
-      }`}
-    >
+    <div className="min-w-0">
       <div className="flex items-baseline justify-between gap-2">
         <label
           htmlFor={idInput}
-          className={`font-semibold uppercase tracking-wider text-[#175427] ${
+          className={`truncate font-semibold uppercase tracking-wider text-[#175427] ${
             grande ? 'text-[11px]' : 'text-[10px]'
           }`}
         >
-          Precio Base (Kg/U)
+          {texto.titulo}
         </label>
         {guardando ? (
-          <span className="flex items-center gap-1 text-[10px] font-medium text-tostado">
+          <span className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-tostado">
             <svg
               width="11"
               height="11"
@@ -423,7 +424,7 @@ function CeldaPrecioBase({
             Guardando
           </span>
         ) : (
-          ok && <span className="text-[10px] font-semibold text-[#175427]">✓ Guardado</span>
+          ok && <span className="shrink-0 text-[10px] font-semibold text-[#175427]">✓</span>
         )}
       </div>
 
@@ -443,19 +444,85 @@ function CeldaPrecioBase({
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
             if (e.key === 'Escape') setValor(original.current);
           }}
-          placeholder={alcanzadas === 0 ? 'Sin peso' : '7950'}
-          aria-label={`Precio base por kg o unidad de ${producto.nombre}`}
-          className={`w-full rounded-lg border border-[#1e6b32]/25 bg-white font-semibold tabular-nums text-carbon outline-none transition-colors focus:border-[#143620]/50 focus:ring-2 focus:ring-[#143620]/12 disabled:bg-crema disabled:text-humo/50 ${
-            grande ? 'h-12 px-3 text-lg' : 'h-8 px-2 text-sm'
-          }`}
+          placeholder={texto.placeholder}
+          aria-label={`Precio base por kg ${texto.corto} de ${producto.nombre}`}
+          className={`w-full min-w-0 rounded-lg border bg-white font-semibold tabular-nums text-carbon outline-none transition-colors focus:border-[#143620]/50 focus:ring-2 focus:ring-[#143620]/12 disabled:bg-crema disabled:text-humo/50 ${
+            ok ? 'border-[#1e6b32]/60' : 'border-[#1e6b32]/25'
+          } ${grande ? 'h-12 px-3 text-lg' : 'h-8 px-2 text-sm'}`}
         />
       </div>
 
       <p className="mt-1 text-[10px] leading-snug text-humo/70">
-        {alcanzadas === 0
-          ? 'Sin variantes con peso: cargá el peso desde el editor.'
-          : `Recalcula ${alcanzadas} ${alcanzadas === 1 ? 'variante' : 'variantes'} (base × kg) y guarda.`}
+        {`Recalcula ${alcanzadas} ${alcanzadas === 1 ? 'variante' : 'variantes'} (base × kg).`}
       </p>
+    </div>
+  );
+}
+
+/**
+ * Edicion masiva desde la grilla, con una calculadora por escala de peso.
+ *
+ * El kilo fraccionado y el kilo de bulto cerrado tienen margenes distintos:
+ * un unico input pisaba los dos con el mismo multiplicador y rompia uno de
+ * los dos precios. Cada input recalcula solo **sus** variantes.
+ *
+ * Se dibuja solo la escala que el producto realmente tiene: un input vacio
+ * que nunca se usa es un lugar mas donde tipear el numero equivocado.
+ */
+function CeldaPrecioBase({
+  producto,
+  onGuardar,
+  grande = false,
+}: {
+  producto: Product;
+  onGuardar: (base: number, escala: EscalaPeso) => Promise<void>;
+  /**
+   * Version tactil para la tarjeta: es la accion principal de la vista movil
+   * (el cliente actualiza la lista de precios desde el telefono), asi que ahi
+   * va a todo el ancho y con tipografia grande.
+   */
+  grande?: boolean;
+}) {
+  const escalas = escalasPresentes(producto.precios_por_variante);
+
+  return (
+    <div
+      className={`rounded-xl border border-[#1e6b32]/25 bg-[#1e6b32]/[0.07] ${
+        grande ? 'px-3 py-2.5' : 'px-2.5 py-2'
+      }`}
+    >
+      {escalas.length === 0 ? (
+        <>
+          <p
+            className={`font-semibold uppercase tracking-wider text-[#175427] ${
+              grande ? 'text-[11px]' : 'text-[10px]'
+            }`}
+          >
+            Precio Base (Kg/U)
+          </p>
+          <p className="mt-1 text-[10px] leading-snug text-humo/70">
+            Sin variantes con peso: cargá el peso desde el editor.
+          </p>
+        </>
+      ) : (
+        // Dos columnas solo cuando hay dos escalas: en el celular la tarjeta
+        // es angosta, asi que se apilan hasta `xs` y recien ahi van a la par.
+        <div
+          className={
+            escalas.length === 2 ? 'grid grid-cols-1 gap-3 min-[420px]:grid-cols-2' : ''
+          }
+        >
+          {escalas.map((escala) => (
+            <InputPrecioBase
+              key={escala}
+              producto={producto}
+              escala={escala}
+              onGuardar={onGuardar}
+              grande={grande}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -485,7 +552,7 @@ type FilaProps = {
   onEditar: () => void;
   onEliminar: () => void;
   onEstado: (activo: boolean) => void;
-  onPrecioBase: (base: number) => Promise<void>;
+  onPrecioBase: (base: number, escala: EscalaPeso) => Promise<void>;
   onPrecioVariante: (variantId: string, precio: number) => Promise<void>;
 };
 
@@ -929,11 +996,16 @@ export default function AdminPage() {
   };
 
   /**
-   * Reescribe todas las variantes desde el precio base y guarda el producto
-   * completo con el mismo PATCH optimista que usa el estado Activo/Inactivo.
+   * Reescribe las variantes **de una escala** desde su precio base y guarda
+   * el producto completo con el mismo PATCH optimista que usa el estado
+   * Activo/Inactivo.
+   *
+   * Manda el array entero de variantes (no solo las recalculadas) para que
+   * el precio de la otra escala viaje tal cual estaba: el endpoint reemplaza
+   * `precios_por_variante` completo.
    */
-  const cambiarPrecioBase = (p: Product, base: number) => {
-    const variantes = aplicarPrecioBase(p.precios_por_variante, base);
+  const cambiarPrecioBase = (p: Product, base: number, escala: EscalaPeso) => {
+    const variantes = aplicarPrecioBase(p.precios_por_variante, base, escala);
     return patch(p, { precios_por_variante: variantes }, 'Precio base');
   };
 
@@ -1002,7 +1074,7 @@ export default function AdminPage() {
     onEditar: () => setModal({ abierto: true, producto: p }),
     onEliminar: () => void eliminar(p),
     onEstado: (activo: boolean) => void patch(p, { activo }, 'Estado'),
-    onPrecioBase: (base: number) => cambiarPrecioBase(p, base),
+    onPrecioBase: (base: number, escala: EscalaPeso) => cambiarPrecioBase(p, base, escala),
     onPrecioVariante: (variantId: string, precio: number) =>
       cambiarPrecio(p, variantId, precio),
   });
