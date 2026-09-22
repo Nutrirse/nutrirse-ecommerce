@@ -1,3 +1,5 @@
+import { medicionDe, type Medida } from '@/lib/precio-base';
+
 const ars = new Intl.NumberFormat('es-AR', {
   style: 'currency',
   currency: 'ARS',
@@ -12,43 +14,44 @@ export const PRECIO_CONSULTAR = 'Precio a Consultar';
 export const formatPrecio = (precio: number | null) =>
   precio === null ? PRECIO_CONSULTAR : formatARS(precio);
 
-/**
- * Costo por kilo de una variante, para el comprador mayorista: la bolsa de
- * 5 kg a $60.300 son $12.060 el kg. Devuelve null si no hay precio o peso
- * con los que calcularlo.
- */
-export const formatPrecioPorKg = (precio: number | null, pesoKg: number) =>
-  precio && pesoKg > 0 ? `${formatARS(Math.round(precio / pesoKg))} el kg` : null;
+const cantidad = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 3 });
 
-/**
- * Cantidad de unidades que trae una presentacion, leida del rotulo.
- *
- * `Variant` no guarda el dato: para los productos que se venden por unidad
- * la migracion escribe en `peso_kg` un peso sintetico (peso de la unidad x
- * cantidad), que sirve para cotizar el envio pero no para dividir el
- * precio. La cantidad real sobrevive en el label que arma
- * `construirVariantes()`: "Bulto Cerrado (15 u.)", "Pack 3 unidades".
- */
-const unidadesDeLabel = (label: string): number | null => {
-  const m = label.match(/(\d+)\s*(?:u\.?|unidad(?:es)?)(?![a-záéíóúñ])/i);
-  if (!m) return null;
-  const n = Number(m[1]);
-  return Number.isFinite(n) && n > 0 ? n : null;
+/** "5 kg", "2,5 kg", "1 unidad", "15 unidades". */
+export const formatCantidad = (n: number, medida: Medida) =>
+  medida === 'kg'
+    ? `${cantidad.format(n)} kg`
+    : `${cantidad.format(n)} ${n === 1 ? 'unidad' : 'unidades'}`;
+
+/** Sufijo corto del precio base: "$ 24.050 /kg", "$ 3.730 /u.". */
+export const sufijoMedida = (medida: Medida) => (medida === 'kg' ? '/kg' : '/u.');
+
+export type DesglosePrecio = {
+  /** Precio por kg o por unidad: es el numero grande de la tarjeta. */
+  base: number;
+  medida: Medida;
+  /** Kilos o unidades que trae la presentacion. */
+  cantidad: number;
+  /** Precio cerrado de la variante, el que va al carrito. */
+  total: number;
+  /**
+   * "(Total: $ 120.250 por 5 kg)". `null` cuando la presentacion es de 1 kg
+   * o 1 unidad: ahi el total repetiria el base.
+   */
+  textoTotal: string | null;
 };
 
 /**
- * Precio unitario sutil que acompana al precio de la variante: lo que el
- * mayorista usa para comparar presentaciones entre si.
+ * Precio de una variante partido como lo lee el mayorista: primero el valor
+ * por kg o por unidad (con el que compara proveedores), despues el total de
+ * la presentacion.
  *
- * Se prueba primero por unidad y despues por kilo, en ese orden: un pack de
- * 15 frascos tiene tambien un `peso_kg`, pero dividir por el peso sintetico
- * daria un numero sin sentido comercial.
+ * La medida sale de `medicionDe()`, la misma que usa la calculadora del
+ * admin: un pack de aceites se divide por sus unidades, no por su peso
+ * sintetico, y un chocolate de 100 g se cotiza por unidad y no a $/kg.
  *
- * Devuelve null cuando el dato no aporta nada: sin precio (variantes "a
- * consultar"), o con un divisor de 1 o menos, donde el resultado repetiria
- * el precio principal.
+ * Devuelve null sin precio (variantes "a consultar") o sin con que medir.
  */
-export const formatPrecioUnitario = ({
+export const desglosePrecio = ({
   precio,
   peso_kg,
   label,
@@ -56,13 +59,19 @@ export const formatPrecioUnitario = ({
   precio: number | null;
   peso_kg: number;
   label: string;
-}): string | null => {
+}): DesglosePrecio | null => {
   if (!precio || precio <= 0) return null;
+  const m = medicionDe({ label, peso_kg });
+  if (!m) return null;
 
-  const unidades = unidadesDeLabel(label);
-  if (unidades !== null) {
-    return unidades > 1 ? `${formatARS(Math.round(precio / unidades))} la unidad` : null;
-  }
-
-  return peso_kg > 1 ? formatPrecioPorKg(precio, peso_kg) : null;
+  return {
+    base: Math.round(precio / m.cantidad),
+    medida: m.medida,
+    cantidad: m.cantidad,
+    total: precio,
+    textoTotal:
+      m.cantidad === 1
+        ? null
+        : `Total: ${formatARS(precio)} por ${formatCantidad(m.cantidad, m.medida)}`,
+  };
 };

@@ -14,9 +14,9 @@ import type { Variant } from '@/types';
  * pisaba las dos variantes con el mismo numero y rompia el margen de una de
  * las dos.
  *
- * Vive en `lib` porque lo consumen dos lugares con la misma matematica: la
- * calculadora del ProductoModal y la edicion inline de la grilla. Si cada
- * uno hiciera su propia cuenta, un cambio de criterio (redondeo, que
+ * Vive en `lib` porque lo consumen varios lugares con la misma matematica:
+ * la calculadora (grilla y ProductoModal) y el precio que ve el comprador.
+ * Si cada uno hiciera su propia cuenta, un cambio de criterio (redondeo, que
  * variantes se saltean) quedaria aplicado en uno solo.
  */
 
@@ -26,10 +26,89 @@ export type EscalaPeso = 'fraccionado' | 'bulto';
 /** Corte entre fraccionado y bulto, en kg. `<= 5` es fraccionado. */
 const CORTE_KG = 5;
 
-/** Una variante sirve para la cuenta si lleva precio y tiene peso util. */
-function calculable(v: Variant): boolean {
-  return v.tipo !== 'consultar' && Number.isFinite(Number(v.peso_kg)) && Number(v.peso_kg) > 0;
+/**
+ * Unidad de medida del precio base: el granel se cotiza por kilo, los
+ * aceites y los chocolates de 100 g se cotizan por unidad.
+ */
+export type Medida = 'kg' | 'unidad';
+
+/** Por que se multiplica el precio base para llegar al total de la variante. */
+export type Medicion = { medida: Medida; cantidad: number };
+
+/** "15 u.", "Pack 3 unidades", "Caja 10 unid." -> 15, 3, 10. */
+const RE_UNIDADES = /(\d+)\s*(?:u\.?|uds?\.?|unid\.?|unidad(?:es)?)(?![a-záéíóúñ])/i;
+
+/** "Media docena", "2 docenas" -> 6, 24. */
+const RE_DOCENA = /(media|\d+)?\s*docenas?\b/i;
+
+/** Rotulos que dicen "se vende por unidad" aunque no digan cuantas. */
+const RE_VENTA_POR_UNIDAD = /\b(?:pack|unidad(?:es)?|u\.)(?![a-záéíóúñ])/i;
+
+/** Rotulos que declaran kilos de forma explicita ("0.5 kg", "Bulto x 25 kg"). */
+const RE_KG = /\d\s*kg\b/i;
+
+/**
+ * Cantidad de unidades que trae una presentacion, leida del rotulo.
+ *
+ * `Variant` no guarda el dato: para los productos que se venden por unidad
+ * la migracion escribe en `peso_kg` un peso sintetico (peso de la unidad x
+ * cantidad), que sirve para cotizar el envio pero no para dividir el
+ * precio. La cantidad real sobrevive en el label que arma
+ * `construirVariantes()`: "Bulto Cerrado (15 u.)", "Pack 3 unidades".
+ */
+function unidadesDeLabel(label: string): number | null {
+  const u = label.match(RE_UNIDADES);
+  if (u) {
+    const n = Number(u[1]);
+    return n > 0 ? n : null;
+  }
+  const d = label.match(RE_DOCENA);
+  if (d) {
+    if (!d[1]) return 12;
+    return d[1].toLowerCase() === 'media' ? 6 : Number(d[1]) * 12;
+  }
+  return null;
 }
+
+/**
+ * Como se mide una variante: por kilo o por unidad, y cuantos de cada uno.
+ *
+ * Es la unica fuente de la division `total / cantidad`: la usan la
+ * calculadora del admin y el precio que ve el comprador, asi un aceite nunca
+ * termina mostrado "por kg" en un lado y "por unidad" en el otro.
+ *
+ * Orden de lectura:
+ *  1. El rotulo declara unidades ("Pack 15 unidades", "Media docena"): manda
+ *     el rotulo, porque el `peso_kg` de esos productos es sintetico.
+ *  2. El rotulo dice que se vende por unidad sin decir cuantas ("Pack"), o
+ *     la variante pesa menos de 1 kg sin declarar kilos (un chocolate de
+ *     100 g): se cotiza por unidad, 1 unidad. Dividir por 0,1 kg inflaria
+ *     el precio x10.
+ *  3. El resto es granel: por kilo, con `peso_kg` como cantidad.
+ *
+ * Devuelve `null` si no hay con que medir (sin peso y sin unidades).
+ */
+export function medicionDe(v: Pick<Variant, 'label' | 'peso_kg'>): Medicion | null {
+  const label = v.label ?? '';
+  const unidades = unidadesDeLabel(label);
+  if (unidades !== null) return { medida: 'unidad', cantidad: unidades };
+
+  const peso = Number(v.peso_kg);
+  const pesoUtil = Number.isFinite(peso) && peso > 0;
+
+  if (RE_VENTA_POR_UNIDAD.test(label) || (pesoUtil && peso < 1 && !RE_KG.test(label))) {
+    return { medida: 'unidad', cantidad: 1 };
+  }
+  return pesoUtil ? { medida: 'kg', cantidad: peso } : null;
+}
+
+/** Una variante sirve para la cuenta si lleva precio y tiene con que medirse. */
+function calculable(v: Variant): boolean {
+  return v.tipo !== 'consultar' && medicionDe(v) !== null;
+}
+
+/** Cantidad por la que se multiplica el base. Solo sobre variantes `calculable`. */
+const cantidadDe = (v: Variant): number => medicionDe(v)?.cantidad ?? 0;
 
 /**
  * A que escala pertenece una variante.
@@ -54,7 +133,8 @@ function utilesDe(variantes: Variant[], escala: EscalaPeso): Variant[] {
 /**
  * Deriva el precio base de **una** escala desde las variantes ya cargadas.
  *
- * Dentro de la escala toma la variante mas chica con precio: es la que el
+ * Divide por kilo o por unidad segun {@link medicionDe}. Dentro de la
+ * escala toma la variante mas chica con precio: es la que el
  * admin carga primero y la que menos sufre redondeos (dentro del bulto, el
  * de 50 kg suele venir con mas descuento que el de 25).
  *
@@ -67,19 +147,19 @@ export function derivarPrecioBase(variantes: Variant[], escala: EscalaPeso): num
   const utiles = utilesDe(variantes, escala).filter((v) => Number(v.precio) > 0);
   if (utiles.length === 0) return null;
 
-  const chica = utiles.reduce((min, v) => (Number(v.peso_kg) < Number(min.peso_kg) ? v : min));
-  return Math.round(Number(chica.precio) / Number(chica.peso_kg));
+  const chica = utiles.reduce((min, v) => (cantidadDe(v) < cantidadDe(min) ? v : min));
+  return Math.round(Number(chica.precio) / cantidadDe(chica));
 }
 
 /**
  * Reescribe el precio de las variantes **de una sola escala** como
- * `base * peso_kg`, y deja intactas las de la otra.
+ * `base * cantidad` (kilos o unidades), y deja intactas las de la otra.
  *
  * Esto es lo que mantiene los dos margenes vivos: recalcular el fraccionado
  * no puede tocar el bulto ni al reves.
  *
  * Se saltean las `consultar` (su precio tiene que quedar en `null`, el
- * endpoint rechaza un numero) y las que no tienen peso util, para no pisar
+ * endpoint rechaza un numero) y las que no tienen con que medirse, para no pisar
  * un precio ya cargado con un 0.
  */
 export function aplicarPrecioBase(
@@ -90,23 +170,8 @@ export function aplicarPrecioBase(
   if (!Number.isFinite(base) || base <= 0) return variantes;
   return variantes.map((v) =>
     calculable(v) && escalaDe(v) === escala
-      ? { ...v, precio: Math.round(base * Number(v.peso_kg)) }
+      ? { ...v, precio: Math.round(base * cantidadDe(v)) }
       : v
-  );
-}
-
-/**
- * Reescribe **todas** las variantes con peso desde un unico base.
- *
- * Queda solo para la carga inicial del ProductoModal, donde el admin todavia
- * no cargo precios y quiere sembrar el producto entero con un numero antes
- * de ajustar el bulto a mano. La grilla no la usa: ahi cada escala tiene su
- * propio input.
- */
-export function aplicarPrecioBaseGlobal(variantes: Variant[], base: number): Variant[] {
-  if (!Number.isFinite(base) || base <= 0) return variantes;
-  return variantes.map((v) =>
-    calculable(v) ? { ...v, precio: Math.round(base * Number(v.peso_kg)) } : v
   );
 }
 
@@ -128,4 +193,27 @@ export function escalasPresentes(variantes: Variant[]): EscalaPeso[] {
   if (utilesDe(variantes, 'fraccionado').length > 0) escalas.push('fraccionado');
   if (utilesDe(variantes, 'bulto').length > 0) escalas.push('bulto');
   return escalas;
+}
+
+/**
+ * Con que se multiplica el base de una escala, para el texto de ayuda:
+ * "(base × kg)" o "(base × unidad)". `mixta` si la escala combina variantes
+ * por kilo y por unidad; `null` si no tiene ninguna calculable.
+ */
+export function medidaDeEscala(
+  variantes: Variant[],
+  escala?: EscalaPeso
+): Medida | 'mixta' | null {
+  const utiles = escala ? utilesDe(variantes, escala) : variantes.filter(calculable);
+  const medidas = new Set(utiles.map((v) => medicionDe(v)?.medida));
+  if (medidas.size === 0) return null;
+  if (medidas.size > 1) return 'mixta';
+  return medidas.has('unidad') ? 'unidad' : 'kg';
+}
+
+/** Texto del multiplicador para la ayuda de la calculadora. */
+export function formulaDe(medida: Medida | 'mixta' | null): string {
+  if (medida === 'unidad') return 'base × unidad';
+  if (medida === 'mixta') return 'base × kg / unidad';
+  return 'base × kg';
 }

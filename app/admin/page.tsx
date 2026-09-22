@@ -4,17 +4,13 @@ import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductoModal from '@/components/admin/ProductoModal';
 import CategoriasPanel from '@/components/admin/CategoriasPanel';
+import CalculadoraPrecioBase from '@/components/admin/CalculadoraPrecioBase';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { imagenesDe } from '@/lib/imagenes';
 import { indiceCategorias } from '@/lib/categorias';
 import type { CategoriaAdmin } from '@/lib/admin-categorias';
 import { formatARS } from '@/lib/format';
-import {
-  alcanzadasPorPrecioBase,
-  aplicarPrecioBase,
-  derivarPrecioBase,
-  escalasPresentes,
-} from '@/lib/precio-base';
+import { aplicarPrecioBase } from '@/lib/precio-base';
 import type { EscalaPeso } from '@/lib/precio-base';
 import { NEGOCIO } from '@/lib/site';
 import type { Product, Variant } from '@/types';
@@ -323,210 +319,6 @@ function CeldaPrecio({
   );
 }
 
-/* ================================================================== */
-/* Celda de precio base (una calculadora por escala de peso)           */
-/* ================================================================== */
-
-/** Textos de cada escala, para no repetirlos en el input y en la ayuda. */
-const ESCALAS: Record<EscalaPeso, { titulo: string; corto: string; placeholder: string }> = {
-  fraccionado: { titulo: 'Precio Base (5 kg)', corto: 'fraccionado', placeholder: '7950' },
-  bulto: { titulo: 'Precio Base (Bulto)', corto: 'bulto', placeholder: '6800' },
-};
-
-/**
- * Un input de precio base, atado a **una** escala.
- *
- * Guarda solo al salir del input o con Enter, igual que {@link CeldaPrecio},
- * y no en cada tecla: el cliente tipea la lista de precios en el celular y
- * un guardado por tecla dispararia un PATCH por digito.
- */
-function InputPrecioBase({
-  producto,
-  escala,
-  onGuardar,
-  grande,
-}: {
-  producto: Product;
-  escala: EscalaPeso;
-  onGuardar: (base: number, escala: EscalaPeso) => Promise<void>;
-  grande: boolean;
-}) {
-  const derivado = derivarPrecioBase(producto.precios_por_variante, escala);
-  const inicial = derivado === null ? '' : String(derivado);
-
-  const [valor, setValor] = useState(inicial);
-  const [guardando, setGuardando] = useState(false);
-  const [ok, setOk] = useState(false);
-  const original = useRef(inicial);
-
-  // El derivado cambia cuando el PATCH vuelve, cuando se edita una variante
-  // suelta o cuando se guarda desde el modal: el input tiene que seguirlo.
-  useEffect(() => {
-    setValor(inicial);
-    original.current = inicial;
-  }, [inicial]);
-
-  const alcanzadas = alcanzadasPorPrecioBase(producto.precios_por_variante, escala);
-  const texto = ESCALAS[escala];
-
-  // Las dos vistas se renderizan a la vez (una oculta por CSS): sin sufijo,
-  // el `htmlFor` apuntaria a dos inputs con el mismo id.
-  const idInput = `base-${producto.id}-${escala}-${grande ? 'movil' : 'tabla'}`;
-
-  const commit = async () => {
-    if (guardando || valor === original.current) return;
-
-    const n = Number(valor);
-    // Un base en 0 o vacio pondria todos los precios en 0: se descarta y se
-    // vuelve al valor anterior en vez de vaciar el producto.
-    if (valor.trim() === '' || !Number.isFinite(n) || n <= 0) {
-      setValor(original.current);
-      return;
-    }
-
-    original.current = valor;
-    setGuardando(true);
-    try {
-      await onGuardar(Math.round(n), escala);
-      setOk(true);
-      setTimeout(() => setOk(false), 1600);
-    } finally {
-      setGuardando(false);
-    }
-  };
-
-  return (
-    <div className="min-w-0">
-      <div className="flex items-baseline justify-between gap-2">
-        <label
-          htmlFor={idInput}
-          className={`truncate font-semibold uppercase tracking-wider text-[#175427] ${
-            grande ? 'text-[11px]' : 'text-[10px]'
-          }`}
-        >
-          {texto.titulo}
-        </label>
-        {guardando ? (
-          <span className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-tostado">
-            <svg
-              width="11"
-              height="11"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              className="animate-spin"
-              aria-hidden
-            >
-              <path d="M12 3a9 9 0 1 0 9 9" />
-            </svg>
-            Guardando
-          </span>
-        ) : (
-          ok && <span className="shrink-0 text-[10px] font-semibold text-[#175427]">✓</span>
-        )}
-      </div>
-
-      <div className="mt-1 flex items-center gap-1.5">
-        <span className={`font-medium text-tostado ${grande ? 'text-lg' : 'text-sm'}`}>$</span>
-        <input
-          id={idInput}
-          type="number"
-          min={0}
-          step="any"
-          inputMode="decimal"
-          value={valor}
-          disabled={guardando || alcanzadas === 0}
-          onChange={(e) => setValor(e.target.value)}
-          onBlur={() => void commit()}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-            if (e.key === 'Escape') setValor(original.current);
-          }}
-          placeholder={texto.placeholder}
-          aria-label={`Precio base por kg ${texto.corto} de ${producto.nombre}`}
-          className={`w-full min-w-0 rounded-lg border bg-white font-semibold tabular-nums text-carbon outline-none transition-colors focus:border-[#143620]/50 focus:ring-2 focus:ring-[#143620]/12 disabled:bg-crema disabled:text-humo/50 ${
-            ok ? 'border-[#1e6b32]/60' : 'border-[#1e6b32]/25'
-          } ${grande ? 'h-12 px-3 text-lg' : 'h-8 px-2 text-sm'}`}
-        />
-      </div>
-
-      <p className="mt-1 text-[10px] leading-snug text-humo/70">
-        {`Recalcula ${alcanzadas} ${alcanzadas === 1 ? 'variante' : 'variantes'} (base × kg).`}
-      </p>
-    </div>
-  );
-}
-
-/**
- * Edicion masiva desde la grilla, con una calculadora por escala de peso.
- *
- * El kilo fraccionado y el kilo de bulto cerrado tienen margenes distintos:
- * un unico input pisaba los dos con el mismo multiplicador y rompia uno de
- * los dos precios. Cada input recalcula solo **sus** variantes.
- *
- * Se dibuja solo la escala que el producto realmente tiene: un input vacio
- * que nunca se usa es un lugar mas donde tipear el numero equivocado.
- */
-function CeldaPrecioBase({
-  producto,
-  onGuardar,
-  grande = false,
-}: {
-  producto: Product;
-  onGuardar: (base: number, escala: EscalaPeso) => Promise<void>;
-  /**
-   * Version tactil para la tarjeta: es la accion principal de la vista movil
-   * (el cliente actualiza la lista de precios desde el telefono), asi que ahi
-   * va a todo el ancho y con tipografia grande.
-   */
-  grande?: boolean;
-}) {
-  const escalas = escalasPresentes(producto.precios_por_variante);
-
-  return (
-    <div
-      className={`rounded-xl border border-[#1e6b32]/25 bg-[#1e6b32]/[0.07] ${
-        grande ? 'px-3 py-2.5' : 'px-2.5 py-2'
-      }`}
-    >
-      {escalas.length === 0 ? (
-        <>
-          <p
-            className={`font-semibold uppercase tracking-wider text-[#175427] ${
-              grande ? 'text-[11px]' : 'text-[10px]'
-            }`}
-          >
-            Precio Base (Kg/U)
-          </p>
-          <p className="mt-1 text-[10px] leading-snug text-humo/70">
-            Sin variantes con peso: cargá el peso desde el editor.
-          </p>
-        </>
-      ) : (
-        // Dos columnas solo cuando hay dos escalas: en el celular la tarjeta
-        // es angosta, asi que se apilan hasta `xs` y recien ahi van a la par.
-        <div
-          className={
-            escalas.length === 2 ? 'grid grid-cols-1 gap-3 min-[420px]:grid-cols-2' : ''
-          }
-        >
-          {escalas.map((escala) => (
-            <InputPrecioBase
-              key={escala}
-              producto={producto}
-              escala={escala}
-              onGuardar={onGuardar}
-              grande={grande}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 type EstadoFila = 'idle' | 'guardando' | 'ok' | 'error';
 
 /* ================================================================== */
@@ -764,7 +556,13 @@ function TarjetaProducto({
       </div>
 
       {/* Fila 2: la accion principal */}
-      <CeldaPrecioBase producto={producto} onGuardar={onPrecioBase} grande />
+      <CalculadoraPrecioBase
+        variantes={producto.precios_por_variante}
+        idBase={`${producto.id}-movil`}
+        nombre={producto.nombre}
+        onGuardar={onPrecioBase}
+        grande
+      />
 
       {/* Fila 3: como quedaron las variantes */}
       <Desglose producto={producto} onPrecioVariante={onPrecioVariante} movil />
@@ -830,7 +628,12 @@ function FilaProducto({
 
       <td className="px-4 py-3">
         <div className="space-y-2">
-          <CeldaPrecioBase producto={producto} onGuardar={onPrecioBase} />
+          <CalculadoraPrecioBase
+            variantes={producto.precios_por_variante}
+            idBase={`${producto.id}-tabla`}
+            nombre={producto.nombre}
+            onGuardar={onPrecioBase}
+          />
           <Desglose producto={producto} onPrecioVariante={onPrecioVariante} />
         </div>
       </td>

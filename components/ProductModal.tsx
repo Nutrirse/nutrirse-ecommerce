@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCart } from '@/store/cart';
-import { formatARS, formatPrecioUnitario } from '@/lib/format';
+import { desglosePrecio, formatARS, sufijoMedida } from '@/lib/format';
 import ShippingCalculator from './ShippingCalculator';
 import { maxCantidad as topeDeVariante, motivoTope } from '@/lib/variant-limits';
 import { imagenesDe } from '@/lib/imagenes';
@@ -190,9 +190,10 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
 
   const totalLinea = (variant.precio ?? 0) * cantidad;
 
-  /* El mayorista compara por unidad de medida, no por bulto: toda variante
-     con un divisor util lleva el precio unitario debajo del principal. */
-  const porKg = formatPrecioUnitario(variant);
+  /* El mayorista compara por unidad de medida, no por bulto: el precio por
+     kg (o por unidad) es el numero grande y el total de la presentacion va
+     debajo, en secundario. */
+  const desglose = desglosePrecio(variant);
 
   // Prioriza misma categoría; si no alcanza, completa con el resto.
   const similares = (() => {
@@ -410,13 +411,22 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                 </>
               ) : (
                 <>
-                  <div className="flex flex-wrap items-baseline gap-2">
+                  {desglose ? (
+                    <>
+                      <p className="text-4xl font-bold text-black">
+                        {formatARS(desglose.base)}
+                        <span className="ml-1 text-lg font-semibold text-gray-500">
+                          {sufijoMedida(desglose.medida)}
+                        </span>
+                      </p>
+                      {desglose.textoTotal && (
+                        <p className="mt-1 text-sm text-gray-500">({desglose.textoTotal})</p>
+                      )}
+                    </>
+                  ) : (
                     <p className="text-4xl font-bold text-black">{formatARS(variant.precio ?? 0)}</p>
-                    {porKg && <p className="text-sm text-gray-500">({porKg})</p>}
-                  </div>
-                  <p className="mt-1.5 text-sm text-gray-500">
-                    {variant.label} · {variant.peso_kg} kg por unidad
-                  </p>
+                  )}
+                  <p className="mt-1.5 text-sm text-gray-500">{variant.label}</p>
                 </>
               )}
             </div>

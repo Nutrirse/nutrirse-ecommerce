@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useCart } from '@/store/cart';
-import { formatARS, formatPrecioUnitario } from '@/lib/format';
+import { desglosePrecio, formatARS, sufijoMedida } from '@/lib/format';
 import ProductModal from './ProductModal';
 import { imagenesDe } from '@/lib/imagenes';
 import type { Product } from '@/types';
@@ -31,9 +31,10 @@ export default function ProductCard({
 
   const esConsultar = variant.tipo === 'consultar';
 
-  /* El mayorista compara por unidad de medida, no por bulto: toda variante
-     con un divisor util lleva el precio unitario debajo del principal. */
-  const porKg = formatPrecioUnitario(variant);
+  /* El mayorista compara por unidad de medida, no por bulto: el precio por
+     kg (o por unidad) es el numero grande y el total de la presentacion va
+     debajo, en secundario. */
+  const desglose = desglosePrecio(variant);
 
   const onAdd = () => {
     addItem(product, variant);
@@ -131,8 +132,21 @@ export default function ProductCard({
               <p className="text-base font-bold text-black">Precio a Consultar</p>
             ) : (
               <>
-                <p className="text-xl font-bold text-black">{formatARS(variant.precio ?? 0)}</p>
-                {porKg && <p className="text-[11px] text-gray-500">({porKg})</p>}
+                {desglose ? (
+                  <>
+                    <p className="text-xl font-bold text-black">
+                      {formatARS(desglose.base)}
+                      <span className="ml-0.5 text-xs font-semibold text-gray-500">
+                        {sufijoMedida(desglose.medida)}
+                      </span>
+                    </p>
+                    {desglose.textoTotal && (
+                      <p className="text-[11px] text-gray-500">({desglose.textoTotal})</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xl font-bold text-black">{formatARS(variant.precio ?? 0)}</p>
+                )}
               </>
             )}
             <p className="mt-0.5 text-[11px] text-gray-400">{variant.label}</p>
