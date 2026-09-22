@@ -80,6 +80,11 @@ function unidadesDeLabel(label: string): number | null {
  * Orden de lectura:
  *  1. El rotulo declara unidades ("Pack 15 unidades", "Media docena"): manda
  *     el rotulo, porque el `peso_kg` de esos productos es sintetico.
+ *     Excepcion: si las unidades coinciden con `peso_kg` ("Caja de 6
+ *     Unidades" con 6 kg), cada unidad es 1 kg justo y se cotiza por kilo,
+ *     como el resto del granel. La cantidad no cambia (6), solo la medida:
+ *     el comprador ve "/kg" en vez de "/u.". Una caja de 10 chocolates de
+ *     100 g pesa 1 kg (10 !== 1) y sigue por unidad.
  *  2. El rotulo dice que se vende por unidad sin decir cuantas ("Pack"), o
  *     la variante pesa menos de 1 kg sin declarar kilos (un chocolate de
  *     100 g): se cotiza por unidad, 1 unidad. Dividir por 0,1 kg inflaria
@@ -90,11 +95,16 @@ function unidadesDeLabel(label: string): number | null {
  */
 export function medicionDe(v: Pick<Variant, 'label' | 'peso_kg'>): Medicion | null {
   const label = v.label ?? '';
-  const unidades = unidadesDeLabel(label);
-  if (unidades !== null) return { medida: 'unidad', cantidad: unidades };
-
   const peso = Number(v.peso_kg);
   const pesoUtil = Number.isFinite(peso) && peso > 0;
+
+  const unidades = unidadesDeLabel(label);
+  if (unidades !== null) {
+    // Tolerancia: `peso_kg` sale de `toFixed(3)` en la migracion y puede
+    // traer ruido de coma flotante (5.999999...).
+    const unidadDeUnKilo = pesoUtil && Math.abs(unidades - peso) < 1e-6;
+    return { medida: unidadDeUnKilo ? 'kg' : 'unidad', cantidad: unidades };
+  }
 
   if (RE_VENTA_POR_UNIDAD.test(label) || (pesoUtil && peso < 1 && !RE_KG.test(label))) {
     return { medida: 'unidad', cantidad: 1 };
