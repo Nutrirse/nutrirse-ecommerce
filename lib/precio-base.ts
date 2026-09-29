@@ -35,29 +35,69 @@ export type Medida = 'kg' | 'unidad';
 /** Por que se multiplica el precio base para llegar al total de la variante. */
 export type Medicion = { medida: Medida; cantidad: number };
 
-/** "15 u.", "Pack 3 unidades", "Caja 10 unid." -> 15, 3, 10. */
-const RE_UNIDADES = /(\d+)\s*(?:u\.?|uds?\.?|unid\.?|unidad(?:es)?)(?![a-záéíóúñ])/i;
+/** Fin de palabra que tambien respeta acentos (`\b` no los conoce). */
+const FIN = '(?![a-záéíóúñ])';
+
+/** Envases que se venden de a uno, en singular y plural. */
+const ENVASES =
+  'bolsitas?|bolsas?|frascos?|botellitas?|botellas?|displays?|potes?|latas?|sobres?|paquetes?|blisters?';
+
+/**
+ * Unidades de contenido: gramos, mililitros, litros. Un rotulo que las
+ * declara ("Bolsita 150 gr", "Botella 1 Litro") habla del contenido de un
+ * envase, no del peso a cotizar: el precio va por envase.
+ */
+const CONTENIDO = 'g|grs?|gramos?|ml|cc|cm3|l|lts?|litros?';
+
+/** Numero seguido de una medida (kg o contenido): no es una cantidad de unidades. */
+const MEDIDA = `(?:kg|kilos?|${CONTENIDO}|cm|mm)${FIN}`;
+
+/**
+ * "15 u.", "Pack 3 unidades", "Bulto de 20 bolsitas" -> 15, 3, 20.
+ * Numero pegado a un sustantivo contable.
+ */
+const RE_UNIDADES = new RegExp(
+  `(\\d+)\\s*(?:u\\.?|uds?\\.?|unid\\.?|unidad(?:es)?|${ENVASES}|barritas?|barras?|tabletas?|alfajores)${FIN}`,
+  'i'
+);
+
+/**
+ * "Caja x 12", "Display de 24", "Bolsita 150 gr x 20" -> 12, 24, 20.
+ * Numero despues de "x" o de un envase agrupador, **siempre que no sea una
+ * medida**: "Bulto x 25 kg" o "Bolsita de 150 gr" no son cantidades.
+ * `(?![\d.,/])` evita que el backtracking corte "25" en "2".
+ */
+const RE_POR_CANTIDAD = new RegExp(
+  `(?:\\bx|\\b(?:caja|bulto|pack|display|paquete|blister)\\s*(?:de|x|por)?)\\s*(\\d+)(?![\\d.,/])(?!\\s*${MEDIDA})`,
+  'i'
+);
 
 /** "Media docena", "2 docenas" -> 6, 24. */
 const RE_DOCENA = /(media|\d+)?\s*docenas?\b/i;
 
 /** Rotulos que dicen "se vende por unidad" aunque no digan cuantas. */
-const RE_VENTA_POR_UNIDAD = /\b(?:pack|unidad(?:es)?|u\.)(?![a-záéíóúñ])/i;
+const RE_VENTA_POR_UNIDAD = new RegExp(`\\b(?:pack|unidad(?:es)?|u\\.)${FIN}`, 'i');
 
-/** Rotulos que declaran kilos de forma explicita ("0.5 kg", "Bulto x 25 kg"). */
-const RE_KG = /\d\s*kg\b/i;
+/** Rotulos que nombran un envase de venta por unidad ("Bolsita", "Frasco"). */
+const RE_ENVASE = new RegExp(`\\b(${ENVASES})${FIN}`, 'i');
+
+/** Rotulos que declaran contenido ("150 gr", "500 ml", "1 Litro", "medio litro"). */
+const RE_CONTENIDO = new RegExp(`(?:\\d\\s*(?:${CONTENIDO})|\\b(?:gramos?|litros?))${FIN}`, 'i');
+
+/** Rotulos que declaran kilos de forma explicita ("0.5 kg", "Bulto x 25 kilos"). */
+const RE_KG = new RegExp(`\\d\\s*(?:kg|kilos?)${FIN}`, 'i');
 
 /**
  * Cantidad de unidades que trae una presentacion, leida del rotulo.
  *
  * `Variant` no guarda el dato: para los productos que se venden por unidad
- * la migracion escribe en `peso_kg` un peso sintetico (peso de la unidad x
- * cantidad), que sirve para cotizar el envio pero no para dividir el
- * precio. La cantidad real sobrevive en el label que arma
- * `construirVariantes()`: "Bulto Cerrado (15 u.)", "Pack 3 unidades".
+ * `peso_kg` es un peso sintetico o el peso del bulto para el correo, que
+ * sirve para cotizar el envio pero **nunca** para multiplicar el precio. La
+ * cantidad real sobrevive en el label: "Bulto Cerrado (15 u.)", "Pack 3
+ * unidades", "Bulto de 20 bolsitas", "Caja x 12".
  */
 function unidadesDeLabel(label: string): number | null {
-  const u = label.match(RE_UNIDADES);
+  const u = label.match(RE_UNIDADES) ?? label.match(RE_POR_CANTIDAD);
   if (u) {
     const n = Number(u[1]);
     return n > 0 ? n : null;
@@ -68,6 +108,24 @@ function unidadesDeLabel(label: string): number | null {
     return d[1].toLowerCase() === 'media' ? 6 : Number(d[1]) * 12;
   }
   return null;
+}
+
+/**
+ * El rotulo habla de un envase o de su contenido ("Bolsita 150 gr",
+ * "Botella 1 Litro") y no de kilos a granel. "Bolsa 25 kg" no cuenta: ahi
+ * los kilos son explicitos y se cotiza por kilo.
+ */
+function esEnvase(label: string): boolean {
+  return !RE_KG.test(label) && (RE_ENVASE.test(label) || RE_CONTENIDO.test(label));
+}
+
+/**
+ * Nombre del envase en singular ("bolsita", "frasco"), para los textos de
+ * la calculadora. `null` si el rotulo no nombra ninguno.
+ */
+export function envaseDe(label: string): string | null {
+  const m = (label ?? '').match(RE_ENVASE);
+  return m ? m[1].toLowerCase().replace(/s$/, '') : null;
 }
 
 /**
@@ -85,10 +143,14 @@ function unidadesDeLabel(label: string): number | null {
  *     como el resto del granel. La cantidad no cambia (6), solo la medida:
  *     el comprador ve "/kg" en vez de "/u.". Una caja de 10 chocolates de
  *     100 g pesa 1 kg (10 !== 1) y sigue por unidad.
- *  2. El rotulo dice que se vende por unidad sin decir cuantas ("Pack"), o
- *     la variante pesa menos de 1 kg sin declarar kilos (un chocolate de
- *     100 g): se cotiza por unidad, 1 unidad. Dividir por 0,1 kg inflaria
- *     el precio x10.
+ *     La excepcion no aplica si el rotulo nombra un envase o contenido
+ *     ("Bulto de 20 bolsitas de 150 gr" con 20 kg sigue por bolsita).
+ *  2. El rotulo dice que se vende por unidad sin decir cuantas ("Pack"),
+ *     nombra un envase o su contenido ("Bolsita 150 gr", "Botella 1 Litro")
+ *     sin declarar kilos, o la variante pesa menos de 1 kg sin declarar
+ *     kilos (un chocolate de 100 g): se cotiza por unidad, 1 unidad. El
+ *     `peso_kg` de esas variantes es el del bulto para el correo: usarlo de
+ *     multiplicador convertia una bolsita con 5 kg de envio en "$/kg x 5".
  *  3. El resto es granel: por kilo, con `peso_kg` como cantidad.
  *
  * Devuelve `null` si no hay con que medir (sin peso y sin unidades).
@@ -97,16 +159,18 @@ export function medicionDe(v: Pick<Variant, 'label' | 'peso_kg'>): Medicion | nu
   const label = v.label ?? '';
   const peso = Number(v.peso_kg);
   const pesoUtil = Number.isFinite(peso) && peso > 0;
+  const envase = esEnvase(label);
 
   const unidades = unidadesDeLabel(label);
   if (unidades !== null) {
     // Tolerancia: `peso_kg` sale de `toFixed(3)` en la migracion y puede
     // traer ruido de coma flotante (5.999999...).
-    const unidadDeUnKilo = pesoUtil && Math.abs(unidades - peso) < 1e-6;
+    const unidadDeUnKilo = !envase && pesoUtil && Math.abs(unidades - peso) < 1e-6;
     return { medida: unidadDeUnKilo ? 'kg' : 'unidad', cantidad: unidades };
   }
 
-  if (RE_VENTA_POR_UNIDAD.test(label) || (pesoUtil && peso < 1 && !RE_KG.test(label))) {
+  const sinKg = !RE_KG.test(label);
+  if (RE_VENTA_POR_UNIDAD.test(label) || envase || (pesoUtil && peso < 1 && sinKg)) {
     return { medida: 'unidad', cantidad: 1 };
   }
   return pesoUtil ? { medida: 'kg', cantidad: peso } : null;
@@ -127,11 +191,16 @@ const cantidadDe = (v: Variant): number => medicionDe(v)?.cantidad ?? 0;
  * el precio comercial: un "Bulto x 25 kg" cargado sin peso, o un "5 kg"
  * cargado como 5.0 exacto, tienen que caer donde dice la etiqueta. Recien si
  * el label no dice nada se decide por `peso_kg`.
+ *
+ * Una sola unidad suelta ("Bolsita 150 gr") es siempre fraccionado: su
+ * `peso_kg` puede ser el del bulto de envio y no dice nada de la escala.
  */
 export function escalaDe(v: Variant): EscalaPeso {
   const label = (v.label ?? '').toLowerCase();
   if (label.includes('bulto')) return 'bulto';
   if (/\b5\s*kg\b/.test(label)) return 'fraccionado';
+  const m = medicionDe(v);
+  if (m?.medida === 'unidad' && m.cantidad === 1) return 'fraccionado';
   return Number(v.peso_kg) > CORTE_KG ? 'bulto' : 'fraccionado';
 }
 
@@ -219,6 +288,21 @@ export function medidaDeEscala(
   if (medidas.size === 0) return null;
   if (medidas.size > 1) return 'mixta';
   return medidas.has('unidad') ? 'unidad' : 'kg';
+}
+
+/**
+ * Envase que nombran las variantes por unidad de una escala ("bolsita"),
+ * para el titulo de la calculadora. `null` si ninguna nombra uno o si
+ * nombran envases distintos.
+ */
+export function envaseDeEscala(variantes: Variant[], escala: EscalaPeso): string | null {
+  const envases = new Set(
+    utilesDe(variantes, escala)
+      .filter((v) => medicionDe(v)?.medida === 'unidad')
+      .map((v) => envaseDe(v.label))
+  );
+  if (envases.size !== 1) return null;
+  return [...envases][0];
 }
 
 /** Texto del multiplicador para la ayuda de la calculadora. */

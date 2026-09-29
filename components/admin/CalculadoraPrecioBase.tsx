@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   alcanzadasPorPrecioBase,
   derivarPrecioBase,
+  envaseDeEscala,
   escalasPresentes,
   formulaDe,
   medidaDeEscala,
@@ -69,9 +70,16 @@ function InputPrecioBase({
   const alcanzadas = alcanzadasPorPrecioBase(variantes, escala);
   const medida = medidaDeEscala(variantes, escala);
   const texto = ESCALAS[escala];
-  // Un pack de aceites no tiene "5 kg": el titulo dice por que se multiplica.
+  // Un pack de aceites o una bolsita no tienen "5 kg": el titulo dice por
+  // que se multiplica ("Precio Base (por unidad/bolsita)").
+  const envase = medida === 'unidad' ? envaseDeEscala(variantes, escala) : null;
+  const porUnidad = `por unidad${envase ? `/${envase}` : ''}`;
   const titulo =
-    escala === 'fraccionado' && medida === 'unidad' ? 'Precio Base (x unidad)' : texto.titulo;
+    medida !== 'unidad'
+      ? texto.titulo
+      : escala === 'fraccionado'
+        ? `Precio Base (${porUnidad})`
+        : `Precio Base (Bulto, ${porUnidad})`;
 
   const idInput = `base-${idBase}-${escala}`;
 
