@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SELECT =
-  'id, slug, nombre, descripcion, composicion, imagen_url, imagenes, categoria, precios_por_variante, activo, orden, updated_at';
+  'id, slug, nombre, descripcion, composicion, nota_venta, imagen_url, imagenes, categoria, precios_por_variante, activo, orden, updated_at';
 
 type Ctx = { params: Promise<{ id: string }> };
 

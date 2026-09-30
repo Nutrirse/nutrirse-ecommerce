@@ -32,7 +32,7 @@ function normalizar(p: Product): Product {
 }
 
 const SELECT =
-  'id, slug, nombre, descripcion, composicion, imagen_url, imagenes, categoria, precios_por_variante, activo, orden';
+  'id, slug, nombre, descripcion, composicion, nota_venta, imagen_url, imagenes, categoria, precios_por_variante, activo, orden';
 
 export async function getProducts(): Promise<Product[]> {
   if (!isSupabaseConfigured || !supabase) return FALLBACK_PRODUCTS.map(normalizar);

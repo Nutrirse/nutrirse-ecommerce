@@ -128,6 +128,11 @@ export default function ProductCard({
 
           {/* Precio */}
           <div className="mt-auto pt-4">
+            {product.nota_venta && (
+              <p className="mb-2 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-medium leading-snug text-red-800">
+                {product.nota_venta}
+              </p>
+            )}
             {esConsultar ? (
               <p className="text-base font-bold text-black">Precio a Consultar</p>
             ) : (

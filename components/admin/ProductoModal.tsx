@@ -60,6 +60,7 @@ export default function ProductoModal({
   const [guardandoCategoria, setGuardandoCategoria] = useState(false);
   const [descripcion, setDescripcion] = useState(producto?.descripcion ?? '');
   const [composicion, setComposicion] = useState(producto?.composicion ?? '');
+  const [notaVenta, setNotaVenta] = useState(producto?.nota_venta ?? '');
   const [imagenes, setImagenes] = useState<string[]>(producto ? imagenesDe(producto) : []);
   const [activo, setActivo] = useState(producto?.activo ?? true);
   const [variantes, setVariantes] = useState<Variant[]>(
@@ -268,6 +269,7 @@ export default function ProductoModal({
       categoria: categoria || null,
       descripcion: descripcion.trim() || null,
       composicion: composicion.trim() || null,
+      nota_venta: notaVenta.trim() || null,
       // La principal la deriva el servidor de imagenes[0]. Se manda igual
       // para que la fila quede consistente incluso sin galeria.
       imagen_url: imagenes[0] ?? null,
@@ -556,6 +558,21 @@ export default function ProductoModal({
                   className={`mt-1.5 ${input} resize-y`}
                   placeholder="Nuez pelada mitad mariposa, calibre extra."
                 />
+              </div>
+
+              <div>
+                <label className={label} htmlFor="p-nota-venta">Condición especial de venta</label>
+                <input
+                  id="p-nota-venta"
+                  maxLength={200}
+                  value={notaVenta}
+                  onChange={(e) => setNotaVenta(e.target.value)}
+                  className={`mt-1.5 ${input}`}
+                  placeholder="A partir de 5 unidades. Por más de 20 bolsitas, consultar precio."
+                />
+                <p className="mt-1 text-[11px] text-humo/60">
+                  Opcional. Se muestra destacada junto al precio en la tarjeta y en el detalle.
+                </p>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-carbon">

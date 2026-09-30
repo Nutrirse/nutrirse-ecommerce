@@ -32,6 +32,11 @@ export type Product = {
    * `supabase/migracion_composicion.sql` y el fallback estatico no la traen.
    */
   composicion?: string | null;
+  /**
+   * Condicion especial de venta ("A partir de 5 unidades..."). Se muestra
+   * destacada junto al precio. Ver supabase/migracion_nota_venta.sql.
+   */
+  nota_venta?: string | null;
   categoria: string | null;
   precios_por_variante: Variant[];
   activo: boolean;

@@ -15,6 +15,8 @@ export type ProductoPayload = {
   descripcion: string | null;
   /** Ingredientes en una linea; ver supabase/migracion_composicion.sql. */
   composicion: string | null;
+  /** Condicion de venta; ver supabase/migracion_nota_venta.sql. */
+  nota_venta: string | null;
   imagen_url: string | null;
   imagenes: string[];
   activo: boolean;
@@ -131,6 +133,7 @@ export function validarProducto(body: unknown): ProductoPayload {
     categoria: texto(o.categoria, 'la categoría', 80),
     descripcion: texto(o.descripcion, 'la descripción', 2000),
     composicion: texto(o.composicion, 'la composición', 200),
+    nota_venta: texto(o.nota_venta, 'la nota de venta', 200),
     ...conImagenPrincipal(o),
     activo: o.activo !== false,
     orden: Number.isFinite(Number(o.orden)) ? Math.trunc(Number(o.orden)) : 0,
@@ -147,6 +150,7 @@ export function validarParcial(body: unknown): Partial<ProductoPayload> {
   if ('categoria' in o) out.categoria = texto(o.categoria, 'la categoría', 80);
   if ('descripcion' in o) out.descripcion = texto(o.descripcion, 'la descripción', 2000);
   if ('composicion' in o) out.composicion = texto(o.composicion, 'la composición', 200);
+  if ('nota_venta' in o) out.nota_venta = texto(o.nota_venta, 'la nota de venta', 200);
   // `imagenes` e `imagen_url` viajan juntas o no viajan: la base tiene un
   // check que exige imagenes[1] = imagen_url, y un PATCH que toque solo una
   // de las dos lo violaria.

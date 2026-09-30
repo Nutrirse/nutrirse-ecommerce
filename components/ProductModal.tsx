@@ -429,6 +429,11 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                   <p className="mt-1.5 text-sm text-gray-500">{variant.label}</p>
                 </>
               )}
+              {activo.nota_venta && (
+                <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium leading-snug text-red-800">
+                  {activo.nota_venta}
+                </p>
+              )}
             </div>
 
             {/* Cantidad */}

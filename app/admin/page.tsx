@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductoModal from '@/components/admin/ProductoModal';
 import CategoriasPanel from '@/components/admin/CategoriasPanel';
@@ -947,6 +948,13 @@ export default function AdminPage() {
               className="h-10 w-full max-w-xs rounded-full border border-carbon/10 bg-white px-4 text-sm text-carbon outline-none transition-colors placeholder:text-humo/50 focus:border-[#143620]/40 focus:ring-2 focus:ring-[#143620]/12 sm:w-64"
             />
           )}
+
+          <Link
+            href="/admin/balance"
+            className="flex h-10 items-center rounded-full border border-carbon/10 bg-white px-4 text-sm font-medium text-carbon transition-colors hover:bg-crema"
+          >
+            Balance
+          </Link>
 
           <button
             onClick={recargarTodo}
