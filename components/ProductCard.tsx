@@ -5,16 +5,23 @@ import Image from 'next/image';
 import { useCart } from '@/store/cart';
 import { desglosePrecio, formatARS, sufijoMedida } from '@/lib/format';
 import ProductModal from './ProductModal';
+import GoogleLoginButton from './GoogleLoginButton';
 import { imagenesDe } from '@/lib/imagenes';
 import type { Product } from '@/types';
 
 export default function ProductCard({
   product,
   related = [],
+  preciosOcultos = false,
 }: {
   product: Product;
   /** Catálogo completo: alimenta "Productos similares" del quick view. */
   related?: Product[];
+  /**
+   * Canal minorista sin sesion. Los precios ya vienen en null desde el
+   * servidor (lib/minorista.ts); esto solo cambia que se dibuja en su lugar.
+   */
+  preciosOcultos?: boolean;
 }) {
   const variantes = product.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
@@ -133,7 +140,9 @@ export default function ProductCard({
                 {product.nota_venta}
               </p>
             )}
-            {esConsultar ? (
+            {preciosOcultos ? (
+              <GoogleLoginButton compacto />
+            ) : esConsultar ? (
               <p className="text-base font-bold text-black">Precio a Consultar</p>
             ) : (
               <>
@@ -154,25 +163,33 @@ export default function ProductCard({
                 )}
               </>
             )}
-            <p className="mt-0.5 text-[11px] text-gray-400">{variant.label}</p>
+            {!preciosOcultos && <p className="mt-0.5 text-[11px] text-gray-400">{variant.label}</p>}
           </div>
 
-          {/* CTA a todo el ancho */}
-          <button
-            onClick={onAdd}
-            className={`mt-3 w-full rounded-lg py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.98] ${
-              added ? 'bg-[#1e7e34]' : 'bg-[#28a745] hover:bg-[#218838]'
-            }`}
-          >
-            {added ? 'Agregado ✓' : esConsultar ? 'Consultar' : 'Agregar'}
-          </button>
+          {/* CTA a todo el ancho. Sin precio no hay que agregar: el
+              carrito armaria una linea en $0. */}
+          {!preciosOcultos && (
+            <button
+              onClick={onAdd}
+              className={`mt-3 w-full rounded-lg py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.98] ${
+                added ? 'bg-[#1e7e34]' : 'bg-[#28a745] hover:bg-[#218838]'
+              }`}
+            >
+              {added ? 'Agregado ✓' : esConsultar ? 'Consultar' : 'Agregar'}
+            </button>
+          )}
         </div>
       </article>
 
       {/* El modal se monta solo despues del primer clic: no paga costo
           de render por cada tarjeta de la grilla. */}
       {modalOpen && (
-        <ProductModal product={product} related={related} onClose={() => setModalOpen(false)} />
+        <ProductModal
+          product={product}
+          related={related}
+          preciosOcultos={preciosOcultos}
+          onClose={() => setModalOpen(false)}
+        />
       )}
     </>
   );

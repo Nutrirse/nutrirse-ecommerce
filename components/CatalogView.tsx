@@ -42,6 +42,7 @@ export default function CatalogView({
   categorias: filas = [],
   initialCat = 'todos',
   initialQuery = '',
+  preciosOcultos = false,
 }: {
   products: Product[];
   /** Categorias reales (tabla `categories`). Vacio => fallback hardcodeado. */
@@ -49,6 +50,8 @@ export default function CatalogView({
   initialCat?: string;
   /** Termino que llega por `?q=` desde el buscador del hero. */
   initialQuery?: string;
+  /** Canal minorista sin sesion: las cards piden login en vez de precio. */
+  preciosOcultos?: boolean;
 }) {
   const indice = useMemo(() => indiceCategorias(filas), [filas]);
   // `?cat=reposteria-harinas` y compania caen bajo la unica "Repostería".
@@ -303,7 +306,7 @@ export default function CatalogView({
         <div>
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {visibles.map((p) => (
-              <ProductCard key={p.id} product={p} related={products} />
+              <ProductCard key={p.id} product={p} related={products} preciosOcultos={preciosOcultos} />
             ))}
           </div>
 

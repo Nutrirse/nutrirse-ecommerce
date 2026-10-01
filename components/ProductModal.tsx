@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCart } from '@/store/cart';
 import { desglosePrecio, formatARS, sufijoMedida } from '@/lib/format';
 import ShippingCalculator from './ShippingCalculator';
+import GoogleLoginButton from './GoogleLoginButton';
 import { maxCantidad as topeDeVariante, motivoTope } from '@/lib/variant-limits';
 import { imagenesDe } from '@/lib/imagenes';
 import { etiquetaCategoria } from '@/lib/categorias';
@@ -14,13 +15,15 @@ type Props = {
   product: Product;
   /** Catálogo para armar "Productos similares". */
   related?: Product[];
+  /** Canal minorista sin sesion: login en vez de precio y sin carrito. */
+  preciosOcultos?: boolean;
   onClose: () => void;
 };
 
 const SALIDA_MS = 320;
 const AVISO_MS = 2600;
 
-export default function ProductModal({ product, related = [], onClose }: Props) {
+export default function ProductModal({ product, related = [], preciosOcultos = false, onClose }: Props) {
   // Producto que se esta viendo. Arranca en el que abrio el drawer y
   // cambia al tocar un similar, sin cerrar ni navegar.
   const [activo, setActivo] = useState<Product>(product);
@@ -402,7 +405,9 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
 
             {/* Precio */}
             <div className="mt-8 border-y border-gray-100 py-6">
-              {esConsultar ? (
+              {preciosOcultos ? (
+                <GoogleLoginButton />
+              ) : esConsultar ? (
                 <>
                   <p className="text-3xl font-bold text-black">Precio a Consultar</p>
                   <p className="mt-1.5 text-sm text-gray-500">
@@ -436,69 +441,73 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
               )}
             </div>
 
-            {/* Cantidad */}
-            <div className="mt-6 flex items-center justify-between gap-4">
-              <span className="text-sm font-medium text-gray-700">Cantidad</span>
-              <div className="flex items-center rounded-full border border-gray-200">
+            {!preciosOcultos && (
+              <>
+                {/* Cantidad */}
+                <div className="mt-6 flex items-center justify-between gap-4">
+                  <span className="text-sm font-medium text-gray-700">Cantidad</span>
+                  <div className="flex items-center rounded-full border border-gray-200">
+                    <button
+                      onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                      aria-label="Restar"
+                      disabled={cantidad <= 1}
+                      className="h-11 w-11 rounded-full text-gray-500 transition-colors hover:text-black disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:text-gray-300"
+                    >
+                      −
+                    </button>
+                    <span className="w-10 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
+                    {/* En el tope se marca `aria-disabled` pero NO `disabled`:
+                        un boton deshabilitado no dispara click, y el click es lo
+                        unico que muestra el aviso de a donde ir. Queda inerte
+                        igual, porque `sumar()` corta antes de incrementar. */}
+                    <button
+                      onClick={sumar}
+                      aria-label="Sumar"
+                      aria-disabled={enTope}
+                      className={`h-11 w-11 rounded-full transition-colors ${
+                        enTope ? 'cursor-not-allowed text-gray-300' : 'text-gray-500 hover:text-black'
+                      }`}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Pista estatica del tope: se ve antes de chocar contra el, asi
+                    el limite no aparece como un boton que dejo de funcionar. */}
+                {Number.isFinite(maxUnidades) && (
+                  <p className="mt-2 text-right text-xs text-gray-400">
+                    Máximo {maxUnidades} {maxUnidades === 1 ? 'unidad' : 'unidades'} en esta
+                    presentación
+                  </p>
+                )}
+
+                {aviso && (
+                  <p
+                    role="status"
+                    className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800"
+                  >
+                    {aviso}
+                  </p>
+                )}
+
+                {!esConsultar && cantidad > 1 && (
+                  <p className="mt-2 text-right text-sm text-gray-500">
+                    Subtotal: <span className="font-semibold text-black">{formatARS(totalLinea)}</span>
+                  </p>
+                )}
+
+                {/* CTA */}
                 <button
-                  onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                  aria-label="Restar"
-                  disabled={cantidad <= 1}
-                  className="h-11 w-11 rounded-full text-gray-500 transition-colors hover:text-black disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:text-gray-300"
-                >
-                  −
-                </button>
-                <span className="w-10 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
-                {/* En el tope se marca `aria-disabled` pero NO `disabled`:
-                    un boton deshabilitado no dispara click, y el click es lo
-                    unico que muestra el aviso de a donde ir. Queda inerte
-                    igual, porque `sumar()` corta antes de incrementar. */}
-                <button
-                  onClick={sumar}
-                  aria-label="Sumar"
-                  aria-disabled={enTope}
-                  className={`h-11 w-11 rounded-full transition-colors ${
-                    enTope ? 'cursor-not-allowed text-gray-300' : 'text-gray-500 hover:text-black'
+                  onClick={onAdd}
+                  className={`mt-6 w-full rounded-lg py-4 text-base font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.99] ${
+                    added ? 'bg-[#1e7e34]' : 'bg-[#28a745] hover:bg-[#218838]'
                   }`}
                 >
-                  +
+                  {added ? 'Agregado ✓' : esConsultar ? 'Agregar y consultar' : 'Agregar al carrito'}
                 </button>
-              </div>
-            </div>
-
-            {/* Pista estatica del tope: se ve antes de chocar contra el, asi
-                el limite no aparece como un boton que dejo de funcionar. */}
-            {Number.isFinite(maxUnidades) && (
-              <p className="mt-2 text-right text-xs text-gray-400">
-                Máximo {maxUnidades} {maxUnidades === 1 ? 'unidad' : 'unidades'} en esta
-                presentación
-              </p>
+              </>
             )}
-
-            {aviso && (
-              <p
-                role="status"
-                className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800"
-              >
-                {aviso}
-              </p>
-            )}
-
-            {!esConsultar && cantidad > 1 && (
-              <p className="mt-2 text-right text-sm text-gray-500">
-                Subtotal: <span className="font-semibold text-black">{formatARS(totalLinea)}</span>
-              </p>
-            )}
-
-            {/* CTA */}
-            <button
-              onClick={onAdd}
-              className={`mt-6 w-full rounded-lg py-4 text-base font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.99] ${
-                added ? 'bg-[#1e7e34]' : 'bg-[#28a745] hover:bg-[#218838]'
-              }`}
-            >
-              {added ? 'Agregado ✓' : esConsultar ? 'Agregar y consultar' : 'Agregar al carrito'}
-            </button>
 
             {/* Cotizador de envío */}
             <div className="mt-8 rounded-xl border border-gray-100 bg-gray-50/60 p-5">
@@ -546,7 +555,11 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium text-gray-800">{p.nombre}</p>
                             <p className="text-xs text-gray-400">
-                              {base ? `Desde ${formatARS(base.precio ?? 0)}` : 'Precio a Consultar'}
+                              {preciosOcultos
+                                ? 'Iniciá sesión para ver precios'
+                                : base
+                                  ? `Desde ${formatARS(base.precio ?? 0)}`
+                                  : 'Precio a Consultar'}
                             </p>
                           </div>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 text-gray-300">
@@ -560,9 +573,12 @@ export default function ProductModal({ product, related = [], onClose }: Props) 
               </section>
             )}
 
-            <p className="mt-10 text-xs text-gray-400">
-              Venta exclusiva por mayor · Los precios no incluyen IVA
-            </p>
+            {/* El canal minorista comparte este modal: la leyenda B2B no aplica. */}
+            {variant.id.startsWith('min-') ? null : (
+              <p className="mt-10 text-xs text-gray-400">
+                Venta exclusiva por mayor · Los precios no incluyen IVA
+              </p>
+            )}
           </div>
         </div>
       </div>
