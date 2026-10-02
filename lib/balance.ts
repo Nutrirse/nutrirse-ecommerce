@@ -7,12 +7,16 @@ import { formatARS } from './format';
  */
 
 export type TipoTransaccion = 'ingreso' | 'gasto';
-export type EstadoPago = 'completado' | 'pendiente' | 'consulta';
+export type EstadoPago = 'completado' | 'pendiente' | 'parcial' | 'consulta';
 export type MedioPago = 'transferencia' | 'efectivo' | 'mercadopago' | 'tarjeta' | 'otro';
+
+export type Unidad = 'kg' | 'gr' | 'ml' | 'unidad' | 'bulto';
 
 export type LineaDetalle = {
   descripcion: string;
   cantidad: number;
+  /** Opcional: las lineas anteriores a la migracion ERP v2 no la tienen. */
+  unidad?: Unidad;
   precio_unitario: number;
 };
 
@@ -27,6 +31,8 @@ export type Transaccion = {
   medio_pago: MedioPago;
   valor: number;
   estado_pago: EstadoPago;
+  /** Sena entregada a cuenta. Solo con estado 'parcial'. */
+  monto_entregado: number | null;
   ref_ticket: string | null;
   detalle: LineaDetalle[];
 };
@@ -36,6 +42,10 @@ export type Cliente = {
   nombre: string;
   /** Solo digitos, formato wa.me. */
   telefono: string | null;
+  /** DNI o CUIT, solo digitos. */
+  documento: string | null;
+  /** CLI-0001. Lo asigna la base al crear el cliente. */
+  ref_cliente: string | null;
   notas: string | null;
 };
 
@@ -44,8 +54,40 @@ export const TIPOS: TipoTransaccion[] = ['ingreso', 'gasto'];
 export const ESTADOS: { id: EstadoPago; label: string }[] = [
   { id: 'completado', label: 'Completado' },
   { id: 'pendiente', label: 'Pendiente' },
+  { id: 'parcial', label: 'Pago parcial / Seña' },
   { id: 'consulta', label: 'Consulta' },
 ];
+
+export const UNIDADES: { id: Unidad; label: string }[] = [
+  { id: 'kg', label: 'kg' },
+  { id: 'gr', label: 'gr' },
+  { id: 'ml', label: 'ml' },
+  { id: 'unidad', label: 'unidad' },
+  { id: 'bulto', label: 'bulto' },
+];
+
+/** "5 kg", "3 bultos", "2 u." */
+export function cantidadConUnidad(l: LineaDetalle): string {
+  const n = Number(l.cantidad) || 0;
+  switch (l.unidad) {
+    case undefined:
+      return String(n);
+    case 'unidad':
+      return `${n} u.`;
+    case 'bulto':
+      return `${n} ${n === 1 ? 'bulto' : 'bultos'}`;
+    default:
+      return `${n} ${l.unidad}`;
+  }
+}
+
+/** Lo que falta cobrar de una venta. */
+export function saldoPendiente(t: Pick<Transaccion, 'valor' | 'estado_pago' | 'monto_entregado'>): number {
+  const valor = Number(t.valor) || 0;
+  if (t.estado_pago === 'completado') return 0;
+  if (t.estado_pago === 'parcial') return Math.max(0, valor - (Number(t.monto_entregado) || 0));
+  return valor;
+}
 
 export const MEDIOS_PAGO: { id: MedioPago; label: string }[] = [
   { id: 'transferencia', label: 'Transferencia' },
@@ -107,7 +149,8 @@ export type Resumen = { facturado: number; cobrado: number; porCobrar: number; g
 /**
  * - Facturado: ingresos confirmados (cobrados o no). Las "consulta" son
  *   cotizaciones abiertas, todavia no son una venta.
- * - Cobrado / Por cobrar: el split de lo facturado por estado.
+ * - Cobrado / Por cobrar: el split de lo facturado por estado. Un pago
+ *   parcial reparte: la sena es cobrado, el saldo es por cobrar.
  * - Gastos: todo gasto que no sea una consulta.
  */
 export function resumir(ts: Transaccion[]): Resumen {
@@ -120,8 +163,9 @@ export function resumir(ts: Transaccion[]): Resumen {
       continue;
     }
     r.facturado += v;
-    if (t.estado_pago === 'completado') r.cobrado += v;
-    else r.porCobrar += v;
+    const saldo = saldoPendiente(t);
+    r.cobrado += v - saldo;
+    r.porCobrar += saldo;
   }
   return r;
 }
@@ -153,9 +197,20 @@ export const totalDetalle = (d: LineaDetalle[]) =>
 export function textoTicket(t: Transaccion): string {
   const lineas = t.detalle.length
     ? t.detalle.map(
-        (l) => `• ${l.cantidad} x ${l.descripcion} — ${formatARS(l.cantidad * l.precio_unitario)}`
+        (l) =>
+          `• ${cantidadConUnidad(l)} x ${l.descripcion} (${formatARS(l.precio_unitario)} c/u) — ` +
+          formatARS(l.cantidad * l.precio_unitario)
       )
     : [`• ${t.concepto}`];
+
+  const pago =
+    t.estado_pago === 'parcial'
+      ? [
+          `Pago: ${etiquetaMedio(t.medio_pago)} (seña)`,
+          `Entregado: ${formatARS(Number(t.monto_entregado) || 0)}`,
+          `*Saldo pendiente: ${formatARS(saldoPendiente(t))}*`,
+        ]
+      : [`Pago: ${etiquetaMedio(t.medio_pago)} (${etiquetaEstado(t.estado_pago).toLowerCase()})`];
 
   return [
     `*Nutrirse — Ticket ${t.ref_ticket ?? ''}*`.trim(),
@@ -165,7 +220,7 @@ export function textoTicket(t: Transaccion): string {
     ...lineas,
     '',
     `*Total: ${formatARS(Number(t.valor))}*`,
-    `Pago: ${etiquetaMedio(t.medio_pago)} (${etiquetaEstado(t.estado_pago).toLowerCase()})`,
+    ...pago,
     '',
     '¡Gracias por tu compra!',
   ].join('\n');

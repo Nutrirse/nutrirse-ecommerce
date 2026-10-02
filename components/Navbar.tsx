@@ -4,8 +4,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useMemo, useEffect, useRef, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { useCart, selectCount } from '@/store/cart';
 import { indiceCategorias, type Categoria } from '@/lib/categorias';
+import { guardarModo, leerModoGuardado, modoDeRuta, RUTAS, type Modo } from '@/lib/modo';
+import { createSupabaseBrowser } from '@/lib/supabase-auth/browser';
+import { iniciarSesionGoogle } from './GoogleLoginButton';
 
 /* ------------------------------------------------------------------ */
 /* Estructura del mega menu                                            */
@@ -50,13 +54,18 @@ const MEGA_FALLBACK: MenuGroup[][] = [
   ],
 ];
 
-const NAV = [
-  { label: 'Inicio', href: '/' },
-  { label: 'Productos', href: '/productos', mega: true },
+/** Inicio y Productos apuntan al canal activo. */
+const navDe = (modo: Modo) => [
+  { label: 'Inicio', href: RUTAS[modo].home },
+  { label: 'Productos', href: RUTAS[modo].catalogo, mega: true },
   { label: 'Quiénes Somos', href: '/quienes-somos' },
   { label: 'Contacto', href: '/contacto' },
   { label: 'Política de Devolución', href: '/politica-de-devolucion' },
 ];
+
+const AUTH_CONFIGURADO = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 /* ------------------------------------------------------------------ */
 
@@ -105,6 +114,42 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
   const [scrolled, setScrolled] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  /* ---------- Canal (minorista / mayorista) ---------- */
+  // La ruta manda; en paginas neutras se usa el ultimo canal visitado. El
+  // guardado se lee recien en el efecto: localStorage no existe en el SSR.
+  const modoRuta = modoDeRuta(pathname);
+  const [modoGuardado, setModoGuardado] = useState<Modo | null>(null);
+  useEffect(() => {
+    if (modoRuta) guardarModo(modoRuta);
+    else setModoGuardado(leerModoGuardado());
+  }, [modoRuta]);
+  const modo: Modo = modoRuta ?? modoGuardado ?? 'mayorista';
+  const otroModo: Modo = modo === 'minorista' ? 'mayorista' : 'minorista';
+  const catalogo = RUTAS[modo].catalogo;
+  const NAV = navDe(modo);
+
+  /* ---------- Sesion (solo la usa el canal minorista) ---------- */
+  // Esto solo decide que boton se dibuja. Los precios los filtra el
+  // servidor (lib/minorista.ts), no este estado.
+  const [usuario, setUsuario] = useState<User | null>(null);
+  const [entrando, setEntrando] = useState(false);
+  useEffect(() => {
+    if (!AUTH_CONFIGURADO) return;
+    const supabase = createSupabaseBrowser();
+    supabase.auth.getUser().then(({ data }) => setUsuario(data.user ?? null));
+    const { data } = supabase.auth.onAuthStateChange((_evento, sesion) =>
+      setUsuario(sesion?.user ?? null)
+    );
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  const entrar = async () => {
+    setEntrando(true);
+    if (await iniciarSesionGoogle(RUTAS.minorista.home)) setEntrando(false);
+  };
+  const nombreUsuario =
+    (usuario?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? usuario?.email;
 
   // Cierre diferido: evita que el menu parpadee al cruzar el gap
   // de 8px entre el trigger y el panel.
@@ -155,10 +200,10 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
     closeTimer.current = setTimeout(() => setMegaOpen(false), 140);
   };
 
-  // Transparente solo arriba de todo en el home, donde detras hay hero
-  // verde oscuro. En el resto de las paginas el tope es crema, asi que el
-  // navbar va siempre solido o el texto claro quedaria ilegible.
-  const transparente = pathname === '/' && !scrolled && !megaOpen;
+  // Transparente solo arriba de todo en la home mayorista, donde detras hay
+  // hero verde oscuro. En el resto de las paginas el tope es crema, asi que
+  // el navbar va siempre solido o el texto claro quedaria ilegible.
+  const transparente = pathname === '/mayorista' && !scrolled && !megaOpen;
 
   const linkCls = 'text-[#f5ebd9]/80 hover:text-[#f5ebd9]';
 
@@ -172,7 +217,7 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:h-20 sm:px-8">
         {/* ---------- Logo ---------- */}
-        <Link href="/" className="flex shrink-0 items-center" aria-label="Nutrirse - Inicio">
+        <Link href={RUTAS[modo].home} className="flex shrink-0 items-center" aria-label="Nutrirse - Inicio">
           <Image
             src="/Logo.png"
             alt="Nutrirse"
@@ -225,6 +270,49 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* ---------- Cambiar modo ---------- */}
+          <Link
+            href={RUTAS[otroModo].home}
+            title={`Pasar a ${otroModo}`}
+            aria-label={`Cambiar modo: pasar a ${otroModo}`}
+            className="hidden h-10 items-center gap-2 rounded-full border border-[#f5ebd9]/30 px-3.5 text-sm text-[#f5ebd9] transition-colors hover:border-[#d6b26a] hover:text-[#d6b26a] md:flex"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4" />
+            </svg>
+            <span>
+              Cambiar modo
+              <span className="ml-1.5 rounded-full bg-[#f5ebd9]/10 px-2 py-0.5 text-[11px] uppercase tracking-wide">
+                {modo}
+              </span>
+            </span>
+          </Link>
+
+          {/* ---------- Cuenta (canal minorista) ---------- */}
+          {modo === 'minorista' && AUTH_CONFIGURADO && (
+            usuario ? (
+              <form action="/auth/signout" method="post" className="hidden md:block">
+                <button
+                  title={`${nombreUsuario ?? ''} · Cerrar sesión`}
+                  className="flex h-10 items-center gap-2 rounded-full px-3 text-sm text-[#f5ebd9]/80 transition-colors hover:bg-white/10 hover:text-[#f5ebd9]"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#d6b26a] text-xs font-semibold uppercase text-[#0b1c0f]">
+                    {nombreUsuario?.charAt(0)}
+                  </span>
+                  Salir
+                </button>
+              </form>
+            ) : (
+              <button
+                onClick={entrar}
+                disabled={entrando}
+                className="hidden h-10 items-center rounded-full bg-[#d6b26a] px-4 text-sm font-semibold text-[#0b1c0f] transition-all hover:brightness-110 disabled:cursor-wait disabled:opacity-70 md:flex"
+              >
+                {entrando ? 'Abriendo…' : 'Ingresar'}
+              </button>
+            )
+          )}
+
           {/* ---------- Carrito ---------- */}
           <button
             onClick={openCart}
@@ -272,7 +360,7 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
               {col.map((group) => (
                 <div key={group.title}>
                   <Link
-                    href={`/productos?cat=${group.cat}`}
+                    href={`${catalogo}?cat=${group.cat}`}
                     className="font-semibold text-[#f5ebd9] transition-colors hover:text-[#d6b26a]"
                   >
                     {group.title}
@@ -282,7 +370,7 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
                       {group.items.map((it) => (
                         <li key={it.cat}>
                           <Link
-                            href={`/productos?cat=${it.cat}`}
+                            href={`${catalogo}?cat=${it.cat}`}
                             className="text-sm text-[#f5ebd9]/60 transition-colors hover:text-[#d6b26a]"
                           >
                             {it.label}
@@ -299,8 +387,12 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
 
         <div className="border-t border-white/10 bg-[#0f2716]">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4 text-sm">
-            <span className="text-[#f5ebd9]/50">Venta exclusiva por mayor · Mínimo 5 kg</span>
-            <Link href="/productos" className="font-medium text-[#d6b26a] hover:underline">
+            <span className="text-[#f5ebd9]/50">
+              {modo === 'mayorista'
+                ? 'Venta exclusiva por mayor · Mínimo 5 kg'
+                : 'Presentaciones chicas para tu casa'}
+            </span>
+            <Link href={catalogo} className="font-medium text-[#d6b26a] hover:underline">
               Ver todo el catálogo →
             </Link>
           </div>
@@ -339,6 +431,35 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
         </div>
 
         <nav className="thin-scroll flex-1 overflow-y-auto px-5 py-5">
+          <div className="mb-5 space-y-2 border-b border-black/5 pb-5">
+            <Link
+              href={RUTAS[otroModo].home}
+              className="flex items-center justify-between rounded-lg bg-crema px-3 py-3 text-sm font-medium text-carbon"
+            >
+              <span>Cambiar modo</span>
+              <span className="text-xs uppercase tracking-wide text-tostado">
+                {modo} → {otroModo}
+              </span>
+            </Link>
+            {modo === 'minorista' && AUTH_CONFIGURADO && (
+              usuario ? (
+                <form action="/auth/signout" method="post">
+                  <button className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-humo hover:bg-crema">
+                    Hola {nombreUsuario} · Cerrar sesión
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={entrar}
+                  disabled={entrando}
+                  className="w-full rounded-lg bg-carbon px-3 py-3 text-sm font-semibold text-hueso disabled:opacity-70"
+                >
+                  {entrando ? 'Abriendo Google…' : 'Crear cuenta o Iniciar Sesión'}
+                </button>
+              )
+            )}
+          </div>
+
           <ul className="space-y-1">
             {NAV.filter((n) => !n.mega).map((item) => (
               <li key={item.href}>
@@ -358,14 +479,14 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
           <div className="mt-3 space-y-5">
             {mega.flat().map((group) => (
               <div key={group.title} className="px-3">
-                <Link href={`/productos?cat=${group.cat}`} className="font-semibold text-carbon">
+                <Link href={`${catalogo}?cat=${group.cat}`} className="font-semibold text-carbon">
                   {group.title}
                 </Link>
                 {group.items.length > 0 && (
                   <ul className="mt-1.5 space-y-1">
                     {group.items.map((it) => (
                       <li key={it.cat}>
-                        <Link href={`/productos?cat=${it.cat}`} className="text-sm text-humo">
+                        <Link href={`${catalogo}?cat=${it.cat}`} className="text-sm text-humo">
                           {it.label}
                         </Link>
                       </li>

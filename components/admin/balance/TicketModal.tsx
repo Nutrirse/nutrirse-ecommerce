@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import { textoTicket } from '@/lib/balance';
-import type { Transaccion } from '@/lib/balance';
+import type { Cliente, Transaccion } from '@/lib/balance';
 import { PAGE_STYLE_TICKET, TicketVenta } from './Imprimibles';
 import { ModalShell, btnPrimario, btnSecundario } from './ui';
 
@@ -16,13 +16,14 @@ import { ModalShell, btnPrimario, btnSecundario } from './ui';
  */
 export default function TicketModal({
   t,
-  telefono,
+  cliente,
   onClose,
 }: {
   t: Transaccion;
-  telefono: string | null;
+  cliente: Cliente | null;
   onClose: () => void;
 }) {
+  const telefono = cliente?.telefono ?? null;
   const ref = useRef<HTMLDivElement>(null);
   const imprimir = useReactToPrint({
     contentRef: ref,
@@ -51,7 +52,7 @@ export default function TicketModal({
       }
     >
       <div className="rounded-2xl border border-carbon/10 shadow-sm">
-        <TicketVenta ref={ref} t={t} telefono={telefono} />
+        <TicketVenta ref={ref} t={t} cliente={cliente} />
       </div>
     </ModalShell>
   );

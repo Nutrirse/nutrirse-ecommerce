@@ -17,6 +17,7 @@ type Props = {
 const COLOR_ESTADO: Record<EstadoPago, string> = {
   completado: 'border-[#2F7A4A]/30 bg-[#2F7A4A]/10 text-[#1f5a35]',
   pendiente: 'border-[#B8822F]/35 bg-[#B8822F]/10 text-[#7a531a]',
+  parcial: 'border-[#2F5F7A]/30 bg-[#2F5F7A]/10 text-[#1f4359]',
   consulta: 'border-carbon/15 bg-carbon/5 text-humo',
 };
 
@@ -28,7 +29,7 @@ function SelectorEstado({ t, onEstado }: { t: Transaccion; onEstado: Props['onEs
       aria-label={`Estado de ${t.concepto}`}
       className={`h-8 rounded-full border px-2.5 text-xs font-semibold outline-none ${COLOR_ESTADO[t.estado_pago]}`}
     >
-      {ESTADOS.map((e) => (
+      {ESTADOS.filter((e) => t.tipo === 'ingreso' || e.id !== 'parcial').map((e) => (
         <option key={e.id} value={e.id}>{e.label}</option>
       ))}
     </select>

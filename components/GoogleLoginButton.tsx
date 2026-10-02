@@ -4,11 +4,27 @@ import { useState } from 'react';
 import { createSupabaseBrowser } from '@/lib/supabase-auth/browser';
 
 /**
+ * Abre el OAuth de Google. Devuelve el error si no pudo salir del sitio; si
+ * no hubo error el navegador ya esta yendo hacia Google.
+ */
+export async function iniciarSesionGoogle(next?: string) {
+  const destino = next ?? `${window.location.pathname}${window.location.search}`;
+  const { error } = await createSupabaseBrowser().auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destino)}`,
+      queryParams: { prompt: 'select_account' },
+    },
+  });
+  return error;
+}
+
+/**
  * Login con Google via Supabase Auth. Al volver, /auth/callback canjea el
  * code por la sesion y redirige a `next` (por defecto, la pagina actual).
  */
 export default function GoogleLoginButton({
-  texto = 'Inicia sesión con Google para ver precios',
+  texto = 'Crear cuenta o Iniciar Sesión para ver precios',
   next,
   compacto = false,
 }: {
@@ -23,15 +39,7 @@ export default function GoogleLoginButton({
   const login = async () => {
     setCargando(true);
     setError(null);
-    const destino = next ?? `${window.location.pathname}${window.location.search}`;
-    const { error } = await createSupabaseBrowser().auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destino)}`,
-        queryParams: { prompt: 'select_account' },
-      },
-    });
-    // Si no hubo error el navegador ya esta saliendo hacia Google.
+    const error = await iniciarSesionGoogle(next);
     if (error) {
       setError('No pudimos abrir Google. Probá de nuevo.');
       setCargando(false);

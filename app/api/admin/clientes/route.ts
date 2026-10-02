@@ -50,8 +50,18 @@ export async function POST(req: Request) {
     .select(SELECT_CLIENTE)
     .single();
 
+  // Telefono repetido: se devuelve el cliente que ya existe para que el
+  // panel ofrezca seguir con el en vez de cortar con un error.
   if (error?.code === '23505') {
-    return NextResponse.json({ error: 'Ya hay un cliente con ese teléfono.' }, { status: 409 });
+    const { data: existente } = await supabaseAdmin
+      .from('clientes')
+      .select(SELECT_CLIENTE)
+      .eq('telefono', payload.telefono ?? '')
+      .maybeSingle();
+    return NextResponse.json(
+      { error: 'Ya hay un cliente con ese teléfono.', existente: (existente ?? null) as Cliente | null },
+      { status: 409 }
+    );
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ cliente: data as Cliente }, { status: 201 });

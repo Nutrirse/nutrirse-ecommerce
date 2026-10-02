@@ -6,8 +6,18 @@
 
 import { formatARS } from '@/lib/format';
 import { NEGOCIO, SITE_URL } from '@/lib/site';
-import { etiquetaEstado, etiquetaMedio, formatFecha, totalDetalle } from '@/lib/balance';
-import type { Rango, Resumen, Transaccion } from '@/lib/balance';
+import {
+  cantidadConUnidad,
+  etiquetaEstado,
+  etiquetaMedio,
+  formatFecha,
+  saldoPendiente,
+  totalDetalle,
+} from '@/lib/balance';
+import type { Cliente, Rango, Resumen, Transaccion } from '@/lib/balance';
+
+/** /Logo.png es blanco (para el navbar oscuro): sobre papel no se ve. */
+const LOGO_IMPRESION = '/Logo-verde.png';
 
 /** Estilos de pagina que recibe useReactToPrint. */
 export const PAGE_STYLE_REPORTE =
@@ -18,7 +28,7 @@ export const PAGE_STYLE_TICKET =
 function Encabezado({ titulo, sub }: { titulo: string; sub: string }) {
   return (
     <header className="flex items-center justify-between border-b-2 border-[#143620] pb-4">
-      <img src="/Logo.png" alt="Nutrirse" className="h-14 w-auto" />
+      <img src={LOGO_IMPRESION} alt="Nutrirse" className="h-14 w-auto" />
       <div className="text-right">
         <p className="text-lg font-bold text-[#143620]">{titulo}</p>
         <p className="text-xs text-gray-600">{sub}</p>
@@ -72,7 +82,14 @@ export function ReporteFinanciero({
                 <td className="px-2 py-1">{t.cliente_proveedor}</td>
                 <td className="px-2 py-1">{t.concepto}</td>
                 <td className="px-2 py-1">{etiquetaMedio(t.medio_pago)}</td>
-                <td className="px-2 py-1">{etiquetaEstado(t.estado_pago)}</td>
+                <td className="px-2 py-1">
+                  {etiquetaEstado(t.estado_pago)}
+                  {t.estado_pago === 'parcial' && (
+                    <span className="block text-[9px] text-gray-500">
+                      Saldo {formatARS(saldoPendiente(t))}
+                    </span>
+                  )}
+                </td>
                 <td className="px-2 py-1 text-right tabular-nums">{formatARS(Number(t.valor))}</td>
               </tr>
             ))}
@@ -130,11 +147,12 @@ export function ReporteFinanciero({
 export function TicketVenta({
   ref,
   t,
-  telefono,
+  cliente,
 }: {
   ref?: React.Ref<HTMLDivElement>;
   t: Transaccion;
-  telefono?: string | null;
+  /** Cliente vinculado, si lo hay: suma telefono, DNI/CUIT y numero. */
+  cliente?: Cliente | null;
 }) {
   const lineas = t.detalle.length
     ? t.detalle
@@ -144,7 +162,7 @@ export function TicketVenta({
   return (
     <div ref={ref} className="mx-auto max-w-[420px] bg-white p-5 font-sans text-gray-900">
       <div className="text-center">
-        <img src="/Logo.png" alt="Nutrirse" className="mx-auto h-16 w-auto" />
+        <img src={LOGO_IMPRESION} alt="Nutrirse" className="mx-auto h-16 w-auto" />
         <p className="mt-1 text-[11px] text-gray-500">
           {NEGOCIO.ciudad}, {NEGOCIO.provincia} · {NEGOCIO.telefono}
         </p>
@@ -156,8 +174,12 @@ export function TicketVenta({
           <span className="font-bold">Ticket {t.ref_ticket ?? ''}</span>
           <span>{formatFecha(t.fecha)}</span>
         </div>
-        <p className="mt-1">Cliente: <b>{t.cliente_proveedor}</b></p>
-        {telefono && <p>Tel.: +{telefono}</p>}
+        <p className="mt-1">
+          Cliente: <b>{t.cliente_proveedor}</b>
+          {cliente?.ref_cliente && <span className="text-gray-500"> · {cliente.ref_cliente}</span>}
+        </p>
+        {cliente?.documento && <p>DNI/CUIT: {cliente.documento}</p>}
+        {cliente?.telefono && <p>Tel.: +{cliente.telefono}</p>}
       </div>
 
       <table className="mt-3 w-full text-xs">
@@ -173,9 +195,11 @@ export function TicketVenta({
             <tr key={i} className="align-top">
               <td className="py-0.5 pr-2">
                 {l.descripcion}
-                <span className="block text-[10px] text-gray-500">{formatARS(l.precio_unitario)} c/u</span>
+                <span className="block text-[10px] text-gray-500">
+                  {formatARS(l.precio_unitario)} {l.unidad && l.unidad !== 'unidad' ? `por ${l.unidad}` : 'c/u'}
+                </span>
               </td>
-              <td className="py-0.5 text-right tabular-nums">{l.cantidad}</td>
+              <td className="whitespace-nowrap py-0.5 text-right tabular-nums">{cantidadConUnidad(l)}</td>
               <td className="py-0.5 text-right tabular-nums">{formatARS(l.cantidad * l.precio_unitario)}</td>
             </tr>
           ))}
@@ -193,6 +217,18 @@ export function TicketVenta({
           <span>TOTAL</span>
           <span className="tabular-nums">{formatARS(Number(t.valor))}</span>
         </div>
+        {t.estado_pago === 'parcial' && (
+          <>
+            <div className="mt-1 flex justify-between text-xs">
+              <span>Entregado (seña)</span>
+              <span className="tabular-nums">{formatARS(Number(t.monto_entregado) || 0)}</span>
+            </div>
+            <div className="flex justify-between text-sm font-bold">
+              <span>Saldo pendiente</span>
+              <span className="tabular-nums">{formatARS(saldoPendiente(t))}</span>
+            </div>
+          </>
+        )}
         <p className="mt-1 text-xs text-gray-600">
           Pago: {etiquetaMedio(t.medio_pago)} · {etiquetaEstado(t.estado_pago)}
         </p>

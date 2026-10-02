@@ -110,8 +110,15 @@ export default function BalancePage() {
 
   /* ---- Acciones ---- */
   const cambiarEstado = async (t: Transaccion, estado: EstadoPago) => {
+    // Un pago parcial necesita el monto de la sena: se completa en el modal.
+    if (estado === 'parcial') {
+      setModalTx({ modo: 'editar', transaccion: { ...t, estado_pago: 'parcial' } });
+      return;
+    }
     const previo = transacciones;
-    setTransacciones((ts) => ts.map((x) => (x.id === t.id ? { ...x, estado_pago: estado } : x)));
+    setTransacciones((ts) =>
+      ts.map((x) => (x.id === t.id ? { ...x, estado_pago: estado, monto_entregado: null } : x))
+    );
     try {
       const res = await fetch(`/api/admin/transacciones/${t.id}`, {
         method: 'PATCH',
@@ -150,7 +157,13 @@ export default function BalancePage() {
     if (esNueva && t.tipo === 'ingreso') setTicket(t);
   };
 
-  const telefonoDe = (t: Transaccion) => clientes.find((c) => c.id === t.cliente_id)?.telefono ?? null;
+  const clienteDe = (t: Transaccion) => clientes.find((c) => c.id === t.cliente_id) ?? null;
+
+  // Alta desde el panel o desde el modal de venta: misma lista ordenada.
+  const sumarCliente = (c: Cliente) =>
+    setClientes((cs) =>
+      cs.some((x) => x.id === c.id) ? cs : [...cs, c].sort((a, b) => a.nombre.localeCompare(b.nombre))
+    );
 
   /* ---- Reporte PDF ---- */
   const refReporte = useRef<HTMLDivElement>(null);
@@ -255,6 +268,10 @@ export default function BalancePage() {
           clientes={clientes}
           onClose={() => setModalTx(null)}
           onGuardada={alGuardar}
+          onClienteCreado={(c) => {
+            sumarCliente(c);
+            push(`Cliente “${c.nombre}” creado · ${c.ref_cliente ?? ''}`.trim());
+          }}
           onSinSesion={sinSesion}
         />
       )}
@@ -263,15 +280,23 @@ export default function BalancePage() {
         <ClienteModal
           onClose={() => setModalCliente(false)}
           onCreado={(c) => {
-            setClientes((cs) => [...cs, c].sort((a, b) => a.nombre.localeCompare(b.nombre)));
-            setModalCliente(false);
-            push(`Cliente “${c.nombre}” creado`);
+            sumarCliente(c);
+            push(`Cliente “${c.nombre}” creado · ${c.ref_cliente ?? ''}`.trim());
           }}
           onSinSesion={sinSesion}
+          // Recien creado o ya existente: el atajo es ir a venderle.
+          accion={{
+            texto: 'Generar ticket',
+            onClick: (c) => {
+              sumarCliente(c);
+              setModalCliente(false);
+              setModalTx({ modo: 'venta', clienteId: c.id });
+            },
+          }}
         />
       )}
 
-      {ticket && <TicketModal t={ticket} telefono={telefonoDe(ticket)} onClose={() => setTicket(null)} />}
+      {ticket && <TicketModal t={ticket} cliente={clienteDe(ticket)} onClose={() => setTicket(null)} />}
 
       <div className="pointer-events-none fixed bottom-5 right-5 z-[60] flex flex-col gap-2" aria-live="polite">
         {toasts.map((t) => (

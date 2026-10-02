@@ -11,7 +11,9 @@ const ESTATICAS: Array<{
   changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'];
   priority: number;
 }> = [
-  { ruta: '/', changeFrequency: 'weekly', priority: 1 },
+  { ruta: '/', changeFrequency: 'yearly', priority: 1 },
+  { ruta: '/mayorista', changeFrequency: 'weekly', priority: 0.9 },
+  { ruta: '/minorista', changeFrequency: 'weekly', priority: 0.9 },
   { ruta: '/productos', changeFrequency: 'daily', priority: 0.9 },
   { ruta: '/quienes-somos', changeFrequency: 'yearly', priority: 0.6 },
   { ruta: '/contacto', changeFrequency: 'yearly', priority: 0.6 },
@@ -33,7 +35,7 @@ const ESTATICAS: Array<{
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categorias = await getCategoriasParaSitemap();
 
-  // La fecha mas reciente de todo el catalogo sirve para la home y el listado.
+  // La fecha mas reciente de todo el catalogo sirve para la home mayorista y el listado.
   const ultimaDelCatalogo =
     categorias.reduce<Date | null>(
       (max, c) => (!max || c.lastModified > max ? c.lastModified : max),
@@ -42,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const estaticas: MetadataRoute.Sitemap = ESTATICAS.map((p) => ({
     url: `${SITE_URL}${p.ruta}`,
-    lastModified: p.ruta === '/' || p.ruta === '/productos' ? ultimaDelCatalogo : new Date(),
+    lastModified: p.ruta === '/mayorista' || p.ruta === '/productos' ? ultimaDelCatalogo : new Date(),
     changeFrequency: p.changeFrequency,
     priority: p.priority,
   }));
