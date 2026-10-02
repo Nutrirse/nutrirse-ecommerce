@@ -54,9 +54,11 @@ const MEGA_FALLBACK: MenuGroup[][] = [
   ],
 ];
 
-/** Inicio y Productos apuntan al canal activo. */
+/**
+ * Productos apunta al catalogo del canal activo. Sin "Inicio": el logo ya
+ * lleva a la home del canal y el link quedaba duplicado.
+ */
 const navDe = (modo: Modo) => [
-  { label: 'Inicio', href: RUTAS[modo].home },
   { label: 'Productos', href: RUTAS[modo].catalogo, mega: true },
   { label: 'Quiénes Somos', href: '/quienes-somos' },
   { label: 'Contacto', href: '/contacto' },
@@ -200,10 +202,11 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
     closeTimer.current = setTimeout(() => setMegaOpen(false), 140);
   };
 
-  // Transparente solo arriba de todo en la home mayorista, donde detras hay
+  // Transparente solo arriba de todo en las homes de canal, donde detras hay
   // hero verde oscuro. En el resto de las paginas el tope es crema, asi que
   // el navbar va siempre solido o el texto claro quedaria ilegible.
-  const transparente = pathname === '/mayorista' && !scrolled && !megaOpen;
+  const transparente =
+    (pathname === '/mayorista' || pathname === '/minorista') && !scrolled && !megaOpen;
 
   const linkCls = 'text-[#f5ebd9]/80 hover:text-[#f5ebd9]';
 
@@ -270,21 +273,18 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
         </nav>
 
         <div className="flex items-center gap-2">
-          {/* ---------- Cambiar modo ---------- */}
+          {/* ---------- Cambiar modo ----------
+              El texto nombra el destino, no el canal actual: "Cambiar a
+              MINORISTA" se lee como accion; "Minorista" solo, como estado. */}
           <Link
             href={RUTAS[otroModo].home}
-            title={`Pasar a ${otroModo}`}
-            aria-label={`Cambiar modo: pasar a ${otroModo}`}
             className="hidden h-10 items-center gap-2 rounded-full border border-[#f5ebd9]/30 px-3.5 text-sm text-[#f5ebd9] transition-colors hover:border-[#d6b26a] hover:text-[#d6b26a] md:flex"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4" />
             </svg>
             <span>
-              Cambiar modo
-              <span className="ml-1.5 rounded-full bg-[#f5ebd9]/10 px-2 py-0.5 text-[11px] uppercase tracking-wide">
-                {modo}
-              </span>
+              Cambiar a <b className="font-semibold uppercase tracking-wide">{otroModo}</b>
             </span>
           </Link>
 
@@ -436,10 +436,10 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
               href={RUTAS[otroModo].home}
               className="flex items-center justify-between rounded-lg bg-crema px-3 py-3 text-sm font-medium text-carbon"
             >
-              <span>Cambiar modo</span>
-              <span className="text-xs uppercase tracking-wide text-tostado">
-                {modo} → {otroModo}
+              <span>
+                Cambiar a <b className="uppercase tracking-wide">{otroModo}</b>
               </span>
+              <span aria-hidden className="text-tostado">→</span>
             </Link>
             {modo === 'minorista' && AUTH_CONFIGURADO && (
               usuario ? (

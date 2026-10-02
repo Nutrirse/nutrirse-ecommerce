@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductoModal from '@/components/admin/ProductoModal';
 import CategoriasPanel from '@/components/admin/CategoriasPanel';
 import CalculadoraPrecioBase from '@/components/admin/CalculadoraPrecioBase';
+import CanalNav from '@/components/admin/CanalNav';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { imagenesDe } from '@/lib/imagenes';
 import { indiceCategorias } from '@/lib/categorias';
@@ -915,6 +916,9 @@ export default function AdminPage() {
               {categorias.length} categorías
             </p>
           </div>
+
+          {/* Panel de bultos (este) o de precios minoristas. */}
+          <CanalNav activo="mayorista" />
 
           {/* Pestañas: catálogo y ABM de categorías. */}
           <div

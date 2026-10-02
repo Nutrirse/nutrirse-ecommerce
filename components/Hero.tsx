@@ -328,7 +328,20 @@ const DUR = { out: 0.55, in: 0.85, fade: 0.5 };
 /** Cadencia del autoplay del carrusel, en ms. */
 const AUTOPLAY_MS = 3000;
 
-export default function Hero({ categorias = [] }: { categorias?: Categoria[] }) {
+export default function Hero({
+  categorias = [],
+  catalogo = '/productos',
+  canal = 'por mayor',
+}: {
+  categorias?: Categoria[];
+  /**
+   * Ruta del catalogo al que apuntan el buscador y los CTA. El canal
+   * minorista reutiliza el hero entero y solo cambia esto.
+   */
+  catalogo?: string;
+  /** Sufijo del h1 oculto: "Nutrirse · Almendras por mayor". */
+  canal?: string;
+}) {
   const indice = useMemo(() => indiceCategorias(categorias), [categorias]);
 
   /**
@@ -368,7 +381,7 @@ export default function Hero({ categorias = [] }: { categorias?: Categoria[] }) 
      slide, no el nombre de su categoria (las dos enlazan a una categoria mas
      amplia). */
   const catActiva = catsResueltas[active] ?? null;
-  const hrefActivo = catActiva ? `/productos?cat=${catActiva.slug}` : '/productos';
+  const hrefActivo = catActiva ? `${catalogo}?cat=${catActiva.slug}` : catalogo;
 
   /* Autoplay. `pausado` es transitorio (puntero sobre los controles);
      `detenido` es definitivo:
@@ -719,7 +732,8 @@ export default function Hero({ categorias = [] }: { categorias?: Categoria[] }) 
   const buscar = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
-    router.push(q ? `/productos?q=${encodeURIComponent(q)}` : '/productos');
+    // `#catalogo`: en /minorista la grilla vive debajo del hero, en la misma ruta.
+    router.push(q ? `${catalogo}?q=${encodeURIComponent(q)}#catalogo` : `${catalogo}#catalogo`);
   };
 
   /* ---------------- Swipe tactil (mobile) ----------------
@@ -875,7 +889,7 @@ export default function Hero({ categorias = [] }: { categorias?: Categoria[] }) 
           </div>
         ))}
         <h1 className="sr-only">
-          Nutrirse · {SLIDES[active].label} por mayor
+          Nutrirse · {SLIDES[active].label} {canal}
         </h1>
       </div>
 

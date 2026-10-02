@@ -9,12 +9,23 @@ import { indiceCategorias, normalizarCategoria, type Categoria } from '@/lib/cat
 /* Filtros                                                             */
 /* ------------------------------------------------------------------ */
 
-const RANGOS_PRECIO = [
-  { id: 'todos', label: 'Todos', min: 0, max: Infinity },
-  { id: 'hasta-30', label: 'Hasta $30.000', min: 0, max: 30000 },
-  { id: '30-60', label: '$30.000 – $60.000', min: 30000, max: 60000 },
-  { id: 'desde-60', label: 'Más de $60.000', min: 60000, max: Infinity },
-];
+type Canal = 'mayorista' | 'minorista';
+
+/** Cortes de precio por canal: un bulto y un 1/2 kg no viven en la misma escala. */
+const RANGOS: Record<Canal, { id: string; label: string; min: number; max: number }[]> = {
+  mayorista: [
+    { id: 'todos', label: 'Todos', min: 0, max: Infinity },
+    { id: 'hasta-30', label: 'Hasta $30.000', min: 0, max: 30000 },
+    { id: '30-60', label: '$30.000 – $60.000', min: 30000, max: 60000 },
+    { id: 'desde-60', label: 'Más de $60.000', min: 60000, max: Infinity },
+  ],
+  minorista: [
+    { id: 'todos', label: 'Todos', min: 0, max: Infinity },
+    { id: 'hasta-5', label: 'Hasta $5.000', min: 0, max: 5000 },
+    { id: '5-15', label: '$5.000 – $15.000', min: 5000, max: 15000 },
+    { id: 'desde-15', label: 'Más de $15.000', min: 15000, max: Infinity },
+  ],
+};
 
 // UI simulada: todavía no hay columna `marca` en la tabla `products`.
 const MARCAS = ['Nutrirse', 'Selección Salta', 'Importado'];
@@ -26,7 +37,7 @@ const ORDENES = [
   { id: 'alfabetico', label: 'A – Z' },
 ];
 
-/** Precio de referencia de un producto: el de la variante de 5 kg. */
+/** Precio de referencia: la primera variante con precio (5 kg en mayorista, 1/2 kg en minorista). */
 const precioBase = (p: Product) =>
   p.precios_por_variante.find((v) => v.tipo === 'precio')?.precio ?? 0;
 
@@ -43,6 +54,7 @@ export default function CatalogView({
   initialCat = 'todos',
   initialQuery = '',
   preciosOcultos = false,
+  canal = 'mayorista',
 }: {
   products: Product[];
   /** Categorias reales (tabla `categories`). Vacio => fallback hardcodeado. */
@@ -52,7 +64,9 @@ export default function CatalogView({
   initialQuery?: string;
   /** Canal minorista sin sesion: las cards piden login en vez de precio. */
   preciosOcultos?: boolean;
+  canal?: Canal;
 }) {
+  const RANGOS_PRECIO = RANGOS[canal];
   const indice = useMemo(() => indiceCategorias(filas), [filas]);
   // `?cat=reposteria-harinas` y compania caen bajo la unica "Repostería".
   const [cat, setCat] = useState(normalizarCategoria(initialCat));
@@ -112,7 +126,7 @@ export default function CatalogView({
     if (orden === 'precio-desc') ordenados.sort((a, b) => precioBase(b) - precioBase(a));
     if (orden === 'alfabetico') ordenados.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     return ordenados;
-  }, [products, cat, rango, orden, q, indice]);
+  }, [products, cat, rango, orden, q, indice, RANGOS_PRECIO]);
 
   const toggleMarca = (m: string) =>
     setMarcas((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
@@ -163,24 +177,28 @@ export default function CatalogView({
         </ul>
       </FiltroGrupo>
 
-      <FiltroGrupo titulo="Precio">
-        <ul className="space-y-1.5">
-          {RANGOS_PRECIO.map((r) => (
-            <li key={r.id}>
-              <label className="flex cursor-pointer items-center gap-2.5 px-2 py-1 text-sm text-humo hover:text-carbon">
-                <input
-                  type="radio"
-                  name="rango-precio"
-                  checked={rango === r.id}
-                  onChange={() => setRango(r.id)}
-                  className="h-4 w-4 accent-[#28a745]"
-                />
-                {r.label}
-              </label>
-            </li>
-          ))}
-        </ul>
-      </FiltroGrupo>
+      {/* Sin precios (minorista sin sesion) filtrar u ordenar por precio
+          no tiene sentido: todos valen 0 para el filtro. */}
+      {!preciosOcultos && (
+        <FiltroGrupo titulo="Precio">
+          <ul className="space-y-1.5">
+            {RANGOS_PRECIO.map((r) => (
+              <li key={r.id}>
+                <label className="flex cursor-pointer items-center gap-2.5 px-2 py-1 text-sm text-humo hover:text-carbon">
+                  <input
+                    type="radio"
+                    name="rango-precio"
+                    checked={rango === r.id}
+                    onChange={() => setRango(r.id)}
+                    className="h-4 w-4 accent-[#28a745]"
+                  />
+                  {r.label}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </FiltroGrupo>
+      )}
 
       <FiltroGrupo titulo="Marca">
         <ul className="space-y-1.5">
@@ -205,7 +223,7 @@ export default function CatalogView({
 
       <FiltroGrupo titulo="Ordenar por">
         <ul className="space-y-1.5">
-          {ORDENES.map((o) => (
+          {ORDENES.filter((o) => !preciosOcultos || !o.id.startsWith('precio')).map((o) => (
             <li key={o.id}>
               <label className="flex cursor-pointer items-center gap-2.5 px-2 py-1 text-sm text-humo hover:text-carbon">
                 <input

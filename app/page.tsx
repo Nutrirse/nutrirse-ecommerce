@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import SplashCharacter from '@/components/SplashCharacter';
 
 // Sin datos: se prerenderiza una vez y se sirve estatico.
 export const dynamic = 'force-static';
@@ -29,7 +30,7 @@ export default function Splash() {
         className="relative h-16 w-auto animate-fade-in object-contain sm:h-20"
       />
 
-      <Personaje />
+      <SplashCharacter className="mt-6 h-56 w-52 sm:h-64 sm:w-60" />
 
       <h1 className="relative mt-2 animate-fade-up text-center font-[family-name:var(--font-display)] text-[clamp(1.9rem,5vw,3.2rem)] font-semibold leading-tight tracking-tight [animation-delay:0.5s]">
         ¡Hola! ¿Cómo querés comprar?
@@ -85,58 +86,5 @@ function BotonModo({
         →
       </span>
     </Link>
-  );
-}
-
-/**
- * Placeholder del personaje de marca: sonrie, lleva gorra y levanta el
- * pulgar. Animaciones en app/globals.css (`.pj-*`). Cuando llegue el asset
- * final se reemplaza este SVG por un <Image> o un Lottie y se borran las
- * clases.
- */
-function Personaje() {
-  return (
-    <div className="pj-entrada relative mt-6 h-52 w-52 sm:h-60 sm:w-60" role="img" aria-label="Personaje de Nutrirse con el pulgar arriba">
-      <svg viewBox="0 0 200 200" className="pj-flota h-full w-full overflow-visible" aria-hidden>
-        {/* Cuerpo */}
-        <path d="M52 200c0-34 21-56 48-56s48 22 48 56Z" fill="#4A5D3A" />
-        <path d="M86 146h28l-14 16Z" fill="#f5ebd9" />
-
-        {/* Brazo con pulgar: rota desde el hombro */}
-        <g className="pj-brazo">
-          <path d="M140 164c10-6 18-20 22-38" stroke="#4A5D3A" strokeWidth="16" strokeLinecap="round" fill="none" />
-          <rect x="150" y="108" width="24" height="22" rx="8" fill="#E8B98A" />
-          <rect x="157" y="88" width="10" height="26" rx="5" fill="#E8B98A" />
-        </g>
-
-        {/* Cabeza */}
-        <circle cx="100" cy="98" r="42" fill="#E8B98A" />
-        <circle cx="60" cy="100" r="7" fill="#E8B98A" />
-        <circle cx="140" cy="100" r="7" fill="#E8B98A" />
-
-        {/* Ojos (parpadean) */}
-        <g className="pj-ojos">
-          <ellipse cx="85" cy="96" rx="5" ry="6" fill="#1C1A17" />
-          <ellipse cx="115" cy="96" rx="5" ry="6" fill="#1C1A17" />
-        </g>
-        <circle cx="76" cy="110" r="6" fill="#e58a6b" opacity=".45" />
-        <circle cx="124" cy="110" r="6" fill="#e58a6b" opacity=".45" />
-
-        {/* Sonrisa */}
-        <path d="M82 114c8 12 28 12 36 0" stroke="#1C1A17" strokeWidth="4" strokeLinecap="round" fill="#fff" />
-
-        {/* Gorra */}
-        <g className="pj-gorra">
-          <path d="M58 82c0-28 19-44 42-44s42 16 42 44Z" fill="#C8964F" />
-          <path d="M100 82h52c4 0 6 6 0 8l-52 2Z" fill="#6B4423" />
-          <circle cx="100" cy="38" r="5" fill="#6B4423" />
-          <path d="M80 62c4-8 12-12 20-12" stroke="#f5ebd9" strokeWidth="3" strokeLinecap="round" fill="none" opacity=".5" />
-        </g>
-      </svg>
-
-      {/* Destellos al lado del pulgar */}
-      <span className="pj-chispa absolute right-1 top-6 text-xl text-[#d6b26a]" aria-hidden>✦</span>
-      <span className="pj-chispa absolute right-8 top-0 text-sm text-[#d6b26a] [animation-delay:0.4s]" aria-hidden>✦</span>
-    </div>
   );
 }
