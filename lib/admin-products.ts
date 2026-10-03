@@ -170,6 +170,7 @@ export function validarParcial(body: unknown): Partial<ProductoPayload> {
  * `revalidate = 3600` en verse en la web (app/page.tsx, app/productos).
  */
 export function refrescarCatalogo(): void {
-  revalidatePath('/');
-  revalidatePath('/productos');
+  // /mayorista, /productos y /minorista son dinamicas (gating por sesion):
+  // no tienen ISR. Queda el sitemap, que lista categorias.
+  revalidatePath('/sitemap.xml');
 }

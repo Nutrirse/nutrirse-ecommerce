@@ -7,7 +7,8 @@ import { useMemo, useEffect, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useCart, selectCount } from '@/store/cart';
 import { indiceCategorias, type Categoria } from '@/lib/categorias';
-import { guardarModo, leerModoGuardado, modoDeRuta, RUTAS, type Modo } from '@/lib/modo';
+import { RUTAS, type Modo } from '@/lib/modo';
+import { useModo } from '@/lib/use-modo';
 import { createSupabaseBrowser } from '@/lib/supabase-auth/browser';
 import { iniciarSesionGoogle } from './GoogleLoginButton';
 
@@ -118,20 +119,12 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
   const [mobileOpen, setMobileOpen] = useState(false);
 
   /* ---------- Canal (minorista / mayorista) ---------- */
-  // La ruta manda; en paginas neutras se usa el ultimo canal visitado. El
-  // guardado se lee recien en el efecto: localStorage no existe en el SSR.
-  const modoRuta = modoDeRuta(pathname);
-  const [modoGuardado, setModoGuardado] = useState<Modo | null>(null);
-  useEffect(() => {
-    if (modoRuta) guardarModo(modoRuta);
-    else setModoGuardado(leerModoGuardado());
-  }, [modoRuta]);
-  const modo: Modo = modoRuta ?? modoGuardado ?? 'mayorista';
+  const modo = useModo();
   const otroModo: Modo = modo === 'minorista' ? 'mayorista' : 'minorista';
   const catalogo = RUTAS[modo].catalogo;
   const NAV = navDe(modo);
 
-  /* ---------- Sesion (solo la usa el canal minorista) ---------- */
+  /* ---------- Sesion (gating de precios en los dos canales) ---------- */
   // Esto solo decide que boton se dibuja. Los precios los filtra el
   // servidor (lib/minorista.ts), no este estado.
   const [usuario, setUsuario] = useState<User | null>(null);
@@ -148,7 +141,8 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
 
   const entrar = async () => {
     setEntrando(true);
-    if (await iniciarSesionGoogle(RUTAS.minorista.home)) setEntrando(false);
+    // Vuelve a la misma pagina: ya con sesion, el servidor manda los precios.
+    if (await iniciarSesionGoogle()) setEntrando(false);
   };
   const nombreUsuario =
     (usuario?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? usuario?.email;
@@ -288,8 +282,8 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
             </span>
           </Link>
 
-          {/* ---------- Cuenta (canal minorista) ---------- */}
-          {modo === 'minorista' && AUTH_CONFIGURADO && (
+          {/* ---------- Cuenta ---------- */}
+          {AUTH_CONFIGURADO && (
             usuario ? (
               <form action="/auth/signout" method="post" className="hidden md:block">
                 <button
@@ -441,7 +435,7 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
               </span>
               <span aria-hidden className="text-tostado">→</span>
             </Link>
-            {modo === 'minorista' && AUTH_CONFIGURADO && (
+            {AUTH_CONFIGURADO && (
               usuario ? (
                 <form action="/auth/signout" method="post">
                   <button className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-humo hover:bg-crema">

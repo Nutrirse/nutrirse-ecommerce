@@ -12,38 +12,42 @@ import type { Product } from '@/types';
 export default function ProductCard({
   product,
   related = [],
-  preciosOcultos = false,
+  hasSession = false,
 }: {
   product: Product;
   /** Catálogo completo: alimenta "Productos similares" del quick view. */
   related?: Product[];
   /**
-   * Canal minorista sin sesion. Los precios ya vienen en null desde el
-   * servidor (lib/minorista.ts); esto solo cambia que se dibuja en su lugar.
+   * Hay usuario logueado. Sin sesion (los dos canales) los precios ya vienen
+   * en null desde el servidor (lib/catalogo.ts); esto solo cambia que se
+   * dibuja: login en vez de precio, unidad y boton de agregar.
    */
-  preciosOcultos?: boolean;
+  hasSession?: boolean;
 }) {
+  const preciosOcultos = !hasSession;
   const variantes = product.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [added, setAdded] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const addItem = useCart((s) => s.addItem);
 
-  const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
-  if (!variant) return null;
+  // Sin variantes la tarjeta se dibuja igual (nunca `return null`): un
+  // producto sin precio cargado tiene que seguir apareciendo en la grilla.
+  const variant = variantes.find((v) => v.id === variantId) ?? variantes[0] ?? null;
 
   // La card muestra la principal. El resto de la galeria vive en el quick
   // view; aca solo se avisa que hay mas de una foto.
   const galeria = imagenesDe(product);
 
-  const esConsultar = variant.tipo === 'consultar';
+  const esConsultar = !variant || variant.tipo === 'consultar';
 
   /* El mayorista compara por unidad de medida, no por bulto: el precio por
      kg (o por unidad) es el numero grande y el total de la presentacion va
      debajo, en secundario. */
-  const desglose = desglosePrecio(variant);
+  const desglose = variant ? desglosePrecio(variant) : null;
 
   const onAdd = () => {
+    if (!variant) return;
     addItem(product, variant);
     setAdded(true);
     setTimeout(() => setAdded(false), 1400);
@@ -127,7 +131,7 @@ export default function ProductCard({
                       : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-800'
                   }`}
                 >
-                  {v.tipo === 'consultar' ? '+5 bultos' : v.label}
+                  {v.tipo === 'consultar' && /bulto/i.test(v.label) ? '+5 bultos' : v.label}
                 </button>
               );
             })}
@@ -141,7 +145,7 @@ export default function ProductCard({
               </p>
             )}
             {preciosOcultos ? (
-              <GoogleLoginButton compacto />
+              <GoogleLoginButton compacto texto="Ver precios / Iniciar sesión" />
             ) : esConsultar ? (
               <p className="text-base font-bold text-black">Precio a Consultar</p>
             ) : (
@@ -159,16 +163,16 @@ export default function ProductCard({
                     )}
                   </>
                 ) : (
-                  <p className="text-xl font-bold text-black">{formatARS(variant.precio ?? 0)}</p>
+                  <p className="text-xl font-bold text-black">{formatARS(variant?.precio ?? 0)}</p>
                 )}
               </>
             )}
-            {!preciosOcultos && <p className="mt-0.5 text-[11px] text-gray-400">{variant.label}</p>}
+            {!preciosOcultos && variant && <p className="mt-0.5 text-[11px] text-gray-400">{variant.label}</p>}
           </div>
 
           {/* CTA a todo el ancho. Sin precio no hay que agregar: el
               carrito armaria una linea en $0. */}
-          {!preciosOcultos && (
+          {!preciosOcultos && variant && (
             <button
               onClick={onAdd}
               className={`mt-3 w-full rounded-lg py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.98] ${
@@ -187,7 +191,7 @@ export default function ProductCard({
         <ProductModal
           product={product}
           related={related}
-          preciosOcultos={preciosOcultos}
+          hasSession={hasSession}
           onClose={() => setModalOpen(false)}
         />
       )}

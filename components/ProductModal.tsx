@@ -15,15 +15,16 @@ type Props = {
   product: Product;
   /** Catálogo para armar "Productos similares". */
   related?: Product[];
-  /** Canal minorista sin sesion: login en vez de precio y sin carrito. */
-  preciosOcultos?: boolean;
+  /** Sin sesion (cualquier canal): login en vez de precio y sin carrito. */
+  hasSession?: boolean;
   onClose: () => void;
 };
 
 const SALIDA_MS = 320;
 const AVISO_MS = 2600;
 
-export default function ProductModal({ product, related = [], preciosOcultos = false, onClose }: Props) {
+export default function ProductModal({ product, related = [], hasSession = false, onClose }: Props) {
+  const preciosOcultos = !hasSession;
   // Producto que se esta viendo. Arranca en el que abrio el drawer y
   // cambia al tocar un similar, sin cerrar ni navegar.
   const [activo, setActivo] = useState<Product>(product);
@@ -406,7 +407,7 @@ export default function ProductModal({ product, related = [], preciosOcultos = f
             {/* Precio */}
             <div className="mt-8 border-y border-gray-100 py-6">
               {preciosOcultos ? (
-                <GoogleLoginButton />
+                <GoogleLoginButton texto="Ver precios / Iniciar sesión" />
               ) : esConsultar ? (
                 <>
                   <p className="text-3xl font-bold text-black">Precio a Consultar</p>

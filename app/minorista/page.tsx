@@ -21,11 +21,11 @@ export const dynamic = 'force-dynamic';
 
 /**
  * Home + catalogo del canal minorista. Misma UI que el mayorista (hero,
- * filtros, grilla, banner de envios); cambian solo tres cosas:
+ * filtros, grilla, banner de envios); cambian solo dos cosas:
  *   - el titulo ("Para tu casa"),
- *   - los datos: `precios_minoristas` en vez de las variantes por bulto,
- *   - el gating: sin sesion los precios llegan en null desde el servidor
- *     (lib/minorista.ts) y las cards muestran el login con Google.
+ *   - los datos: `precios_minoristas` en vez de las variantes por bulto.
+ * El gating (precios en null sin sesion + login en las cards) es el mismo
+ * de los dos canales (lib/catalogo.ts).
  */
 export default async function MinoristaPage({
   searchParams,
@@ -88,7 +88,7 @@ export default async function MinoristaPage({
           categorias={categorias}
           initialCat={cat ?? 'todos'}
           initialQuery={q ?? ''}
-          preciosOcultos={!usuario}
+          hasSession={Boolean(usuario)}
           canal="minorista"
         />
       </section>

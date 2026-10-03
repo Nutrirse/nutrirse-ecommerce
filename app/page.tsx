@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import SplashCharacter from '@/components/SplashCharacter';
+import SplashLottie from '@/components/SplashLottie';
 
 // Sin datos: se prerenderiza una vez y se sirve estatico.
 export const dynamic = 'force-static';
@@ -30,7 +30,7 @@ export default function Splash() {
         className="relative h-16 w-auto animate-fade-in object-contain sm:h-20"
       />
 
-      <SplashCharacter className="mt-6 h-56 w-52 sm:h-64 sm:w-60" />
+      <SplashLottie className="relative mt-4 h-60 w-60 sm:h-72 sm:w-72" />
 
       <h1 className="relative mt-2 animate-fade-up text-center font-[family-name:var(--font-display)] text-[clamp(1.9rem,5vw,3.2rem)] font-semibold leading-tight tracking-tight [animation-delay:0.5s]">
         ¡Hola! ¿Cómo querés comprar?

@@ -6,8 +6,9 @@ import { createServerClient } from '@supabase/ssr';
  * Component. Sin esto, la sesion expira a la hora y el usuario vuelve a ver
  * el boton de login aunque siga "logueado" en Google.
  *
- * El matcher lo limita al canal minorista: el resto del sitio (mayorista,
- * admin) no usa Supabase Auth y no tiene por que pagar el round-trip.
+ * El matcher lo limita a los catalogos, que son lo unico que lee la
+ * sesion (gating de precios). Admin y las paginas informativas no pagan el
+ * round-trip.
  */
 export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,5 +33,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/minorista/:path*'],
+  matcher: ['/minorista/:path*', '/mayorista/:path*', '/productos/:path*'],
 };

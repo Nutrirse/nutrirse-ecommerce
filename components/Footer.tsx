@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { WHATSAPP_NUMBER } from '@/lib/whatsapp';
 import { NEGOCIO, REDES } from '@/lib/site';
+import { RUTAS } from '@/lib/modo';
+import { useModo } from '@/lib/use-modo';
 
 const CONTACTO = {
   email: NEGOCIO.email,
@@ -41,9 +45,11 @@ const SOCIALES = [
   },
 ].filter((r): r is typeof r & { href: string } => Boolean(r.href));
 
+/** Un enlace por canal en vez de "Productos": cada uno lleva a su catalogo. */
 const ENLACES = [
   { label: 'Inicio', href: '/' },
-  { label: 'Productos', href: '/productos' },
+  { label: 'Mayorista', href: '/mayorista' },
+  { label: 'Minorista', href: '/minorista' },
   { label: 'Quiénes Somos', href: '/quienes-somos' },
   { label: 'Contacto', href: '/contacto' },
   { label: 'Política de Devolución', href: '/politica-de-devolucion' },
@@ -53,13 +59,28 @@ const ENLACES = [
 const waLegible = (n: string) =>
   n.length === 13 ? `+${n.slice(0, 2)} ${n[2]} ${n.slice(3, 6)} ${n.slice(6, 9)}-${n.slice(9)}` : `+${n}`;
 
+/** Bajada de la marca segun el canal activo (ver lib/use-modo.ts). */
+const BAJADA = {
+  mayorista: {
+    texto: 'Distribuidora mayorista de frutos secos, desecados y semillas. Despachamos desde Salta Capital a todo el país.',
+    nota: 'Venta exclusiva por mayor · Mínimo de compra 5 kg',
+  },
+  minorista: {
+    texto: 'Frutos secos, desecados y semillas en presentaciones para tu casa. Despachamos desde Salta Capital a todo el país.',
+    nota: 'Presentaciones de 1/2 kg y 1 kg · Sin mínimo de compra',
+  },
+};
+
 export default function Footer() {
+  const modo = useModo();
+  const bajada = BAJADA[modo];
+
   return (
     <footer className="border-t border-white/10 bg-gradient-to-b from-[#143620] to-[#0b1c0f] text-[#f5ebd9]">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 md:grid-cols-3">
         {/* ---------- Col 1 · marca ---------- */}
         <div>
-          <Link href="/" className="inline-flex items-center" aria-label="Nutrirse - Inicio">
+          <Link href={RUTAS[modo].home} className="inline-flex items-center" aria-label="Nutrirse - Inicio">
             <Image
               src="/Logo.png"
               alt="Nutrirse"
@@ -68,13 +89,8 @@ export default function Footer() {
               className="h-20 w-auto object-contain"
             />
           </Link>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-[#f5ebd9]/60">
-            Distribuidora mayorista de frutos secos, desecados y semillas.
-            Despachamos desde Salta Capital a todo el país.
-          </p>
-          <p className="mt-4 text-xs text-[#f5ebd9]/40">
-            Venta exclusiva por mayor · Mínimo de compra 5 kg
-          </p>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-[#f5ebd9]/60">{bajada.texto}</p>
+          <p className="mt-4 text-xs text-[#f5ebd9]/40">{bajada.nota}</p>
         </div>
 
         {/* ---------- Col 2 · enlaces ---------- */}

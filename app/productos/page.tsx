@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import CatalogView from '@/components/CatalogView';
-import { getProducts } from '@/lib/products';
+import { getCatalogoMayorista } from '@/lib/catalogo';
 import { getCategorias } from '@/lib/categorias-db';
+import { getUsuario } from '@/lib/supabase-auth/server';
 
 export const metadata: Metadata = {
   title: 'Catálogo Mayorista',
@@ -20,7 +21,8 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 3600;
+// Gating de precios por sesion: dinamica, igual que /mayorista.
+export const dynamic = 'force-dynamic';
 
 export default async function ProductosPage({
   searchParams,
@@ -28,7 +30,11 @@ export default async function ProductosPage({
   searchParams: Promise<{ cat?: string; q?: string }>;
 }) {
   const { cat, q } = await searchParams;
-  const [products, categorias] = await Promise.all([getProducts(), getCategorias()]);
+  const usuario = await getUsuario();
+  const [products, categorias] = await Promise.all([
+    getCatalogoMayorista({ conPrecios: Boolean(usuario) }),
+    getCategorias(),
+  ]);
 
   return (
     <div className="min-h-dvh bg-crema pt-28">
@@ -49,6 +55,7 @@ export default async function ProductosPage({
         categorias={categorias}
         initialCat={cat ?? 'todos'}
         initialQuery={q ?? ''}
+        hasSession={Boolean(usuario)}
       />
     </div>
   );

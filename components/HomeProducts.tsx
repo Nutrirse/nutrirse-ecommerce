@@ -12,7 +12,13 @@ gsap.registerPlugin(ScrollTrigger);
 /** Cuántos productos se muestran en la home antes del CTA al catálogo. */
 export const HOME_LIMIT = 6;
 
-export default function HomeProducts({ products }: { products: Product[] }) {
+export default function HomeProducts({
+  products,
+  hasSession = false,
+}: {
+  products: Product[];
+  hasSession?: boolean;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const destacados = products.slice(0, HOME_LIMIT);
 
@@ -53,7 +59,7 @@ export default function HomeProducts({ products }: { products: Product[] }) {
           {destacados.map((p) => (
             // `products` completo va como relacionados: alimenta el bloque
             // "Productos similares" del quick view sin un fetch extra.
-            <ProductCard key={p.id} product={p} related={products} />
+            <ProductCard key={p.id} product={p} related={products} hasSession={hasSession} />
           ))}
         </div>
 
