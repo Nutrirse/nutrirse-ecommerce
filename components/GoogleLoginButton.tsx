@@ -1,14 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-auth/browser';
+
+/** Misma clave que COOKIE_NEXT en lib/supabase-auth/server.ts. */
+const COOKIE_NEXT = 'nutrirse_next';
 
 /**
  * Abre el OAuth de Google. Devuelve el error si no pudo salir del sitio; si
  * no hubo error el navegador ya esta yendo hacia Google.
+ *
+ * `next` (ruta de vuelta) viaja dos veces: en el `?next=` del redirectTo y
+ * en una cookie de 10 min. La cookie cubre el caso en que Supabase descarta
+ * el redirectTo y vuelve al Site URL (ver middleware.ts).
  */
 export async function iniciarSesionGoogle(next?: string) {
   const destino = next ?? `${window.location.pathname}${window.location.search}`;
+  document.cookie = `${COOKIE_NEXT}=${encodeURIComponent(destino)}; path=/; max-age=600; samesite=lax`;
   const { error } = await createSupabaseBrowser().auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -33,13 +42,19 @@ export default function GoogleLoginButton({
   next?: string;
   compacto?: boolean;
 }) {
+  const pathname = usePathname();
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const login = async () => {
     setCargando(true);
     setError(null);
-    const error = await iniciarSesionGoogle(next);
+    // Default: la pagina actual con sus filtros (?cat=, ?q=), sin el
+    // ?error=login de un intento anterior.
+    const query = new URLSearchParams(window.location.search);
+    query.delete('error');
+    const qs = query.toString();
+    const error = await iniciarSesionGoogle(next ?? `${pathname}${qs ? `?${qs}` : ''}`);
     if (error) {
       setError('No pudimos abrir Google. Probá de nuevo.');
       setCargando(false);

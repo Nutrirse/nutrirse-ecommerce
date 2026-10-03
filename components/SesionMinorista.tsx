@@ -12,8 +12,8 @@ export default function SesionMinorista({
   error = false,
 }: {
   usuario: User | null;
-  /** A donde vuelve el callback de OAuth. */
-  next: string;
+  /** A donde vuelve el callback de OAuth. Sin valor: la pagina actual con sus filtros. */
+  next?: string;
   error?: boolean;
 }) {
   if (usuario) {

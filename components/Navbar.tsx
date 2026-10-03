@@ -7,7 +7,7 @@ import { useMemo, useEffect, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useCart, selectCount } from '@/store/cart';
 import { indiceCategorias, type Categoria } from '@/lib/categorias';
-import { RUTAS, type Modo } from '@/lib/modo';
+import { RUTAS, modoDeRuta, type Modo } from '@/lib/modo';
 import { useModo } from '@/lib/use-modo';
 import { createSupabaseBrowser } from '@/lib/supabase-auth/browser';
 import { iniciarSesionGoogle } from './GoogleLoginButton';
@@ -142,7 +142,9 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
   const entrar = async () => {
     setEntrando(true);
     // Vuelve a la misma pagina: ya con sesion, el servidor manda los precios.
-    if (await iniciarSesionGoogle()) setEntrando(false);
+    // En paginas neutras (contacto, etc.) no hay precios: va al catalogo del canal.
+    const destino = modoDeRuta(pathname) ? `${pathname}${window.location.search}` : catalogo;
+    if (await iniciarSesionGoogle(destino)) setEntrando(false);
   };
   const nombreUsuario =
     (usuario?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? usuario?.email;

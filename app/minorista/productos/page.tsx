@@ -44,7 +44,7 @@ export default async function MinoristaProductosPage({
           </p>
         </div>
 
-        <SesionMinorista usuario={usuario} next="/minorista/productos" />
+        <SesionMinorista usuario={usuario} />
       </div>
 
       {/* `key`: el buscador del hero y el mega menu navegan a esta misma ruta

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { createSupabaseServer } from '@/lib/supabase-auth/server';
+import type { NextRequest } from 'next/server';
+import { createSupabaseRoute } from '@/lib/supabase-auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,11 +8,11 @@ export const dynamic = 'force-dynamic';
  * Vuelve a la pagina desde la que se cerro (mismo origen); si no se puede
  * saber, al splash.
  */
-export async function POST(request: Request) {
-  const supabase = await createSupabaseServer();
+export async function POST(request: NextRequest) {
+  const { supabase, responder } = createSupabaseRoute(request);
   await supabase?.auth.signOut();
 
-  const actual = new URL(request.url);
+  const actual = request.nextUrl;
   let destino = new URL('/', actual);
   const referer = request.headers.get('referer');
   if (referer) {
@@ -23,5 +23,6 @@ export async function POST(request: Request) {
       // Referer mal formado: queda el splash.
     }
   }
-  return NextResponse.redirect(destino, { status: 303 });
+  // Las cookies borradas por signOut viajan en este mismo redirect.
+  return responder(destino, { status: 303 });
 }
