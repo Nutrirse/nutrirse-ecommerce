@@ -14,6 +14,7 @@ const ESTATICAS: Array<{
   { ruta: '/', changeFrequency: 'yearly', priority: 1 },
   { ruta: '/mayorista', changeFrequency: 'weekly', priority: 0.9 },
   { ruta: '/minorista', changeFrequency: 'weekly', priority: 0.9 },
+  { ruta: '/minorista/productos', changeFrequency: 'daily', priority: 0.8 },
   { ruta: '/productos', changeFrequency: 'daily', priority: 0.9 },
   { ruta: '/quienes-somos', changeFrequency: 'yearly', priority: 0.6 },
   { ruta: '/contacto', changeFrequency: 'yearly', priority: 0.6 },

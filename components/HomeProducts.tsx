@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProductCard from './ProductCard';
@@ -12,12 +12,25 @@ gsap.registerPlugin(ScrollTrigger);
 /** Cuántos productos se muestran en la home antes del CTA al catálogo. */
 export const HOME_LIMIT = 6;
 
+/**
+ * Grilla de destacados de la home de cada canal. Los defaults son los del
+ * mayorista; `/minorista` pasa su copy, su catalogo y el bloque de sesion
+ * (`aside`) que va a la derecha del encabezado.
+ */
 export default function HomeProducts({
   products,
   hasSession = false,
+  catalogo = '/productos',
+  eyebrow = 'Catálogo mayorista',
+  titulo = 'Elegí la presentación y armá tu pedido.',
+  aside,
 }: {
   products: Product[];
   hasSession?: boolean;
+  catalogo?: string;
+  eyebrow?: string;
+  titulo?: string;
+  aside?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const destacados = products.slice(0, HOME_LIMIT);
@@ -45,13 +58,16 @@ export default function HomeProducts({
     <section id="catalogo" className="scroll-mt-24 bg-crema py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         {/* ---------- Encabezado ---------- */}
-        <header className="max-w-2xl">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-tostado">
-            Catálogo mayorista
-          </p>
-          <h2 className="mt-2 font-[family-name:var(--font-hand)] text-[clamp(2.6rem,7vw,5rem)] font-semibold leading-[1.05] text-carbon">
-            Elegí la presentación y armá tu pedido.
-          </h2>
+        <header className="flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-tostado">
+              {eyebrow}
+            </p>
+            <h2 className="mt-2 font-[family-name:var(--font-hand)] text-[clamp(2.6rem,7vw,5rem)] font-semibold leading-[1.05] text-carbon">
+              {titulo}
+            </h2>
+          </div>
+          {aside}
         </header>
 
         {/* ---------- Grilla (solo destacados) ---------- */}
@@ -71,7 +87,7 @@ export default function HomeProducts({
         {products.length > HOME_LIMIT && (
           <div className="mt-14 flex justify-center">
             <Link
-              href="/productos"
+              href={catalogo}
               className="inline-flex items-center rounded-full border border-carbon/15 bg-hueso px-9 py-4 text-sm font-medium text-carbon transition-all hover:border-carbon/40 hover:shadow-md active:scale-95"
             >
               Ver catálogo completo

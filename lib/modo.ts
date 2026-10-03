@@ -34,5 +34,5 @@ export function guardarModo(modo: Modo) {
 /** Home y catalogo de cada canal. */
 export const RUTAS: Record<Modo, { home: string; catalogo: string }> = {
   mayorista: { home: '/mayorista', catalogo: '/productos' },
-  minorista: { home: '/minorista', catalogo: '/minorista' },
+  minorista: { home: '/minorista', catalogo: '/minorista/productos' },
 };

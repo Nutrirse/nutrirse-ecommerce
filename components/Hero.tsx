@@ -732,7 +732,7 @@ export default function Hero({
   const buscar = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
-    // `#catalogo`: en /minorista la grilla vive debajo del hero, en la misma ruta.
+    // `#catalogo`: ancla de la grilla en el catalogo del canal.
     router.push(q ? `${catalogo}?q=${encodeURIComponent(q)}#catalogo` : `${catalogo}#catalogo`);
   };
 
