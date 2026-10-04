@@ -20,9 +20,9 @@ export const dynamic = 'force-dynamic';
 export default async function MinoristaProductosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cat?: string; q?: string }>;
+  searchParams: Promise<{ cat?: string; q?: string; error?: string }>;
 }) {
-  const { cat, q } = await searchParams;
+  const { cat, q, error } = await searchParams;
   const usuario = await getUsuario();
   const [products, categorias] = await Promise.all([
     getCatalogoMinorista({ conPrecios: Boolean(usuario) }),
@@ -44,7 +44,13 @@ export default async function MinoristaProductosPage({
           </p>
         </div>
 
-        <SesionMinorista usuario={usuario} />
+        {/* Unico lugar del canal con el bloque de login: la home /minorista
+            queda igual a /mayorista. `error`: lo pone /auth/callback al fallar. */}
+        <SesionMinorista
+          usuario={usuario}
+          next="/minorista/productos#catalogo"
+          error={error === 'login'}
+        />
       </div>
 
       {/* `key`: el buscador del hero y el mega menu navegan a esta misma ruta

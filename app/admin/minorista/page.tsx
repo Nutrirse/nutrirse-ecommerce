@@ -4,10 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import CanalNav from '@/components/admin/CanalNav';
+import ProductoModal from '@/components/admin/ProductoModal';
 import { leerJson, mensajeDeError } from '@/lib/fetch-json';
 import { formatARS } from '@/lib/format';
 import { imagenesDe } from '@/lib/imagenes';
 import type { FilaMinorista } from '@/lib/admin-minorista';
+import type { CategoriaAdmin } from '@/lib/admin-categorias';
 import type { Product, Variant } from '@/types';
 
 type Toast = { id: number; texto: string; tipo: 'ok' | 'error' };
@@ -51,6 +53,9 @@ export default function AdminMinoristaPage() {
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todos');
+  // Alta rapida: la tabla de productos es compartida con el panel mayorista.
+  const [creando, setCreando] = useState(false);
+  const [categorias, setCategorias] = useState<CategoriaAdmin[]>([]);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const push = useCallback((texto: string, tipo: Toast['tipo'] = 'ok') => {
@@ -89,9 +94,36 @@ export default function AdminMinoristaPage() {
     }
   }, []);
 
+  /** Solo para el selector del modal de alta. Si falla, el modal igual abre. */
+  const cargarCategorias = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/categories', { cache: 'no-store' });
+      if (res.status === 401) return setSesion('no');
+      const { categories } = await leerJson<{ categories: CategoriaAdmin[] }>(res);
+      setCategorias(categories);
+    } catch {
+      /* no fatal */
+    }
+  }, []);
+
   useEffect(() => {
-    if (sesion === 'si') void cargar();
-  }, [sesion, cargar]);
+    if (sesion === 'si') {
+      void cargar();
+      void cargarCategorias();
+    }
+  }, [sesion, cargar, cargarCategorias]);
+
+  /**
+   * Producto recien creado: entra a la lista sin fila minorista, y filtramos
+   * por su nombre para que quede a mano cargarle 1/2 kg y 1 kg.
+   */
+  const onCreado = (p: Product) => {
+    setProductos((ps) => [...ps.filter((x) => x.id !== p.id), p]);
+    setCreando(false);
+    setFiltro('todos');
+    setBusqueda(p.nombre);
+    push(`“${p.nombre}” creado. Cargale sus precios minoristas.`);
+  };
 
   const visibles = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -200,6 +232,13 @@ export default function AdminMinoristaPage() {
           >
             {cargando ? 'Actualizando…' : 'Actualizar'}
           </button>
+
+          <button
+            onClick={() => setCreando(true)}
+            className="h-10 rounded-full bg-[#1e6b32] px-5 text-sm font-semibold text-white shadow-[0_12px_26px_-12px_rgba(30,107,50,0.9)] transition-all duration-200 hover:bg-[#175427] hover:shadow-[0_16px_30px_-12px_rgba(30,107,50,0.95)] active:scale-95"
+          >
+            + Nuevo producto
+          </button>
         </div>
       </header>
 
@@ -244,6 +283,16 @@ export default function AdminMinoristaPage() {
           </p>
         ))}
       </div>
+
+      {creando && (
+        <ProductoModal
+          producto={null}
+          categorias={categorias}
+          onCategoriaCreada={() => void cargarCategorias()}
+          onClose={() => setCreando(false)}
+          onGuardado={onCreado}
+        />
+      )}
     </div>
   );
 }

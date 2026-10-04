@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Hero from '@/components/Hero';
 import HomeProducts from '@/components/HomeProducts';
 import LogisticsBanner from '@/components/LogisticsBanner';
-import SesionMinorista from '@/components/SesionMinorista';
 import { getCatalogoMinorista } from '@/lib/minorista';
 import { getCategorias } from '@/lib/categorias-db';
 import { getUsuario } from '@/lib/supabase-auth/server';
@@ -25,14 +24,10 @@ export const dynamic = 'force-dynamic';
  * destacados (HomeProducts) con CTA al catalogo completo y banner de envios.
  * El catalogo con filtros vive en /minorista/productos.
  * El gating (precios en null sin sesion + login en las cards) es el mismo
- * de los dos canales (lib/catalogo.ts).
+ * de los dos canales (lib/catalogo.ts). El bloque de sesion (SesionMinorista)
+ * vive solo en /minorista/productos: esta home queda identica a /mayorista.
  */
-export default async function MinoristaPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const { error } = await searchParams;
+export default async function MinoristaPage() {
   const usuario = await getUsuario();
   const [products, categorias] = await Promise.all([
     getCatalogoMinorista({ conPrecios: Boolean(usuario) }),
@@ -49,9 +44,6 @@ export default async function MinoristaPage({
         catalogo={RUTAS.minorista.catalogo}
         eyebrow="Tienda minorista"
         titulo="Para tu casa"
-        aside={
-          <SesionMinorista usuario={usuario} next="/minorista#catalogo" error={error === 'login'} />
-        }
       />
 
       {/* El cotizador por CP vive adentro del banner (ancla #envios). */}
