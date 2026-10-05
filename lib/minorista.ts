@@ -1,5 +1,4 @@
 import { getProducts } from './products';
-import { sinPrecios } from './catalogo';
 import { supabaseAdmin } from './supabase-admin';
 import type { Product, Variant } from '@/types';
 
@@ -20,20 +19,26 @@ const CONSULTAR: Variant = {
  * Catalogo del canal minorista (B2C): todos los productos activos, cada uno
  * con sus variantes de `precios_minoristas` o, si no tiene, "Consultar".
  *
- * `precios_minoristas` se lee con service_role (RLS solo deja leerla a
- * usuarios logueados). Si la key falta o la consulta falla, se sigue con
- * la lista de productos: nunca se devuelve vacio por un problema de precios.
+ * Precios PUBLICOS: se devuelven con o sin sesion (regla de negocio del
+ * canal B2C). Lo que no puede viajar nunca es el precio mayorista: por eso
+ * `precios_por_variante` de products se REEMPLAZA entero, nunca se mezcla.
+ * Un producto sin fila minorista cae en CONSULTAR (precio null), no en sus
+ * variantes por bulto.
+ *
+ * `precios_minoristas` se sigue leyendo con service_role: la RLS de la
+ * tabla (solo authenticated) queda igual, asi nadie la baja entera con la
+ * anon key por la API REST; el precio le llega a la web filtrado por aca.
+ * Si la key falta o la consulta falla, se sigue con la lista de productos:
+ * nunca se devuelve vacio por un problema de precios.
  * Solo servidor (supabase-admin explota en el navegador).
  */
-export async function getCatalogoMinorista({ conPrecios }: { conPrecios: boolean }): Promise<Product[]> {
+export async function getCatalogoMinorista(): Promise<Product[]> {
   const [products, filas] = await Promise.all([getProducts(), leerPreciosMinoristas()]);
 
-  const conVariantes = products.map((p) => {
+  return products.map((p) => {
     const variantes = filas.get(p.id);
     return { ...p, precios_por_variante: variantes?.length ? variantes : [CONSULTAR] };
   });
-
-  return conPrecios ? conVariantes : sinPrecios(conVariantes);
 }
 
 async function leerPreciosMinoristas(): Promise<Map<string, Variant[]>> {

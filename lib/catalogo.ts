@@ -2,10 +2,14 @@ import { getProducts } from './products';
 import type { Product } from '@/types';
 
 /**
- * Gating de precios, comun a los dos canales. Sin sesion los precios se
- * quitan EN EL SERVIDOR: esconderlos solo en la tarjeta no alcanza, porque
- * igual viajarian en el payload de React y se leerian con "ver codigo
- * fuente". La lista de productos se manda siempre completa.
+ * Gating de precios. Regla por canal:
+ * - Mayorista: sin sesion los precios se quitan EN EL SERVIDOR. Esconderlos
+ *   solo en la tarjeta no alcanza, porque igual viajarian en el payload de
+ *   React y se leerian con "ver codigo fuente".
+ * - Minorista: precios publicos (lib/minorista.ts). Ese catalogo reemplaza
+ *   las variantes por las de `precios_minoristas`, asi que el precio
+ *   mayorista nunca viaja en ese canal.
+ * La lista de productos se manda siempre completa.
  */
 export function sinPrecios(products: Product[]): Product[] {
   return products.map((p) => ({

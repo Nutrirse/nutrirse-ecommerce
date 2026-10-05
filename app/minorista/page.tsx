@@ -4,7 +4,6 @@ import HomeProducts from '@/components/HomeProducts';
 import LogisticsBanner from '@/components/LogisticsBanner';
 import { getCatalogoMinorista } from '@/lib/minorista';
 import { getCategorias } from '@/lib/categorias-db';
-import { getUsuario } from '@/lib/supabase-auth/server';
 import { RUTAS } from '@/lib/modo';
 
 export const metadata: Metadata = {
@@ -15,22 +14,21 @@ export const metadata: Metadata = {
   alternates: { canonical: '/minorista' },
 };
 
-// Depende de la cookie de sesion: no puede ser ISR. Si se cacheara, el
-// primer visitante logueado le dejaria los precios a todos los anonimos.
+// Ya no depende de la sesion (precios publicos), pero sigue dinamica: un
+// precio que el admin cambia se ve al instante, sin esperar el ISR.
 export const dynamic = 'force-dynamic';
 
 /**
  * Home del canal minorista. Misma arquitectura que /mayorista: hero,
  * destacados (HomeProducts) con CTA al catalogo completo y banner de envios.
  * El catalogo con filtros vive en /minorista/productos.
- * El gating (precios en null sin sesion + login en las cards) es el mismo
- * de los dos canales (lib/catalogo.ts). El bloque de sesion (SesionMinorista)
- * vive solo en /minorista/productos: esta home queda identica a /mayorista.
+ * Precios publicos: sin gating por sesion (el candado es solo mayorista).
+ * El bloque de sesion (SesionMinorista) vive solo en /minorista/productos:
+ * esta home queda identica a /mayorista.
  */
 export default async function MinoristaPage() {
-  const usuario = await getUsuario();
   const [products, categorias] = await Promise.all([
-    getCatalogoMinorista({ conPrecios: Boolean(usuario) }),
+    getCatalogoMinorista(),
     getCategorias(),
   ]);
 
@@ -40,7 +38,7 @@ export default async function MinoristaPage() {
 
       <HomeProducts
         products={products}
-        hasSession={Boolean(usuario)}
+        preciosVisibles
         catalogo={RUTAS.minorista.catalogo}
         eyebrow="Tienda minorista"
         titulo="Para tu casa"

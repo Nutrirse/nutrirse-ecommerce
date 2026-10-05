@@ -12,19 +12,19 @@ import type { Product } from '@/types';
 export default function ProductCard({
   product,
   related = [],
-  hasSession = false,
+  preciosVisibles = false,
 }: {
   product: Product;
   /** Catálogo completo: alimenta "Productos similares" del quick view. */
   related?: Product[];
   /**
-   * Hay usuario logueado. Sin sesion (los dos canales) los precios ya vienen
-   * en null desde el servidor (lib/catalogo.ts); esto solo cambia que se
-   * dibuja: login en vez de precio, unidad y boton de agregar.
+   * Lo decide la pagina: minorista siempre, mayorista solo con sesion. Si es
+   * false los precios ya vienen en null desde el servidor (lib/catalogo.ts);
+   * esto solo cambia que se dibuja: login en vez de precio y sin agregar.
    */
-  hasSession?: boolean;
+  preciosVisibles?: boolean;
 }) {
-  const preciosOcultos = !hasSession;
+  const preciosOcultos = !preciosVisibles;
   const variantes = product.precios_por_variante;
   const [variantId, setVariantId] = useState(variantes[0]?.id ?? '');
   const [added, setAdded] = useState(false);
@@ -191,7 +191,7 @@ export default function ProductCard({
         <ProductModal
           product={product}
           related={related}
-          hasSession={hasSession}
+          preciosVisibles={preciosVisibles}
           onClose={() => setModalOpen(false)}
         />
       )}

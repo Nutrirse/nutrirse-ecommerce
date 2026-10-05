@@ -19,14 +19,15 @@ export const HOME_LIMIT = 6;
  */
 export default function HomeProducts({
   products,
-  hasSession = false,
+  preciosVisibles = false,
   catalogo = '/productos',
   eyebrow = 'Catálogo mayorista',
   titulo = 'Elegí la presentación y armá tu pedido.',
   aside,
 }: {
   products: Product[];
-  hasSession?: boolean;
+  /** Minorista: siempre. Mayorista: solo con sesion. */
+  preciosVisibles?: boolean;
   catalogo?: string;
   eyebrow?: string;
   titulo?: string;
@@ -75,7 +76,7 @@ export default function HomeProducts({
           {destacados.map((p) => (
             // `products` completo va como relacionados: alimenta el bloque
             // "Productos similares" del quick view sin un fetch extra.
-            <ProductCard key={p.id} product={p} related={products} hasSession={hasSession} />
+            <ProductCard key={p.id} product={p} related={products} preciosVisibles={preciosVisibles} />
           ))}
         </div>
 

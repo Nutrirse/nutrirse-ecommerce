@@ -28,7 +28,7 @@ export default async function MayoristaHome() {
   return (
     <>
       <Hero categorias={categorias} />
-      <HomeProducts products={products} hasSession={Boolean(usuario)} />
+      <HomeProducts products={products} preciosVisibles={Boolean(usuario)} />
       {/* El cotizador por CP vive adentro del banner (ancla #envios). */}
       <LogisticsBanner />
     </>

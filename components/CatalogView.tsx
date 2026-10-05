@@ -53,7 +53,7 @@ export default function CatalogView({
   categorias: filas = [],
   initialCat = 'todos',
   initialQuery = '',
-  hasSession = false,
+  preciosVisibles = false,
   canal = 'mayorista',
 }: {
   products: Product[];
@@ -63,13 +63,14 @@ export default function CatalogView({
   /** Termino que llega por `?q=` desde el buscador del hero. */
   initialQuery?: string;
   /**
-   * Usuario logueado. Sin sesion la grilla se dibuja IGUAL (mismos productos,
-   * mismas categorias); solo las tarjetas cambian el precio por el login.
+   * Minorista: siempre. Mayorista: solo con sesion. Sin precios la grilla se
+   * dibuja IGUAL (mismos productos, mismas categorias); solo las tarjetas
+   * cambian el precio por el login.
    */
-  hasSession?: boolean;
+  preciosVisibles?: boolean;
   canal?: Canal;
 }) {
-  const preciosOcultos = !hasSession;
+  const preciosOcultos = !preciosVisibles;
   const RANGOS_PRECIO = RANGOS[canal];
   const indice = useMemo(() => indiceCategorias(filas), [filas]);
   // `?cat=reposteria-harinas` y compania caen bajo la unica "Repostería".
@@ -181,7 +182,7 @@ export default function CatalogView({
         </ul>
       </FiltroGrupo>
 
-      {/* Sin sesion no hay precios: filtrar u ordenar por precio no tiene
+      {/* Sin precios (mayorista sin sesion): filtrar u ordenar por precio no tiene
           sentido (todos valen 0). Se ocultan esos controles, no productos. */}
       {!preciosOcultos && (
         <FiltroGrupo titulo="Precio">
@@ -328,7 +329,7 @@ export default function CatalogView({
         <div>
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {visibles.map((p) => (
-              <ProductCard key={p.id} product={p} related={products} hasSession={hasSession} />
+              <ProductCard key={p.id} product={p} related={products} preciosVisibles={preciosVisibles} />
             ))}
           </div>
 

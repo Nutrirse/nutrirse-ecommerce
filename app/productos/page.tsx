@@ -55,7 +55,7 @@ export default async function ProductosPage({
         categorias={categorias}
         initialCat={cat ?? 'todos'}
         initialQuery={q ?? ''}
-        hasSession={Boolean(usuario)}
+        preciosVisibles={Boolean(usuario)}
       />
     </div>
   );

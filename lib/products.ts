@@ -10,8 +10,9 @@ import type { Product } from '@/types';
  * Los precios (`precios_por_variante`) no son legibles con la anon key:
  * supabase/seguridad_precios.sql le quita esa columna a anon y
  * authenticated. Por eso el catalogo se lee con service_role. Ojo: este
- * modulo devuelve SIEMPRE los precios; quien decide si llegan a la UI es
- * lib/catalogo.ts (null sin sesion). No llamar a getProducts() desde una
+ * modulo devuelve SIEMPRE los precios mayoristas; quien decide si llegan a
+ * la UI es lib/catalogo.ts (null sin sesion) o lib/minorista.ts (los
+ * reemplaza por los minoristas). No llamar a getProducts() desde una
  * pagina sin pasar por ahi.
  */
 

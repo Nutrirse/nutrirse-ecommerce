@@ -13,7 +13,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/minorista/productos' },
 };
 
-// Gating de precios por sesion: dinamica, igual que /minorista.
+// Dinamica por el bloque de sesion (SesionMinorista). Los precios son
+// publicos: no dependen de la cookie.
 export const dynamic = 'force-dynamic';
 
 /** Catalogo completo del canal minorista (filtros + buscador). Par de /productos. */
@@ -25,7 +26,7 @@ export default async function MinoristaProductosPage({
   const { cat, q, error } = await searchParams;
   const usuario = await getUsuario();
   const [products, categorias] = await Promise.all([
-    getCatalogoMinorista({ conPrecios: Boolean(usuario) }),
+    getCatalogoMinorista(),
     getCategorias(),
   ]);
 
@@ -62,7 +63,7 @@ export default async function MinoristaProductosPage({
         categorias={categorias}
         initialCat={cat ?? 'todos'}
         initialQuery={q ?? ''}
-        hasSession={Boolean(usuario)}
+        preciosVisibles
         canal="minorista"
       />
     </div>
