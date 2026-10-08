@@ -136,3 +136,18 @@ export const NEGOCIO = {
   /** Se arma solo desde REDES: solo entran las URLs reales. Lo consume `sameAs`. */
   redes: Object.values(REDES).filter((u): u is string => Boolean(u)),
 };
+
+/**
+ * Datos del responsable de la base de datos (Ley 25.326). Los consumen
+ * /politica-de-privacidad y /terminos-y-condiciones. `null` = el cliente
+ * todavia no lo paso: la pagina muestra el hueco entre corchetes para que
+ * se note antes de publicar. NUNCA inventar un numero de inscripcion.
+ */
+export const LEGAL = {
+  razonSocial: null as string | null,
+  cuit: null as string | null,
+  /** N.º de inscripcion en el Registro Nacional de Bases de Datos (AAIP). */
+  registroBaseDatos: null as string | null,
+  /** Fecha de la ultima revision de los textos legales. */
+  actualizado: '2026-10-05',
+};

@@ -16,7 +16,8 @@ const CONSULTAR: Variant = {
 };
 
 /**
- * Catalogo del canal minorista (B2C): todos los productos activos, cada uno
+ * Catalogo del canal minorista (B2C): productos activos con
+ * `visible_minorista`, cada uno
  * con sus variantes de `precios_minoristas` o, si no tiene, "Consultar".
  *
  * Precios PUBLICOS: se devuelven con o sin sesion (regla de negocio del
@@ -33,7 +34,7 @@ const CONSULTAR: Variant = {
  * Solo servidor (supabase-admin explota en el navegador).
  */
 export async function getCatalogoMinorista(): Promise<Product[]> {
-  const [products, filas] = await Promise.all([getProducts(), leerPreciosMinoristas()]);
+  const [products, filas] = await Promise.all([getProducts('minorista'), leerPreciosMinoristas()]);
 
   return products.map((p) => {
     const variantes = filas.get(p.id);

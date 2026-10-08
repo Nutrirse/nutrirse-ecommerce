@@ -5,6 +5,8 @@ import CartDrawer from '@/components/CartDrawer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import Footer from '@/components/Footer';
 import SoloSitioPublico from '@/components/SoloSitioPublico';
+import CookieBanner from '@/components/CookieBanner';
+import Analytics from '@/components/Analytics';
 import { schemaSitio } from '@/lib/schema';
 import { getCategorias } from '@/lib/categorias-db';
 import {
@@ -103,6 +105,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Footer />
           <CartDrawer />
           <FloatingWhatsApp />
+          {/* GA y Pixel solo cargan despues del "Aceptar" del banner. */}
+          <CookieBanner />
+          <Analytics />
         </SoloSitioPublico>
       </body>
     </html>

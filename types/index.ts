@@ -40,6 +40,12 @@ export type Product = {
   categoria: string | null;
   precios_por_variante: Variant[];
   activo: boolean;
+  /**
+   * Tienda en la que se lista (ademas de `activo`). Ver
+   * supabase/migracion_canales.sql. Ausente (fallback estatico) = true.
+   */
+  visible_mayorista?: boolean;
+  visible_minorista?: boolean;
   orden: number;
 };
 

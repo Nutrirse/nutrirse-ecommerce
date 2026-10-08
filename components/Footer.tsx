@@ -53,6 +53,8 @@ const ENLACES = [
   { label: 'Quiénes Somos', href: '/quienes-somos' },
   { label: 'Contacto', href: '/contacto' },
   { label: 'Política de Devolución', href: '/politica-de-devolucion' },
+  { label: 'Términos y Condiciones', href: '/terminos-y-condiciones' },
+  { label: 'Política de Privacidad', href: '/politica-de-privacidad' },
 ];
 
 // Formato legible: 549 387 487 0997 -> +54 9 387 487-0997

@@ -20,6 +20,6 @@ export function sinPrecios(products: Product[]): Product[] {
 
 /** Catalogo mayorista (variantes por bulto). */
 export async function getCatalogoMayorista({ conPrecios }: { conPrecios: boolean }): Promise<Product[]> {
-  const products = await getProducts();
+  const products = await getProducts('mayorista');
   return conPrecios ? products : sinPrecios(products);
 }

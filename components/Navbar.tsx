@@ -11,6 +11,7 @@ import { RUTAS, modoDeRuta, type Modo } from '@/lib/modo';
 import { useModo } from '@/lib/use-modo';
 import { createSupabaseBrowser } from '@/lib/supabase-auth/browser';
 import { iniciarSesionGoogle } from './GoogleLoginButton';
+import EliminarCuenta from './EliminarCuenta';
 
 /* ------------------------------------------------------------------ */
 /* Estructura del mega menu                                            */
@@ -148,6 +149,19 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
   };
   const nombreUsuario =
     (usuario?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? usuario?.email;
+
+  // Menu de cuenta (desktop): cerrar sesion + eliminar cuenta. Se cierra
+  // al hacer clic afuera.
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
+  const cuentaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!cuentaAbierta) return;
+    const fuera = (e: MouseEvent) => {
+      if (!cuentaRef.current?.contains(e.target as Node)) setCuentaAbierta(false);
+    };
+    document.addEventListener('mousedown', fuera);
+    return () => document.removeEventListener('mousedown', fuera);
+  }, [cuentaAbierta]);
 
   // Cierre diferido: evita que el menu parpadee al cruzar el gap
   // de 8px entre el trigger y el panel.
@@ -287,17 +301,33 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
           {/* ---------- Cuenta ---------- */}
           {AUTH_CONFIGURADO && (
             usuario ? (
-              <form action="/auth/signout" method="post" className="hidden md:block">
+              <div ref={cuentaRef} className="relative hidden md:block">
                 <button
-                  title={`${nombreUsuario ?? ''} · Cerrar sesión`}
+                  onClick={() => setCuentaAbierta((v) => !v)}
+                  aria-expanded={cuentaAbierta}
+                  aria-haspopup="true"
+                  title={nombreUsuario ?? 'Mi cuenta'}
                   className="flex h-10 items-center gap-2 rounded-full px-3 text-sm text-[#f5ebd9]/80 transition-colors hover:bg-white/10 hover:text-[#f5ebd9]"
                 >
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#d6b26a] text-xs font-semibold uppercase text-[#0b1c0f]">
                     {nombreUsuario?.charAt(0)}
                   </span>
-                  Salir
+                  Cuenta
                 </button>
-              </form>
+                {cuentaAbierta && (
+                  <div className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-black/5 bg-white p-2 text-carbon shadow-xl">
+                    <p className="truncate px-3 py-2 text-xs text-humo">Hola {nombreUsuario}</p>
+                    <form action="/auth/signout" method="post">
+                      <button className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-crema">
+                        Cerrar sesión
+                      </button>
+                    </form>
+                    <div className="mt-1 border-t border-black/5 px-3 pb-1 pt-2 text-humo">
+                      <EliminarCuenta />
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <button
                 onClick={entrar}
@@ -439,11 +469,16 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
             </Link>
             {AUTH_CONFIGURADO && (
               usuario ? (
-                <form action="/auth/signout" method="post">
-                  <button className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-humo hover:bg-crema">
-                    Hola {nombreUsuario} · Cerrar sesión
-                  </button>
-                </form>
+                <>
+                  <form action="/auth/signout" method="post">
+                    <button className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-humo hover:bg-crema">
+                      Hola {nombreUsuario} · Cerrar sesión
+                    </button>
+                  </form>
+                  <div className="px-3 text-humo">
+                    <EliminarCuenta />
+                  </div>
+                </>
               ) : (
                 <button
                   onClick={entrar}

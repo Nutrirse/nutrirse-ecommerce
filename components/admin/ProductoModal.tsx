@@ -28,6 +28,12 @@ type Props = {
   /** null => alta. Con producto => edicion. */
   producto: Product | null;
   /**
+   * Solo con `producto` null: precarga el alta con los datos de otro producto
+   * (duplicar). El id de la plantilla nunca se usa: guardar hace POST y crea
+   * una fila nueva, el original queda intacto.
+   */
+  plantilla?: Product | null;
+  /**
    * Categorias reales (tabla `categories`). El selector no acepta texto
    * libre: crear una categoria nueva la da de alta en la tabla, para que
    * despues se pueda renombrar o borrar desde su propio ABM.
@@ -45,26 +51,35 @@ const label = 'text-xs font-semibold uppercase tracking-wider text-tostado';
 
 export default function ProductoModal({
   producto,
+  plantilla = null,
   categorias = [],
   onClose,
   onGuardado,
   onCategoriaCreada,
 }: Props) {
   const esNuevo = producto === null;
+  const duplicando = esNuevo && plantilla !== null;
+  // Fuente de los valores iniciales. Para decidir POST vs PATCH se mira
+  // siempre `producto`, nunca `base`.
+  const base = producto ?? plantilla;
 
-  const [nombre, setNombre] = useState(producto?.nombre ?? '');
-  const [categoria, setCategoria] = useState(producto?.categoria ?? '');
+  const [nombre, setNombre] = useState(base?.nombre ?? '');
+  const [categoria, setCategoria] = useState(base?.categoria ?? '');
   // `nuevaCategoria` solo se usa mientras el selector esta en modo "crear".
   const [creandoCategoria, setCreandoCategoria] = useState(false);
   const [nuevaCategoria, setNuevaCategoria] = useState('');
   const [guardandoCategoria, setGuardandoCategoria] = useState(false);
-  const [descripcion, setDescripcion] = useState(producto?.descripcion ?? '');
-  const [composicion, setComposicion] = useState(producto?.composicion ?? '');
-  const [notaVenta, setNotaVenta] = useState(producto?.nota_venta ?? '');
-  const [imagenes, setImagenes] = useState<string[]>(producto ? imagenesDe(producto) : []);
-  const [activo, setActivo] = useState(producto?.activo ?? true);
+  const [descripcion, setDescripcion] = useState(base?.descripcion ?? '');
+  const [composicion, setComposicion] = useState(base?.composicion ?? '');
+  const [notaVenta, setNotaVenta] = useState(base?.nota_venta ?? '');
+  const [imagenes, setImagenes] = useState<string[]>(base ? imagenesDe(base) : []);
+  const [activo, setActivo] = useState(base?.activo ?? true);
+  // Al duplicar, el panel que abre el modal ya trae la plantilla con los
+  // canales armados (copia minorista => solo minorista, y viceversa).
+  const [visibleMayorista, setVisibleMayorista] = useState(base?.visible_mayorista ?? true);
+  const [visibleMinorista, setVisibleMinorista] = useState(base?.visible_minorista ?? true);
   const [variantes, setVariantes] = useState<Variant[]>(
-    producto?.precios_por_variante?.length ? producto.precios_por_variante : VARIANTES_BASE
+    base?.precios_por_variante?.length ? base.precios_por_variante : VARIANTES_BASE
   );
 
   const [subiendo, setSubiendo] = useState(false);
@@ -275,6 +290,8 @@ export default function ProductoModal({
       imagen_url: imagenes[0] ?? null,
       imagenes,
       activo,
+      visible_mayorista: visibleMayorista,
+      visible_minorista: visibleMinorista,
       precios_por_variante: variantes,
     };
 
@@ -305,12 +322,12 @@ export default function ProductoModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={esNuevo ? 'Nuevo producto' : `Editar ${producto?.nombre}`}
+        aria-label={duplicando ? `Duplicar ${plantilla?.nombre}` : esNuevo ? 'Nuevo producto' : `Editar ${producto?.nombre}`}
         className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-[#fdfbf7] shadow-[0_45px_90px_-35px_rgba(11,28,15,0.75)] sm:rounded-3xl"
       >
         <div className="flex items-center justify-between border-b border-carbon/10 bg-gradient-to-r from-[#143620] to-[#0b1c0f] px-6 py-4">
           <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#f5ebd9]">
-            {esNuevo ? 'Agregar producto' : 'Editar producto'}
+            {duplicando ? 'Duplicar producto' : esNuevo ? 'Agregar producto' : 'Editar producto'}
           </h2>
           <button
             onClick={onClose}
@@ -584,6 +601,33 @@ export default function ProductoModal({
                 />
                 Visible en la web (destildar = sin stock)
               </label>
+
+              <fieldset>
+                <legend className={label}>Canales de venta</legend>
+                <div className="mt-1.5 space-y-1.5">
+                  <label className="flex items-center gap-2 text-sm text-carbon">
+                    <input
+                      type="checkbox"
+                      checked={visibleMayorista}
+                      onChange={(e) => setVisibleMayorista(e.target.checked)}
+                      className="h-4 w-4 rounded border-carbon/25 accent-[#1e6b32]"
+                    />
+                    Mostrar en tienda Mayorista
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-carbon">
+                    <input
+                      type="checkbox"
+                      checked={visibleMinorista}
+                      onChange={(e) => setVisibleMinorista(e.target.checked)}
+                      className="h-4 w-4 rounded border-carbon/25 accent-[#1e6b32]"
+                    />
+                    Mostrar en tienda Minorista
+                  </label>
+                </div>
+                {!visibleMayorista && !visibleMinorista && (
+                  <p className="mt-1 text-[11px] text-[#b3261e]">No va a aparecer en ninguna tienda.</p>
+                )}
+              </fieldset>
             </div>
           </div>
 

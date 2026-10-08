@@ -134,10 +134,29 @@ export async function borrarImagenPorUrl(url: string | null): Promise<void> {
  * Version en lote, para la galeria. Un solo `remove()` con todos los paths:
  * las URLs externas (Unsplash y las del fallback) quedan afuera solas porque
  * `pathDesdeUrlPublica` devuelve null.
+ *
+ * Se llama despues del UPDATE/DELETE, asi que cualquier producto que todavia
+ * referencie la URL es otro: pasa con los duplicados (variante minorista de un
+ * producto mayorista), que comparten fotos. Esas no se tocan.
  */
 export async function borrarImagenesPorUrl(urls: (string | null)[]): Promise<void> {
   if (!supabaseAdmin) return;
-  const paths = urls
+  const candidatas = [...new Set(urls.filter((u): u is string => Boolean(pathDesdeUrlPublica(u))))];
+  if (candidatas.length === 0) return;
+
+  // El catalogo es chico: leer todas las referencias es mas simple y seguro
+  // que armar un filtro `or()` con URLs escapadas. Si la lectura falla, no se
+  // borra nada (mejor un huerfano en Storage que una foto rota).
+  const { data, error } = await supabaseAdmin.from('products').select('imagen_url, imagenes');
+  if (error) return;
+  const enUso = new Set<string>();
+  for (const p of (data ?? []) as { imagen_url: string | null; imagenes: string[] | null }[]) {
+    if (p.imagen_url) enUso.add(p.imagen_url);
+    for (const u of p.imagenes ?? []) enUso.add(u);
+  }
+
+  const paths = candidatas
+    .filter((u) => !enUso.has(u))
     .map(pathDesdeUrlPublica)
     .filter((p): p is string => Boolean(p));
   if (paths.length === 0) return;

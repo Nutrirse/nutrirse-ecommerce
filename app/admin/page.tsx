@@ -344,6 +344,7 @@ type FilaProps = {
   /** false => el slug no existe como fila en `categories` (base sin migrar). */
   categoriaRegistrada: boolean;
   onEditar: () => void;
+  onDuplicar: () => void;
   onEliminar: () => void;
   onEstado: (activo: boolean) => void;
   onPrecioBase: (base: number, escala: EscalaPeso) => Promise<void>;
@@ -429,12 +430,14 @@ function SelectorEstado({
 function Acciones({
   producto,
   onEditar,
+  onDuplicar,
   onEliminar,
   guardando,
   clase,
 }: {
   producto: Product;
   onEditar: () => void;
+  onDuplicar: () => void;
   onEliminar: () => void;
   guardando: boolean;
   /** Tamano del area tactil: mas grande en la tarjeta. */
@@ -449,6 +452,17 @@ function Acciones({
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+      </button>
+      <button
+        onClick={onDuplicar}
+        aria-label={`Duplicar ${producto.nombre}`}
+        title="Duplicar producto"
+        className={`flex items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#1e6b32]/10 hover:text-[#175427] ${clase}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="9" y="9" width="12" height="12" rx="2" />
+          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
         </svg>
       </button>
       <button
@@ -523,6 +537,7 @@ function TarjetaProducto({
   etiquetaCategoria,
   categoriaRegistrada,
   onEditar,
+  onDuplicar,
   onEliminar,
   onEstado,
   onPrecioBase,
@@ -575,6 +590,7 @@ function TarjetaProducto({
         <Acciones
           producto={producto}
           onEditar={onEditar}
+          onDuplicar={onDuplicar}
           onEliminar={onEliminar}
           guardando={estado === 'guardando'}
           clase="h-10 w-10"
@@ -594,6 +610,7 @@ function FilaProducto({
   etiquetaCategoria,
   categoriaRegistrada,
   onEditar,
+  onDuplicar,
   onEliminar,
   onEstado,
   onPrecioBase,
@@ -652,6 +669,7 @@ function FilaProducto({
         <Acciones
           producto={producto}
           onEditar={onEditar}
+          onDuplicar={onDuplicar}
           onEliminar={onEliminar}
           guardando={estado === 'guardando'}
           clase="h-8 w-8"
@@ -675,7 +693,8 @@ export default function AdminPage() {
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState('');
   const [estados, setEstados] = useState<Record<string, EstadoFila>>({});
-  const [modal, setModal] = useState<{ abierto: boolean; producto: Product | null }>({
+  // `plantilla` solo en alta: duplicar precarga el modal pero guarda con POST.
+  const [modal, setModal] = useState<{ abierto: boolean; producto: Product | null; plantilla?: Product }>({
     abierto: false,
     producto: null,
   });
@@ -877,6 +896,12 @@ export default function AdminPage() {
     etiquetaCategoria: p.categoria ? indice.etiqueta(p.categoria) : '',
     categoriaRegistrada: p.categoria ? conocidas.has(p.categoria) : true,
     onEditar: () => setModal({ abierto: true, producto: p }),
+    onDuplicar: () =>
+      setModal({
+        abierto: true,
+        producto: null,
+        plantilla: { ...p, nombre: `${p.nombre} (Copia)`, visible_mayorista: true, visible_minorista: false },
+      }),
     onEliminar: () => void eliminar(p),
     onEstado: (activo: boolean) => void patch(p, { activo }, 'Estado'),
     onPrecioBase: (base: number, escala: EscalaPeso) => cambiarPrecioBase(p, base, escala),
@@ -1072,7 +1097,9 @@ export default function AdminPage() {
 
       {modal.abierto && (
         <ProductoModal
+          key={modal.producto?.id ?? `nuevo:${modal.plantilla?.id ?? ''}`}
           producto={modal.producto}
+          plantilla={modal.plantilla}
           categorias={categorias}
           onCategoriaCreada={() => void cargarCategorias()}
           onClose={() => setModal({ abierto: false, producto: null })}

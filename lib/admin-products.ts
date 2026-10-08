@@ -20,6 +20,9 @@ export type ProductoPayload = {
   imagen_url: string | null;
   imagenes: string[];
   activo: boolean;
+  /** Tienda en la que se lista; ver supabase/migracion_canales.sql. */
+  visible_mayorista: boolean;
+  visible_minorista: boolean;
   orden: number;
   precios_por_variante: Variant[];
 };
@@ -136,6 +139,8 @@ export function validarProducto(body: unknown): ProductoPayload {
     nota_venta: texto(o.nota_venta, 'la nota de venta', 200),
     ...conImagenPrincipal(o),
     activo: o.activo !== false,
+    visible_mayorista: o.visible_mayorista !== false,
+    visible_minorista: o.visible_minorista !== false,
     orden: Number.isFinite(Number(o.orden)) ? Math.trunc(Number(o.orden)) : 0,
     precios_por_variante: validarVariantes(o.precios_por_variante),
   };
@@ -156,6 +161,8 @@ export function validarParcial(body: unknown): Partial<ProductoPayload> {
   // de las dos lo violaria.
   if ('imagenes' in o || 'imagen_url' in o) Object.assign(out, conImagenPrincipal(o));
   if ('activo' in o) out.activo = Boolean(o.activo);
+  if ('visible_mayorista' in o) out.visible_mayorista = Boolean(o.visible_mayorista);
+  if ('visible_minorista' in o) out.visible_minorista = Boolean(o.visible_minorista);
   if ('orden' in o) out.orden = Math.trunc(Number(o.orden) || 0);
   if ('precios_por_variante' in o) {
     out.precios_por_variante = validarVariantes(o.precios_por_variante);

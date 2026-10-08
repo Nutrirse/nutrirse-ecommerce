@@ -53,8 +53,11 @@ export default function AdminMinoristaPage() {
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todos');
-  // Alta rapida: la tabla de productos es compartida con el panel mayorista.
-  const [creando, setCreando] = useState(false);
+  // Alta y edicion: la tabla de productos es compartida con el panel mayorista,
+  // asi que lo que se cambie aca impacta en los dos canales.
+  // null => cerrado. `producto` null => alta (con `plantilla` => duplicado).
+  const [modal, setModal] = useState<{ producto: Product | null; plantilla?: Product } | null>(null);
+  const [eliminando, setEliminando] = useState<string | null>(null);
   const [categorias, setCategorias] = useState<CategoriaAdmin[]>([]);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -117,12 +120,50 @@ export default function AdminMinoristaPage() {
    * Producto recien creado: entra a la lista sin fila minorista, y filtramos
    * por su nombre para que quede a mano cargarle 1/2 kg y 1 kg.
    */
-  const onCreado = (p: Product) => {
+  const onGuardado = (p: Product, esNuevo: boolean) => {
+    setModal(null);
+    if (!esNuevo) {
+      // Edicion: reemplaza en el lugar. La fila minorista no cambia, asi que
+      // el borrador de precios que estuviera a medio cargar se conserva.
+      setProductos((ps) => ps.map((x) => (x.id === p.id ? p : x)));
+      push(`“${p.nombre}” actualizado`);
+      return;
+    }
     setProductos((ps) => [...ps.filter((x) => x.id !== p.id), p]);
-    setCreando(false);
     setFiltro('todos');
     setBusqueda(p.nombre);
     push(`“${p.nombre}” creado. Cargale sus precios minoristas.`);
+  };
+
+  /** Misma confirmacion y endpoint que el catalogo mayorista. */
+  const eliminar = async (p: Product) => {
+    const ok = window.confirm(
+      `¿Eliminar "${p.nombre}"?
+
+Se borra el producto y su imagen del Storage. Esta acción no se puede deshacer.
+
+Si solo querés ocultarlo de la web, cambiá el estado a "Sin stock".`
+    );
+    if (!ok) return;
+
+    setEliminando(p.id);
+    try {
+      const res = await fetch(`/api/admin/products/${p.id}`, { method: 'DELETE' });
+      if (res.status === 401) return setSesion('no');
+      await leerJson<{ ok: true }>(res);
+      // La fila minorista se va sola en la DB (on delete cascade).
+      setProductos((ps) => ps.filter((x) => x.id !== p.id));
+      setFilas((m) => {
+        const n = new Map(m);
+        n.delete(p.id);
+        return n;
+      });
+      push(`“${p.nombre}” eliminado`);
+    } catch (e) {
+      push(mensajeDeError(e, 'Error al eliminar'), 'error');
+    } finally {
+      setEliminando(null);
+    }
   };
 
   const visibles = useMemo(() => {
@@ -180,7 +221,7 @@ export default function AdminMinoristaPage() {
     );
   }
 
-  const enCanal = productos.filter((p) => filas.has(p.id)).length;
+  const enCanal = productos.filter((p) => filas.has(p.id) && p.visible_minorista !== false).length;
 
   return (
     <div className="min-h-dvh bg-crema">
@@ -234,7 +275,7 @@ export default function AdminMinoristaPage() {
           </button>
 
           <button
-            onClick={() => setCreando(true)}
+            onClick={() => setModal({ producto: null })}
             className="h-10 rounded-full bg-[#1e6b32] px-5 text-sm font-semibold text-white shadow-[0_12px_26px_-12px_rgba(30,107,50,0.9)] transition-all duration-200 hover:bg-[#175427] hover:shadow-[0_16px_30px_-12px_rgba(30,107,50,0.95)] active:scale-95"
           >
             + Nuevo producto
@@ -261,6 +302,17 @@ export default function AdminMinoristaPage() {
             producto={p}
             fila={filas.get(p.id) ?? null}
             onGuardar={(v) => guardar(p, v)}
+            onEditar={() => setModal({ producto: p })}
+            // Copia para el canal minorista: nombre/descripcion propios sin
+            // tocar el producto que ve el mayorista.
+            onDuplicar={() =>
+              setModal({
+                producto: null,
+                plantilla: { ...p, nombre: `${p.nombre} (Minorista)`, visible_minorista: true, visible_mayorista: false },
+              })
+            }
+            onEliminar={() => void eliminar(p)}
+            eliminando={eliminando === p.id}
           />
         ))}
 
@@ -284,13 +336,16 @@ export default function AdminMinoristaPage() {
         ))}
       </div>
 
-      {creando && (
+      {modal && (
         <ProductoModal
-          producto={null}
+          // Remonta al pasar de un producto a otro: el modal inicializa su estado una vez.
+          key={modal.producto?.id ?? `nuevo:${modal.plantilla?.id ?? ''}`}
+          producto={modal.producto}
+          plantilla={modal.plantilla}
           categorias={categorias}
           onCategoriaCreada={() => void cargarCategorias()}
-          onClose={() => setCreando(false)}
-          onGuardado={onCreado}
+          onClose={() => setModal(null)}
+          onGuardado={onGuardado}
         />
       )}
     </div>
@@ -303,10 +358,18 @@ function FilaProducto({
   producto: p,
   fila,
   onGuardar,
+  onEditar,
+  onDuplicar,
+  onEliminar,
+  eliminando,
 }: {
   producto: Product;
   fila: FilaMinorista | null;
   onGuardar: (v: Variant[]) => Promise<boolean>;
+  onEditar: () => void;
+  onDuplicar: () => void;
+  onEliminar: () => void;
+  eliminando: boolean;
 }) {
   const original = useMemo(() => aBorrador(fila?.variantes ?? []), [fila]);
   const [borrador, setBorrador] = useState<Borrador[]>(original);
@@ -338,7 +401,7 @@ function FilaProducto({
 
   return (
     <article
-      className={`rounded-2xl border bg-hueso p-4 shadow-sm ${fila ? 'border-[#2F7A4A]/25' : 'border-carbon/5'}`}
+      className={`rounded-2xl border bg-hueso p-4 shadow-sm transition-opacity ${fila ? 'border-[#2F7A4A]/25' : 'border-carbon/5'} ${eliminando ? 'pointer-events-none opacity-50' : ''}`}
     >
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-crema">
@@ -348,6 +411,9 @@ function FilaProducto({
           <p className="truncate font-medium text-carbon">
             {p.nombre}
             {!p.activo && <span className="ml-2 rounded-full bg-carbon/5 px-2 py-0.5 text-[10px] text-humo">Oculto</span>}
+            {p.visible_minorista === false && (
+              <span className="ml-2 rounded-full bg-tostado/10 px-2 py-0.5 text-[10px] text-tostado">No visible en minorista</span>
+            )}
           </p>
           <p className="text-xs text-humo">
             {p.categoria ?? 'Sin categoría'}
@@ -361,6 +427,43 @@ function FilaProducto({
         >
           {fila ? 'En tienda minorista' : 'Sin precio minorista'}
         </span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onEditar}
+            aria-label={`Editar ${p.nombre}`}
+            title="Editar producto"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#1e6b32]/10 hover:text-[#175427]"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={onDuplicar}
+            aria-label={`Duplicar ${p.nombre}`}
+            title="Duplicar producto"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#1e6b32]/10 hover:text-[#175427]"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="9" y="9" width="12" height="12" rx="2" />
+              <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={onEliminar}
+            disabled={eliminando}
+            aria-label={`Eliminar ${p.nombre}`}
+            title="Eliminar producto"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-humo/60 transition-colors hover:bg-[#b3261e]/10 hover:text-[#b3261e] disabled:opacity-40"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {borrador.length > 0 && (

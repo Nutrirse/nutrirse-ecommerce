@@ -57,6 +57,8 @@ export default function CheckoutForm() {
   const [customer, setCustomer] = useState<Customer>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [enviado, setEnviado] = useState(false);
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
+  const [errorPrivacidad, setErrorPrivacidad] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -90,6 +92,11 @@ export default function CheckoutForm() {
     setErrors(e);
     if (Object.keys(e).length > 0) {
       document.querySelector<HTMLElement>('[data-error="true"]')?.focus();
+      return;
+    }
+    if (!aceptaPrivacidad) {
+      setErrorPrivacidad(true);
+      document.getElementById('acepta-privacidad')?.focus();
       return;
     }
     window.open(buildWhatsAppUrl(ticket), '_blank', 'noopener,noreferrer');
@@ -389,9 +396,40 @@ export default function CheckoutForm() {
             </p>
           )}
 
+          <label className="mt-6 flex items-start gap-2.5 text-sm text-gray-600">
+            <input
+              id="acepta-privacidad"
+              type="checkbox"
+              name="acepta_privacidad"
+              required
+              checked={aceptaPrivacidad}
+              onChange={(ev) => {
+                setAceptaPrivacidad(ev.target.checked);
+                if (ev.target.checked) setErrorPrivacidad(false);
+              }}
+              aria-invalid={errorPrivacidad}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[#28a745]"
+            />
+            <span>
+              Acepto la{' '}
+              <Link href="/politica-de-privacidad" target="_blank" className="underline underline-offset-2 hover:text-black">
+                Política de Privacidad
+              </Link>{' '}
+              y los{' '}
+              <Link href="/terminos-y-condiciones" target="_blank" className="underline underline-offset-2 hover:text-black">
+                Términos y Condiciones
+              </Link>
+            </span>
+          </label>
+          {errorPrivacidad && (
+            <p role="alert" className="mt-1.5 text-xs text-red-600">
+              Tenés que aceptar la Política de Privacidad para confirmar el pedido.
+            </p>
+          )}
+
           <button
             onClick={confirmar}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-[#28a745] py-4 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#218838] active:scale-[0.99]"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#28a745] py-4 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#218838] active:scale-[0.99]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.13h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.37c0-4.54 3.7-8.23 8.24-8.23a8.18 8.18 0 0 1 5.82 2.42 8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.22-8.24 8.22z" />

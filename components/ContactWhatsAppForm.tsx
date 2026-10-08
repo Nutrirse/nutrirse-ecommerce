@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { WHATSAPP_NUMBER, sanitizeWhatsAppNumber } from '@/lib/whatsapp';
 
@@ -37,6 +38,7 @@ const inputBase =
 export default function ContactWhatsAppForm() {
   const [campos, setCampos] = useState<Campos>(VACIO);
   const [error, setError] = useState<string | null>(null);
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
 
   const set = (k: keyof Campos) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setCampos((c) => ({ ...c, [k]: e.target.value }));
@@ -46,6 +48,10 @@ export default function ContactWhatsAppForm() {
 
     if (!campos.nombre.trim() || !campos.asunto.trim() || !campos.mensaje.trim()) {
       setError('Completá nombre, asunto y mensaje para poder escribirnos.');
+      return;
+    }
+    if (!aceptaPrivacidad) {
+      setError('Para enviar el mensaje tenés que aceptar la Política de Privacidad.');
       return;
     }
     setError(null);
@@ -119,6 +125,26 @@ export default function ContactWhatsAppForm() {
           />
         </div>
       </div>
+
+      <label className="mt-5 flex items-start gap-2.5 text-sm text-humo">
+        <input
+          type="checkbox"
+          name="acepta_privacidad"
+          required
+          checked={aceptaPrivacidad}
+          onChange={(e) => {
+            setAceptaPrivacidad(e.target.checked);
+            if (e.target.checked) setError(null);
+          }}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-nuez"
+        />
+        <span>
+          Acepto la{' '}
+          <Link href="/politica-de-privacidad" target="_blank" className="text-nuez underline underline-offset-2">
+            Política de Privacidad
+          </Link>
+        </span>
+      </label>
 
       {error && (
         <p role="alert" className="mt-4 rounded-xl bg-[#b3261e]/8 px-4 py-3 text-sm text-[#b3261e]">

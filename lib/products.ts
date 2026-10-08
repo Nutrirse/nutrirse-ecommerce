@@ -45,6 +45,18 @@ function normalizar(p: Product): Product {
   };
 }
 
+/** Tienda que pide el catalogo. Cada una filtra por su columna de visibilidad. */
+export type Canal = 'mayorista' | 'minorista';
+
+const COLUMNA_CANAL = {
+  mayorista: 'visible_mayorista',
+  minorista: 'visible_minorista',
+} as const satisfies Record<Canal, keyof Product>;
+
+/** El fallback estatico no trae las columnas: ausente = visible. */
+const fallbackDe = (canal: Canal) =>
+  FALLBACK_PRODUCTS.filter((p) => p[COLUMNA_CANAL[canal]] !== false).map(normalizar);
+
 const COLUMNAS_PUBLICAS =
   'id, slug, nombre, descripcion, composicion, nota_venta, imagen_url, imagenes, categoria, activo, orden';
 const SELECT_CON_PRECIOS = `${COLUMNAS_PUBLICAS}, precios_por_variante`;
@@ -72,19 +84,25 @@ function lector(): { db: SupabaseClient; select: string; conPrecios: boolean } |
 const completar = (fila: Product, conPrecios: boolean): Product =>
   normalizar(conPrecios ? fila : { ...fila, precios_por_variante: [] });
 
-export async function getProducts(): Promise<Product[]> {
+/**
+ * Catalogo de una tienda: `activo = true` AND `visible_<canal> = true`.
+ * El canal es obligatorio a proposito: un llamador nuevo no puede olvidarse
+ * del filtro y mezclar duplicados de un canal en el otro.
+ */
+export async function getProducts(canal: Canal): Promise<Product[]> {
   const l = lector();
-  if (!l) return FALLBACK_PRODUCTS.map(normalizar);
+  if (!l) return fallbackDe(canal);
 
   const { data, error } = await l.db
     .from('products')
     .select(l.select)
     .eq('activo', true)
+    .eq(COLUMNA_CANAL[canal], true)
     .order('orden', { ascending: true });
 
   if (error) {
     console.error('[products] supabase error:', error.message);
-    return FALLBACK_PRODUCTS.map(normalizar);
+    return fallbackDe(canal);
   }
   return ((data ?? []) as unknown as Product[]).map((p) => completar(p, l.conPrecios));
 }

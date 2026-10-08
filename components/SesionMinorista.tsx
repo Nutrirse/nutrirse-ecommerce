@@ -1,10 +1,11 @@
 import type { User } from '@supabase/supabase-js';
 import GoogleLoginButton from './GoogleLoginButton';
+import EliminarCuenta from './EliminarCuenta';
 
 /**
- * Saludo + cerrar sesion, o la invitacion a loguearse con Google. Lo usan
- * la home minorista y su catalogo. Es solo UI: los precios los oculta el
- * servidor (lib/minorista.ts) cuando no hay sesion.
+ * Mini "Mi perfil": saludo, cerrar sesion y eliminar cuenta, o la
+ * invitacion a loguearse con Google. Lo usa el catalogo minorista. Los
+ * precios minoristas son publicos: la cuenta es para ofertas.
  */
 export default function SesionMinorista({
   usuario,
@@ -20,11 +21,14 @@ export default function SesionMinorista({
     const nombre =
       (usuario.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? usuario.email;
     return (
-      <div className="flex items-center gap-3 text-sm text-humo">
-        <p>Hola {nombre}, ya ves los precios minoristas.</p>
-        <form action="/auth/signout" method="post">
-          <button className="underline underline-offset-2 hover:text-carbon">Cerrar sesión</button>
-        </form>
+      <div className="text-sm text-humo">
+        <div className="flex items-center gap-3">
+          <p>Hola {nombre}.</p>
+          <form action="/auth/signout" method="post">
+            <button className="underline underline-offset-2 hover:text-carbon">Cerrar sesión</button>
+          </form>
+        </div>
+        <EliminarCuenta className="mt-1" />
       </div>
     );
   }
@@ -32,7 +36,7 @@ export default function SesionMinorista({
   return (
     <div className="w-full max-w-sm rounded-2xl border border-black/5 bg-hueso p-4">
       <p className="mb-3 text-sm text-humo">
-        Creá tu cuenta con Google para ver precios y recibir ofertas.
+        Creá tu cuenta con Google para recibir ofertas.
       </p>
       <GoogleLoginButton next={next} />
       {error && (
