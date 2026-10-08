@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-auth/browser';
@@ -80,6 +81,22 @@ export default function GoogleLoginButton({
         {cargando ? 'Abriendo Google…' : texto}
       </button>
       {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+      {/* Consentimiento informado (Ley 25.326): el alta de cuenta es este
+          boton, no hay formulario de registro donde poner un checkbox. En la
+          tarjeta compacta no entra; ahi el aviso lo cubre el modal/perfil. */}
+      {!compacto && (
+        <p className="mt-2 text-[11px] leading-snug text-gray-500">
+          Al continuar aceptás los{' '}
+          <Link href="/terminos-y-condiciones" target="_blank" className="underline underline-offset-2">
+            Términos y Condiciones
+          </Link>{' '}
+          y la{' '}
+          <Link href="/politica-de-privacidad" target="_blank" className="underline underline-offset-2">
+            Política de Privacidad
+          </Link>
+          .
+        </p>
+      )}
     </div>
   );
 }

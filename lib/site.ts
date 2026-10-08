@@ -144,10 +144,8 @@ export const NEGOCIO = {
  * se note antes de publicar. NUNCA inventar un numero de inscripcion.
  */
 export const LEGAL = {
-  razonSocial: null as string | null,
-  cuit: null as string | null,
-  /** N.º de inscripcion en el Registro Nacional de Bases de Datos (AAIP). */
-  registroBaseDatos: null as string | null,
-  /** Fecha de la ultima revision de los textos legales. */
+  razonSocial: 'En trámite',
+  cuit: 'En trámite',
+  registroBaseDatos: 'En trámite',
   actualizado: '2026-10-05',
 };
