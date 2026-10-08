@@ -130,29 +130,36 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 /**
- * Categorias con producto activo, y cuando se toco cada una por ultima vez.
+ * Categorias con al menos un producto activo y visible en `canal`, y cuando
+ * se toco cada una por ultima vez. Mismo filtro que getProducts(canal): una
+ * categoria que solo tiene duplicados "(Minorista)" no genera una URL
+ * mayorista que abriria un listado vacio.
  * Lo consume el sitemap: `lastModified` real le dice a Google que vuelva a
  * pasar cuando cambio un precio, en vez de poner la fecha de hoy siempre
  * (una fecha que siempre cambia es ruido y termina ignorandose).
  */
 export type CategoriaSitemap = { categoria: string; lastModified: Date };
 
-export async function getCategoriasParaSitemap(): Promise<CategoriaSitemap[]> {
+export async function getCategoriasParaSitemap(canal: Canal): Promise<CategoriaSitemap[]> {
   type Fila = { categoria: string | null; updated_at?: string | null };
 
   let filas: Fila[];
+  const respaldo = () => fallbackDe(canal).map((p) => ({ categoria: p.categoria }));
 
   if (!isSupabaseConfigured || !supabase) {
-    filas = FALLBACK_PRODUCTS.map((p) => ({ categoria: p.categoria }));
+    filas = respaldo();
   } else {
+    // anon alcanza: categoria, updated_at y las columnas de canal son
+    // publicas (migracion_canales.sql les da el grant).
     const { data, error } = await supabase
       .from('products')
       .select('categoria, updated_at')
-      .eq('activo', true);
+      .eq('activo', true)
+      .eq(COLUMNA_CANAL[canal], true);
 
     if (error) {
       console.error('[products] supabase error:', error.message);
-      filas = FALLBACK_PRODUCTS.map((p) => ({ categoria: p.categoria }));
+      filas = respaldo();
     } else {
       filas = (data ?? []) as Fila[];
     }
