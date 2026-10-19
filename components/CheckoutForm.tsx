@@ -11,7 +11,9 @@ import {
   calcularTotales,
   METODOS_PAGO,
 } from '@/lib/whatsapp';
+import { useModo } from '@/lib/use-modo';
 import ShippingCalculator from './ShippingCalculator';
+import PromoAndreaniAviso from './PromoAndreaniAviso';
 import type { Customer, MetodoPago } from '@/types';
 
 const EMPTY: Customer = {
@@ -53,6 +55,8 @@ function validar(c: Customer, requiereEnvio: boolean): Errors {
 
 export default function CheckoutForm() {
   const { items, shipping, cp, setCp, clear } = useCart();
+  // /checkout es ruta neutra: el canal sale del ultimo visitado.
+  const canal = useModo();
 
   const [customer, setCustomer] = useState<Customer>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
@@ -69,8 +73,8 @@ export default function CheckoutForm() {
   }, [cp, customer.cp]);
 
   const t = useMemo(
-    () => calcularTotales(items, shipping, customer.metodoPago),
-    [items, shipping, customer.metodoPago]
+    () => calcularTotales(items, shipping, customer.metodoPago, canal, customer.cp),
+    [items, shipping, customer.metodoPago, canal, customer.cp]
   );
 
   const set =
@@ -83,8 +87,9 @@ export default function CheckoutForm() {
     };
 
   const ticket = useMemo(
-    () => buildTicket({ customer, items, shipping, nota: customer.indicaciones || undefined }),
-    [customer, items, shipping]
+    () =>
+      buildTicket({ customer, items, shipping, nota: customer.indicaciones || undefined, canal }),
+    [customer, items, shipping, canal]
   );
 
   const confirmar = () => {
@@ -372,10 +377,17 @@ export default function CheckoutForm() {
                 !t.metodo.requiereEnvio
                   ? 'Retiro'
                   : shipping
-                    ? formatARS(t.envio)
+                    ? formatARS(t.envioBruto)
                     : 'a calcular'
               }
             />
+            {t.descuentoEnvio > 0 && (
+              <Row
+                label="Promo Andreani 20 %"
+                value={`-${formatARS(t.descuentoEnvio)}`}
+                acento
+              />
+            )}
           </dl>
 
           {/* El costo de envio siempre corre por cuenta del comprador. */}
@@ -394,6 +406,10 @@ export default function CheckoutForm() {
             <p className="mt-2 text-[11px] leading-relaxed text-gray-400">
               Incluye ítems por volumen a cotizar: el total puede variar.
             </p>
+          )}
+
+          {canal === 'minorista' && (
+            <PromoAndreaniAviso aplicado={t.descuentoEnvio} className="mt-4" />
           )}
 
           <label className="mt-6 flex items-start gap-2.5 text-sm text-gray-600">

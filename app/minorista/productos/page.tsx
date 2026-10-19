@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import CatalogView from '@/components/CatalogView';
 import SesionMinorista from '@/components/SesionMinorista';
+import AndreaniPopup from '@/components/AndreaniPopup';
 import { getCatalogoMinorista } from '@/lib/minorista';
 import { getCategorias } from '@/lib/categorias-db';
 import { getUsuario } from '@/lib/supabase-auth/server';
@@ -66,6 +67,8 @@ export default async function MinoristaProductosPage({
         preciosVisibles
         canal="minorista"
       />
+
+      <AndreaniPopup />
     </div>
   );
 }

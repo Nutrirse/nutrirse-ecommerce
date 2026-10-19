@@ -11,9 +11,13 @@ import {
   selectTieneConsultar,
 } from '@/store/cart';
 import { formatARS } from '@/lib/format';
+import { useModo } from '@/lib/use-modo';
+import { descuentoEnvio } from '@/lib/promos-envio';
+import PromoAndreaniAviso from './PromoAndreaniAviso';
 
 export default function CartDrawer() {
-  const { items, isOpen, close, removeItem, setCantidad, shipping } = useCart();
+  const { items, isOpen, close, removeItem, setCantidad, shipping, cp } = useCart();
+  const canal = useModo();
   const subtotal = useCart(selectSubtotal);
   const count = useCart(selectCount);
   const peso = useCart(selectPesoTotal);
@@ -35,7 +39,8 @@ export default function CartDrawer() {
   if (!mounted) return null;
 
   const envio = shipping?.price ?? 0;
-  const total = subtotal + envio;
+  const descEnvio = descuentoEnvio(canal, shipping, cp);
+  const total = subtotal + envio - descEnvio;
 
   return (
     <>
@@ -187,6 +192,12 @@ export default function CartDrawer() {
                   {shipping ? formatARS(envio) : 'a calcular'}
                 </dd>
               </div>
+              {descEnvio > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Promo Andreani 20 %</dt>
+                  <dd className="font-medium text-[#28a745]">-{formatARS(descEnvio)}</dd>
+                </div>
+              )}
             </dl>
 
             <div className="mt-3 flex items-baseline justify-between border-t border-gray-100 pt-3">
@@ -198,6 +209,10 @@ export default function CartDrawer() {
               <p className="mt-1.5 text-[11px] leading-relaxed text-gray-400">
                 Incluye ítems por volumen a cotizar: el total puede variar.
               </p>
+            )}
+
+            {canal === 'minorista' && (
+              <PromoAndreaniAviso aplicado={descEnvio} className="mt-3" />
             )}
 
             {/* Los datos de facturacion (DNI, direccion, envio) se cargan

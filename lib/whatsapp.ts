@@ -1,4 +1,6 @@
 import { formatARS } from './format';
+import { descuentoEnvio, PROMO_ENVIO_TICKET } from './promos-envio';
+import type { Modo } from './modo';
 import type { CartItem, Customer, MetodoPago, ShippingOption } from '@/types';
 
 const FALLBACK_NUMBER = '5493875383979';
@@ -65,20 +67,27 @@ export const metodoPago = (id: MetodoPago) =>
 export function calcularTotales(
   items: CartItem[],
   shipping: ShippingOption | null,
-  pago: MetodoPago
+  pago: MetodoPago,
+  canal: Modo = 'mayorista',
+  cp?: string
 ) {
   const m = metodoPago(pago);
   const subtotal = items.reduce((a, i) => a + (i.precio ?? 0) * i.cantidad, 0);
   const descuento = Math.round(subtotal * m.descuento);
   const peso = items.reduce((a, i) => a + i.peso_kg * i.cantidad, 0);
 
-  // No hay envio bonificado: el flete siempre lo paga el comprador.
-  // El retiro en deposito es la unica modalidad sin costo de envio.
-  const envio = m.requiereEnvio ? shipping?.price ?? 0 : 0;
+  // El flete lo paga el comprador. Unica bonificacion: la promo Andreani
+  // del canal minorista (lib/promos-envio.ts). El retiro en deposito es la
+  // unica modalidad sin costo de envio.
+  const envioBruto = m.requiereEnvio ? shipping?.price ?? 0 : 0;
+  const descEnvio = m.requiereEnvio ? descuentoEnvio(canal, shipping, cp) : 0;
+  const envio = envioBruto - descEnvio;
 
   return {
     subtotal,
     descuento,
+    envioBruto,
+    descuentoEnvio: descEnvio,
     envio,
     peso,
     total: subtotal - descuento + envio,
@@ -96,13 +105,20 @@ type TicketInput = {
   items: CartItem[];
   shipping: ShippingOption | null;
   nota?: string;
+  canal?: Modo;
 };
 
 const B = (s: string) => `*${s}*`;
 const LINE = '━━━━━━━━━━━━━━━';
 
 /** Genera el ticket con sintaxis WhatsApp (negritas y saltos de línea). */
-export function buildTicket({ customer, items, shipping, nota }: TicketInput): string {
+export function buildTicket({
+  customer,
+  items,
+  shipping,
+  nota,
+  canal = 'mayorista',
+}: TicketInput): string {
   const fecha = new Intl.DateTimeFormat('es-AR', {
     dateStyle: 'short',
     timeStyle: 'short',
@@ -110,7 +126,8 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
   }).format(new Date());
 
   const ref = `NUT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-  const t = calcularTotales(items, shipping, customer.metodoPago);
+  const t = calcularTotales(items, shipping, customer.metodoPago, canal, customer.cp);
+  const minorista = canal === 'minorista';
 
   const detalle = items
     .map((i) => {
@@ -136,12 +153,17 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
           B('ENVÍO'),
           shipping.label,
           `Entrega estimada: ${shipping.eta_dias[0]}–${shipping.eta_dias[1]} días hábiles`,
-          `Costo: ${formatARS(shipping.price)}`,
+          t.descuentoEnvio > 0
+            ? `Costo: ${formatARS(t.envioBruto)} − 20 % Andreani = ${formatARS(t.envio)}`
+            : `Costo: ${formatARS(shipping.price)}`,
         ].join('\n')
       : `${B('ENVÍO')}\nA coordinar`;
 
+  // La promo de envio va siempre en el ticket minorista, se haya cotizado o no.
+  const envioConPromo = minorista ? `${envio}\n${PROMO_ENVIO_TICKET}` : envio;
+
   return [
-    `${B('NUEVO PEDIDO MAYORISTA')} 🌰`,
+    `${B(minorista ? 'NUEVO PEDIDO MINORISTA' : 'NUEVO PEDIDO MAYORISTA')} 🌰`,
     `Ref: ${ref} · ${fecha}`,
     LINE,
     B('CLIENTE'),
@@ -163,7 +185,7 @@ export function buildTicket({ customer, items, shipping, nota }: TicketInput): s
       : null,
     t.hayConsultar ? '_(hay ítems por volumen a cotizar)_' : null,
     LINE,
-    envio,
+    envioConPromo,
     LINE,
     `${B('PAGO')}: ${t.metodo.label}`,
     `${B('TOTAL ESTIMADO')}: ${formatARS(t.total)}`,

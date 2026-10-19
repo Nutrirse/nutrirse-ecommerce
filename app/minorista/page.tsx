@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Hero from '@/components/Hero';
 import HomeProducts from '@/components/HomeProducts';
 import LogisticsBanner from '@/components/LogisticsBanner';
+import AndreaniPopup from '@/components/AndreaniPopup';
 import { getCatalogoMinorista } from '@/lib/minorista';
 import { getCategorias } from '@/lib/categorias-db';
 import { RUTAS } from '@/lib/modo';
@@ -46,6 +47,8 @@ export default async function MinoristaPage() {
 
       {/* El cotizador por CP vive adentro del banner (ancla #envios). */}
       <LogisticsBanner />
+
+      <AndreaniPopup />
     </>
   );
 }

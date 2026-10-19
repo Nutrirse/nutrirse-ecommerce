@@ -1,9 +1,18 @@
+'use client';
+
+import { useModo } from '@/lib/use-modo';
 import { WHATSAPP_NUMBER } from '@/lib/whatsapp';
 
-const MENSAJE = 'Hola, tengo una consulta sobre mayorista.';
+const MENSAJES = {
+  minorista: 'Hola, tengo una consulta sobre la tienda Minorista.',
+  mayorista: 'Hola, tengo una consulta sobre mayorista.',
+} as const;
 
 export default function FloatingWhatsApp() {
-  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(MENSAJE)}`;
+  // Canal activo: la ruta manda y, en las neutras (/checkout, /contacto...),
+  // el ultimo canal visitado. Default mayorista.
+  const mensaje = MENSAJES[useModo()];
+  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
 
   return (
     <a
