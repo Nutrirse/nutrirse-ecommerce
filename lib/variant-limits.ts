@@ -22,7 +22,11 @@ export const MAX_BULTOS = 5;
  */
 export const MAX_BASE_SIN_BULTO = 5;
 
-/** El id de la presentacion base. Ojo: no siempre pesa 5 kg. */
+/**
+ * El id de la presentacion base. Legado: la importacion ya no la genera (la
+ * de 5 kg se dio de baja), pero quedan productos viejos con una base chica
+ * ("Pack 2 kg") bajo este id.
+ */
 const ID_BASE = '5kg';
 /** El id del bulto cerrado. */
 const ID_BULTO = 'bolsa';

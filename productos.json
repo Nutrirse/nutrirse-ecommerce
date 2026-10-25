@@ -364,12 +364,6 @@
         "precio": 16550.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 16980.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -388,12 +382,6 @@
         "cantidad": 25.0,
         "unidad_cantidad": "kg",
         "precio": 11450.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 11750.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -574,12 +562,6 @@
         "precio": 5000.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 5400.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -600,12 +582,6 @@
         "precio": 11670.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 12060.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -624,12 +600,6 @@
         "cantidad": 25.0,
         "unidad_cantidad": "kg",
         "precio": 2282.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 2400.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -752,12 +722,6 @@
         "precio": 9830.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 10080.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -848,7 +812,7 @@
   {
     "nombre_producto": "Ananá en Cubos Glaseado Rojo",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bulto cerrado para stock recurrente de temporada y venta durante todo el año.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -868,7 +832,7 @@
   {
     "nombre_producto": "Ananá en Cubos Glaseado Verde",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bulto cerrado para stock recurrente de temporada y venta durante todo el año.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -888,7 +852,7 @@
   {
     "nombre_producto": "Ananá en Cubos Natural",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bulto cerrado para stock recurrente de temporada y venta durante todo el año.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -908,7 +872,7 @@
   {
     "nombre_producto": "Ananá en Rodajas Natural",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bolsas de 2 y 5 kg para stock recurrente de temporada y venta durante todo el año.",
+    "descripcion_comercial": "Ananá deshidratado en cubos o rodajas, de color parejo, muy usado en confiterías y mesas navideñas. Disponible en bulto cerrado para stock recurrente de temporada y venta durante todo el año.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -936,12 +900,6 @@
         "cantidad": 11.34,
         "unidad_cantidad": "kg",
         "precio": 15200.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 15450.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -974,7 +932,7 @@
   {
     "nombre_producto": "Ciruela Dagen Sin Carozo Primera Mediana",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Ciruela desecada sin carozo, de pulpa jugosa y buena vida útil en góndola — un clásico de alta salida en dietéticas. Presentación cerrada de hasta 5 kg para reponer stock sin inmovilizar capital.",
+    "descripcion_comercial": "Ciruela desecada sin carozo, de pulpa jugosa y buena vida útil en góndola — un clásico de alta salida en dietéticas. Presentación en bulto cerrado para reponer stock sin inmovilizar capital.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -994,7 +952,7 @@
   {
     "nombre_producto": "Ciruela Presidente Sin Carozo",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Ciruela desecada sin carozo, de pulpa jugosa y buena vida útil en góndola — un clásico de alta salida en dietéticas. Presentación cerrada de hasta 5 kg para reponer stock sin inmovilizar capital.",
+    "descripcion_comercial": "Ciruela desecada sin carozo, de pulpa jugosa y buena vida útil en góndola — un clásico de alta salida en dietéticas. Presentación en bulto cerrado para reponer stock sin inmovilizar capital.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -1014,7 +972,7 @@
   {
     "nombre_producto": "Dátil Argelia Sin Carozo",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Presentaciones cerradas de 2 a 5 kg pensadas para reventa fraccionada con buen margen.",
+    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Bulto cerrado pensado para reventa fraccionada con buen margen.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -1034,7 +992,7 @@
   {
     "nombre_producto": "Dátil Argelia con Carozo",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Presentaciones cerradas de 2 a 5 kg pensadas para reventa fraccionada con buen margen.",
+    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Bulto cerrado pensado para reventa fraccionada con buen margen.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -1054,7 +1012,7 @@
   {
     "nombre_producto": "Dátil Medjoul con Carozo",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Presentaciones cerradas de 2 a 5 kg pensadas para reventa fraccionada con buen margen.",
+    "descripcion_comercial": "Dátiles de calibre grande y pulpa carnosa, muy demandados en repostería saludable y como snack premium en dietéticas. Bulto cerrado pensado para reventa fraccionada con buen margen.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -1074,7 +1032,7 @@
   {
     "nombre_producto": "Kiwi en Rodajas",
     "categoria": "Frutas Desecadas",
-    "descripcion_comercial": "Kiwi deshidratado en rodajas, de color vivo y textura consistente — un diferencial para vidrieras de dietéticas y fruterías gourmet. Bultos de 2 a 5 kg listos para fraccionar.",
+    "descripcion_comercial": "Kiwi deshidratado en rodajas, de color vivo y textura consistente — un diferencial para vidrieras de dietéticas y fruterías gourmet. Bulto cerrado listo para fraccionar.",
     "tipo_venta": "granel",
     "variantes": [
       {
@@ -1104,12 +1062,6 @@
         "precio": 3900.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 4000.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1128,12 +1080,6 @@
         "cantidad": 10.0,
         "unidad_cantidad": "kg",
         "precio": 6670.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 6900.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1156,12 +1102,6 @@
         "precio": 6120.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 6300.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1180,12 +1120,6 @@
         "cantidad": 10.0,
         "unidad_cantidad": "kg",
         "precio": 17700.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 17850.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1208,12 +1142,6 @@
         "precio": 21350.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 21750.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1232,12 +1160,6 @@
         "cantidad": 10.0,
         "unidad_cantidad": "kg",
         "precio": 29000.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 29450.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1260,12 +1182,6 @@
         "precio": 19100.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 19600.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1286,12 +1202,6 @@
         "precio": 14950.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 15410.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1310,12 +1220,6 @@
         "cantidad": 25.0,
         "unidad_cantidad": "kg",
         "precio": 2700.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 2850.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1358,12 +1262,6 @@
         "precio": 12800.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 13100.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1398,12 +1296,6 @@
         "precio": 52600.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 53000.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1422,12 +1314,6 @@
         "cantidad": 10.0,
         "unidad_cantidad": "kg",
         "precio": 26780.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 27240.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1450,12 +1336,6 @@
         "precio": 6750.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 7084.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1474,12 +1354,6 @@
         "cantidad": 10.0,
         "unidad_cantidad": "kg",
         "precio": 23100.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 23500.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1522,12 +1396,6 @@
         "precio": 3450.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 3700.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1546,12 +1414,6 @@
         "cantidad": 25.0,
         "unidad_cantidad": "kg",
         "precio": 3600.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 3900.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1574,12 +1436,6 @@
         "precio": 4968.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 5090.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1600,12 +1456,6 @@
         "precio": 12162.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 12660.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1624,12 +1474,6 @@
         "cantidad": 25.0,
         "unidad_cantidad": "kg",
         "precio": 16500.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 16950.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1750,12 +1594,6 @@
         "precio": 3840.0
       },
       {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 4000.0
-      },
-      {
         "presentacion": "Bolsa 2 kg",
         "cantidad": 2.0,
         "unidad_cantidad": "kg",
@@ -1774,12 +1612,6 @@
         "cantidad": 25.0,
         "unidad_cantidad": "kg",
         "precio": 13685.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 14050.0
       },
       {
         "presentacion": "Bolsa 2 kg",
@@ -1828,12 +1660,6 @@
         "cantidad": 25.0,
         "unidad_cantidad": "kg",
         "precio": 23825.0
-      },
-      {
-        "presentacion": "Bolsa 5 kg",
-        "cantidad": 5.0,
-        "unidad_cantidad": "kg",
-        "precio": 24450.0
       },
       {
         "presentacion": "Bolsa 2 kg",

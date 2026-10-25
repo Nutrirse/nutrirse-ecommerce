@@ -29,10 +29,10 @@ const SOBRESCRIBIR = process.argv.includes('--sobrescribir');
  * Como leer el campo `precio` de cada variante del JSON.
  *
  *   'total'    -> el numero es el precio final de esa presentacion.
- *                 "Bolsa 5 kg: 21750" se publica como $21.750.
+ *                 "Bolsa 25 kg: 21750" se publica como $21.750.
  *   'unitario' -> el numero es el precio por kg (granel) o por unidad
  *                 (packs), y hay que multiplicarlo por `cantidad`.
- *                 "Bolsa 5 kg: 21750" se publica como $108.750.
+ *                 "Bolsa 25 kg: 21750" se publica como $543.750.
  *
  * Ver el bloque de avisos al final del script: si los precios bajan cuando
  * sube la cantidad, el JSON esta en 'unitario' y este flag esta mal puesto.
@@ -189,15 +189,17 @@ function precioDeVariante(v) {
  * Arma `precios_por_variante` con el esquema de la tabla:
  * [{ id, label, tipo, precio, peso_kg }].
  *
- * El catalogo expone SOLO tres escalones, que es lo acordado con el cliente:
+ * La venta mayorista es solo por bulto cerrado: el catalogo expone dos
+ * escalones, que es lo acordado con el cliente:
  *
- *   5kg       -> presentacion base (la fila de 5 kg del Excel)
  *   bolsa     -> bulto cerrado (la presentacion mas grande del Excel)
  *   mayorista -> "+5 bultos (Consultar)"
  *
- * Las presentaciones intermedias del Excel (bolsas de 2 kg, packs de 3 o 7
- * unidades) se descartan a proposito: se cargan igual en la fuente pero no
- * se publican.
+ * La presentacion de 5 kg se dio de baja: no se genera nunca como variante
+ * propia. Si la de 5 kg es la mas grande del producto (cajas de datiles,
+ * mixes), esa caja ES el bulto cerrado y sale como "Bulto Cerrado (5 kg)".
+ * Las presentaciones mas chicas (bolsas de 2 kg, packs de 3 o 7 unidades)
+ * se descartan a proposito: se cargan igual en la fuente pero no se publican.
  */
 function construirVariantes(p) {
   const nombre = String(p.nombre_producto ?? '');
@@ -216,27 +218,10 @@ function construirVariantes(p) {
 
   if (disponibles.length === 0) return [];
 
-  /* ---- Base: la fila de 5 kg. Si el producto no la tiene (solo viene en
-     2 kg, en conservadora de 6 kg o en packs), cae a la presentacion mas
-     chica: descartarla dejaria el producto sin nada que vender. ---- */
-  const cinco = disponibles.find((v) => !porUnidad && v.peso === 5);
-  const base = cinco ?? disponibles[0];
   const bulto = disponibles[disponibles.length - 1];
 
-  const variantes = [
+  return [
     {
-      id: '5kg',
-      label: base === cinco ? '5 kg' : base.label,
-      tipo: 'precio',
-      precio: base.precio,
-      peso_kg: base.peso,
-    },
-  ];
-
-  // Si la mas grande es la misma que la base, el producto tiene una sola
-  // presentacion: no se inventa un bulto duplicado.
-  if (bulto !== base) {
-    variantes.push({
       id: 'bolsa',
       label: porUnidad
         ? `Bulto Cerrado (${bulto.cantidad} u.)`
@@ -244,19 +229,15 @@ function construirVariantes(p) {
       tipo: 'precio',
       precio: bulto.precio,
       peso_kg: bulto.peso,
-    });
-  }
-
-  const mayor = variantes[variantes.length - 1];
-  variantes.push({
-    id: 'mayorista',
-    label: '+5 bultos (Consultar)',
-    tipo: 'consultar',
-    precio: null,
-    peso_kg: Number((mayor.peso_kg * 5).toFixed(3)),
-  });
-
-  return variantes;
+    },
+    {
+      id: 'mayorista',
+      label: '+5 bultos (Consultar)',
+      tipo: 'consultar',
+      precio: null,
+      peso_kg: Number((bulto.peso * 5).toFixed(3)),
+    },
+  ];
 }
 
 /**

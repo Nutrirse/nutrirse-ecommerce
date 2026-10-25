@@ -20,8 +20,13 @@ const LIMITE_SUBIDA_BYTES = 4 * 1024 * 1024;
 /**
  * Presentacion de 5 kg exactos ("5 kg", "Bolsa 5 kg"). No confunde "25 kg"
  * ni "2.5 kg": el 5 no puede venir pegado a otro digito o a una coma.
+ * "Bulto Cerrado (5 kg)" no cuenta: es el bulto de un producto que viene en
+ * caja de 5 kg. Mismo criterio que supabase/migracion_baja_5kg.sql.
  */
-const esPresentacion5kg = (v: Variant) => /(^|[^\d.,])5\s*(kg|kilos?)\b/i.test(v.label ?? '');
+const esPresentacion5kg = (v: Variant) => {
+  const label = v.label ?? '';
+  return /(^|[^\d.,])5\s*(kg|kilos?)\b/i.test(label) && !/bulto/i.test(label);
+};
 
 /** Plantilla del alta: mayorista vende solo por bulto cerrado, sin presentacion de 5 kg. */
 const VARIANTES_BASE: Variant[] = [

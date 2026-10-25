@@ -17,7 +17,6 @@ create table if not exists public.products (
   categoria     text,
   -- precios_por_variante:
   -- [
-  --   { "id": "5kg",       "label": "5 kg",                    "tipo": "precio",    "precio": 18500, "peso_kg": 5 },
   --   { "id": "bolsa",     "label": "Bolsa cerrada",           "tipo": "precio",    "precio": 82000, "peso_kg": 25 },
   --   { "id": "mayorista", "label": "Más de 5 bolsas (Consultar)", "tipo": "consultar", "precio": null,  "peso_kg": 125 }
   -- ]
@@ -67,32 +66,26 @@ create policy "public read active products"
 insert into public.products (slug, nombre, descripcion, imagen_url, categoria, orden, precios_por_variante)
 values
 ('nuez-mariposa', 'Nuez Mariposa', 'Nuez pelada mitad mariposa, calibre extra. Cosecha reciente.', null, 'frutos-secos', 1,
- '[{"id":"5kg","label":"5 kg","tipo":"precio","precio":52000,"peso_kg":5},
-   {"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":238000,"peso_kg":25},
+ '[{"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":238000,"peso_kg":25},
    {"id":"mayorista","label":"Más de 5 bolsas (Consultar)","tipo":"consultar","precio":null,"peso_kg":125}]'::jsonb),
 
 ('almendra-nonpareil', 'Almendra Nonpareil', 'Almendra californiana sin cáscara, calibre 23/25.', null, 'frutos-secos', 2,
- '[{"id":"5kg","label":"5 kg","tipo":"precio","precio":61000,"peso_kg":5},
-   {"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":285000,"peso_kg":25},
+ '[{"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":285000,"peso_kg":25},
    {"id":"mayorista","label":"Más de 5 bolsas (Consultar)","tipo":"consultar","precio":null,"peso_kg":125}]'::jsonb),
 
 ('castana-caju', 'Castaña de Cajú W320', 'Cajú entero W320 tostado natural, origen Brasil.', null, 'frutos-secos', 3,
- '[{"id":"5kg","label":"5 kg","tipo":"precio","precio":78000,"peso_kg":5},
-   {"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":365000,"peso_kg":25},
+ '[{"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":365000,"peso_kg":25},
    {"id":"mayorista","label":"Más de 5 bolsas (Consultar)","tipo":"consultar","precio":null,"peso_kg":125}]'::jsonb),
 
 ('mani-tostado', 'Maní Tostado Pelado', 'Maní tipo runner tostado sin sal, alta rotación.', null, 'frutos-secos', 4,
- '[{"id":"5kg","label":"5 kg","tipo":"precio","precio":14500,"peso_kg":5},
-   {"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":66000,"peso_kg":25},
+ '[{"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":66000,"peso_kg":25},
    {"id":"mayorista","label":"Más de 5 bolsas (Consultar)","tipo":"consultar","precio":null,"peso_kg":125}]'::jsonb),
 
 ('pasa-uva-sultanina', 'Pasa de Uva Sultanina', 'Pasa sultanina sin semilla, húmeda, San Juan.', null, 'secos', 5,
- '[{"id":"5kg","label":"5 kg","tipo":"precio","precio":19800,"peso_kg":5},
-   {"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":91000,"peso_kg":25},
+ '[{"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":91000,"peso_kg":25},
    {"id":"mayorista","label":"Más de 5 bolsas (Consultar)","tipo":"consultar","precio":null,"peso_kg":125}]'::jsonb),
 
 ('ciruela-desc', 'Ciruela Desecada s/carozo', 'Ciruela D''Agen sin carozo, calibre 60/70.', null, 'secos', 6,
- '[{"id":"5kg","label":"5 kg","tipo":"precio","precio":24500,"peso_kg":5},
-   {"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":112000,"peso_kg":25},
+ '[{"id":"bolsa","label":"Bolsa cerrada","tipo":"precio","precio":112000,"peso_kg":25},
    {"id":"mayorista","label":"Más de 5 bolsas (Consultar)","tipo":"consultar","precio":null,"peso_kg":125}]'::jsonb)
 on conflict (slug) do nothing;

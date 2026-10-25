@@ -30,7 +30,6 @@ Las variantes viven en `precios_por_variante` (jsonb):
 
 ```json
 [
-  { "id": "5kg",       "label": "5 kg",                        "tipo": "precio",    "precio": 52000, "peso_kg": 5 },
   { "id": "bolsa",     "label": "Bolsa cerrada",               "tipo": "precio",    "precio": 238000, "peso_kg": 25 },
   { "id": "mayorista", "label": "Más de 5 bolsas (Consultar)", "tipo": "consultar", "precio": null,  "peso_kg": 125 }
 ]
