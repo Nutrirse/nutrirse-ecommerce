@@ -20,14 +20,14 @@ const ICONO_VENTA = (
 );
 
 /**
- * El segundo valor depende del canal: en mayorista es la regla de los 5 kg;
- * en minorista esa regla no existe.
+ * El segundo valor depende del canal: en mayorista se vende por bulto
+ * cerrado; en minorista no hay minimo.
  */
 const VENTA: Record<Modo, Valor> = {
   mayorista: {
     titulo: 'Venta mayorista',
     texto:
-      'Tres presentaciones por producto: 5 kg, bulto cerrado y volumen a cotizar. Mínimo de compra 5 kg, sin excepciones.',
+      'Venta exclusiva por bulto cerrado, con precio de lista hasta 5 bultos y volumen mayor a cotizar.',
     icon: ICONO_VENTA,
   },
   minorista: {
@@ -43,7 +43,7 @@ const CIFRAS: Record<Modo, [string, string][]> = {
   mayorista: [
     ['+40', 'variedades en catálogo'],
     ['24 h', 'para despachar tu pedido'],
-    ['5 kg', 'mínimo de compra'],
+    ['Bulto', 'cerrado, sin fraccionar'],
   ],
   minorista: [
     ['+40', 'variedades en catálogo'],

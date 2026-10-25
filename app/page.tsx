@@ -49,7 +49,7 @@ export default function Splash() {
         <BotonModo
           href="/mayorista"
           titulo="Soy Mayorista"
-          detalle="Para tu negocio · desde 5 kg"
+          detalle="Para tu negocio · por bulto cerrado"
         />
       </div>
     </section>

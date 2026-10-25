@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   title: 'Catálogo Mayorista',
   description:
     'Catálogo mayorista completo de Nutrirse: frutos secos, frutas desecadas, semillas, ' +
-    'granolas e insumos de repostería. Precios por 5 kg, bulto cerrado y volumen, con envío ' +
+    'granolas e insumos de repostería. Venta por bulto cerrado y precios por volumen, con envío ' +
     'desde Salta a todo el país.',
   // Sin esto hereda el canonical del layout ('/') y las dos URLs competirían.
   alternates: { canonical: '/productos' },
   openGraph: {
     title: 'Catálogo Mayorista | Nutrirse',
     description:
-      'Frutos secos, desecados y semillas por mayor. Mínimo 5 kg, envíos a todo el país.',
+      'Frutos secos, desecados y semillas por mayor. Venta por bulto cerrado, envíos a todo el país.',
     url: '/productos',
     type: 'website',
   },

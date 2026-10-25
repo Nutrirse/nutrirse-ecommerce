@@ -27,8 +27,8 @@ export default function ShippingCalculator({ compact = false, tone = 'claro', pe
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Prioridad: peso explicito (modal de producto) > peso del carrito > 5 kg.
-  const peso = pesoKg && pesoKg > 0 ? pesoKg : pesoTotal > 0 ? pesoTotal : 5;
+  // Prioridad: peso explicito (modal de producto) > peso del carrito > un bulto de 10 kg.
+  const peso = pesoKg && pesoKg > 0 ? pesoKg : pesoTotal > 0 ? pesoTotal : 10;
   const dark = tone === 'oscuro';
 
   const cotizar = useCallback(async () => {

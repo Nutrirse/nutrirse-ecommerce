@@ -37,7 +37,7 @@ const ORDENES = [
   { id: 'alfabetico', label: 'A – Z' },
 ];
 
-/** Precio de referencia: la primera variante con precio (5 kg en mayorista, 1/2 kg en minorista). */
+/** Precio de referencia: la primera variante con precio (bulto cerrado en mayorista, 1/2 kg en minorista). */
 const precioBase = (p: Product) =>
   p.precios_por_variante.find((v) => v.tipo === 'precio')?.precio ?? 0;
 

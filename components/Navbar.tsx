@@ -415,7 +415,7 @@ export default function Navbar({ categorias = [] }: { categorias?: Categoria[] }
           <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4 text-sm">
             <span className="text-[#f5ebd9]/50">
               {modo === 'mayorista'
-                ? 'Venta exclusiva por mayor · Mínimo 5 kg'
+                ? 'Venta exclusiva por mayor · Por bulto cerrado'
                 : 'Presentaciones chicas para tu casa'}
             </span>
             <Link href={catalogo} className="font-medium text-[#d6b26a] hover:underline">

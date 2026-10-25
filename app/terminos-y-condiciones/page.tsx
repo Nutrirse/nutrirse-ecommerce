@@ -60,7 +60,7 @@ const SECCIONES: SeccionLegal[] = [
     cuerpo: (
       <ul>
         <li>
-          <strong>Mayorista:</strong> mínimo de compra de 5 kg por producto o bulto cerrado. Los
+          <strong>Mayorista:</strong> venta exclusiva por bulto cerrado (o volúmenes mayores). Los
           precios no incluyen IVA.
         </li>
         <li>

@@ -64,16 +64,12 @@ export function schemaSitio() {
       'Distribución mayorista de alimentos',
       'Insumos de repostería',
     ],
-    // Condicion comercial dura: minimo 5 kg, sin venta al publico.
+    // Condicion comercial dura: solo bulto cerrado, sin venta al publico.
+    // Sin `eligibleQuantity`: el bulto no tiene un peso unico que declarar.
     makesOffer: {
       '@type': 'Offer',
       priceCurrency: 'ARS',
       eligibleCustomerType: 'https://schema.org/Wholesaler',
-      eligibleQuantity: {
-        '@type': 'QuantitativeValue',
-        minValue: 5,
-        unitCode: 'KGM',
-      },
       availableDeliveryMethod: [
         'https://schema.org/ParcelService',
         'https://schema.org/OnSitePickup',

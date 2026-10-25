@@ -22,7 +22,7 @@ export const SITE_TITLE = 'Nutrirse | Frutos secos por mayor en Salta';
 
 export const SITE_DESCRIPTION =
   'Distribuidora mayorista de frutos secos, frutas desecadas y semillas en Salta Capital. ' +
-  'Precios por 5 kg, bulto cerrado y volumen, con envíos a todo el país. Mínimo de compra 5 kg.';
+  'Venta por bulto cerrado y precios por volumen, con envíos a todo el país.';
 
 /** Se usan en `keywords`. Google las ignora hace años; Bing y varios motores de respuesta no. */
 export const SITE_KEYWORDS = [
@@ -75,8 +75,8 @@ export const FAQ = [
   {
     pregunta: '¿Cuál es el mínimo de compra?',
     respuesta:
-      'El mínimo es de 5 kg por producto o bulto cerrado. Trabajamos exclusivamente por mayor, ' +
-      'así que cada artículo se vende en variantes de 5 kg o en su bulto original cerrado.',
+      'El mínimo es un bulto cerrado por producto. Trabajamos exclusivamente por mayor, así que cada ' +
+      'artículo se vende en su bulto original cerrado; para más de 5 bultos se cotiza por volumen.',
   },
   {
     pregunta: '¿Tienen envíos gratis?',

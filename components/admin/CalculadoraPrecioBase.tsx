@@ -26,7 +26,7 @@ type OnGuardar = (base: number, escala: EscalaPeso) => Promise<void> | void;
 
 /** Textos de cada escala, para no repetirlos en el input y en la ayuda. */
 const ESCALAS: Record<EscalaPeso, { titulo: string; corto: string; placeholder: string }> = {
-  fraccionado: { titulo: 'Precio Base (5 kg)', corto: 'fraccionado', placeholder: '7950' },
+  fraccionado: { titulo: 'Precio Base (fraccionado)', corto: 'fraccionado', placeholder: '7950' },
   bulto: { titulo: 'Precio Base (Bulto)', corto: 'bulto', placeholder: '6800' },
 };
 

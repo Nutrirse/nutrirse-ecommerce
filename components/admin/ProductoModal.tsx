@@ -17,9 +17,14 @@ import CalculadoraPrecioBase from '@/components/admin/CalculadoraPrecioBase';
  */
 const LIMITE_SUBIDA_BYTES = 4 * 1024 * 1024;
 
-/** Plantilla del alta: el mismo esquema de 3 variantes del catalogo actual. */
+/**
+ * Presentacion de 5 kg exactos ("5 kg", "Bolsa 5 kg"). No confunde "25 kg"
+ * ni "2.5 kg": el 5 no puede venir pegado a otro digito o a una coma.
+ */
+const esPresentacion5kg = (v: Variant) => /(^|[^\d.,])5\s*(kg|kilos?)\b/i.test(v.label ?? '');
+
+/** Plantilla del alta: mayorista vende solo por bulto cerrado, sin presentacion de 5 kg. */
 const VARIANTES_BASE: Variant[] = [
-  { id: '5kg', label: '5 kg', tipo: 'precio', precio: 0, peso_kg: 5 },
   { id: 'bolsa', label: 'Bulto Cerrado', tipo: 'precio', precio: 0, peso_kg: 10 },
   { id: 'mayorista', label: '+5 bultos (Consultar)', tipo: 'consultar', precio: null, peso_kg: 50 },
 ];
@@ -78,9 +83,14 @@ export default function ProductoModal({
   // canales armados (copia minorista => solo minorista, y viceversa).
   const [visibleMayorista, setVisibleMayorista] = useState(base?.visible_mayorista ?? true);
   const [visibleMinorista, setVisibleMinorista] = useState(base?.visible_minorista ?? true);
-  const [variantes, setVariantes] = useState<Variant[]>(
-    base?.precios_por_variante?.length ? base.precios_por_variante : VARIANTES_BASE
-  );
+  // Al duplicar se descarta la presentacion de 5 kg (dada de baja): la copia
+  // arranca en el bulto cerrado. En edicion se respeta lo que hay guardado.
+  const [variantes, setVariantes] = useState<Variant[]>(() => {
+    const previas = duplicando
+      ? (plantilla?.precios_por_variante ?? []).filter((v) => !esPresentacion5kg(v))
+      : (base?.precios_por_variante ?? []);
+    return previas.length ? previas : VARIANTES_BASE;
+  });
 
   const [subiendo, setSubiendo] = useState(false);
   const [faseImagen, setFaseImagen] = useState<string | null>(null);
@@ -667,7 +677,7 @@ export default function ProductoModal({
                   <input
                     value={v.label}
                     onChange={(e) => setVar(i, { label: e.target.value })}
-                    placeholder="Nombre (5 kg)"
+                    placeholder="Nombre (Bulto Cerrado)"
                     className={input}
                     aria-label="Nombre de la variante"
                   />

@@ -65,7 +65,7 @@ const waLegible = (n: string) =>
 const BAJADA = {
   mayorista: {
     texto: 'Distribuidora mayorista de frutos secos, desecados y semillas. Despachamos desde Salta Capital a todo el país.',
-    nota: 'Venta exclusiva por mayor · Mínimo de compra 5 kg',
+    nota: 'Venta exclusiva por mayor · Por bulto cerrado',
   },
   minorista: {
     texto: 'Frutos secos, desecados y semillas en presentaciones para tu casa. Despachamos desde Salta Capital a todo el país.',
