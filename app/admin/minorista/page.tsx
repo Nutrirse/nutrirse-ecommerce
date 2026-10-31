@@ -410,7 +410,7 @@ function FilaProducto({
         <div className="mr-auto min-w-0">
           <p className="truncate font-medium text-carbon">
             {p.nombre}
-            {!p.activo && <span className="ml-2 rounded-full bg-carbon/5 px-2 py-0.5 text-[10px] text-humo">Oculto</span>}
+            {!p.activo && <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700">Sin stock</span>}
             {p.visible_minorista === false && (
               <span className="ml-2 rounded-full bg-tostado/10 px-2 py-0.5 text-[10px] text-tostado">No visible en minorista</span>
             )}
