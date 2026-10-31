@@ -16,8 +16,8 @@ const CONSULTAR: Variant = {
 };
 
 /**
- * Catalogo del canal minorista (B2C): productos activos con
- * `visible_minorista`, cada uno
+ * Catalogo del canal minorista (B2C): productos con `visible_minorista`
+ * (con o sin stock: la UI marca los agotados), cada uno
  * con sus variantes de `precios_minoristas` o, si no tiene, "Consultar".
  *
  * Precios PUBLICOS: se devuelven con o sin sesion (regla de negocio del

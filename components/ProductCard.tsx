@@ -40,6 +40,8 @@ export default function ProductCard({
   const galeria = imagenesDe(product);
 
   const esConsultar = !variant || variant.tipo === 'consultar';
+  // `activo = false` es "Sin stock" en el admin: se lista igual, sin compra.
+  const sinStock = product.activo === false;
 
   /* El mayorista compara por unidad de medida, no por bulto: el precio por
      kg (o por unidad) es el numero grande y el total de la presentacion va
@@ -47,7 +49,7 @@ export default function ProductCard({
   const desglose = variant ? desglosePrecio(variant) : null;
 
   const onAdd = () => {
-    if (!variant) return;
+    if (!variant || sinStock) return;
     addItem(product, variant);
     setAdded(true);
     setTimeout(() => setAdded(false), 1400);
@@ -70,7 +72,9 @@ export default function ProductCard({
               alt={product.nombre}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-105"
+              className={`h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-105 ${
+                sinStock ? 'opacity-60 grayscale' : ''
+              }`}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -78,6 +82,12 @@ export default function ProductCard({
                 {product.nombre.charAt(0)}
               </span>
             </div>
+          )}
+
+          {sinStock && (
+            <span className="pointer-events-none absolute left-2.5 top-2.5 rounded-full bg-red-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow">
+              Sin stock
+            </span>
           )}
 
           {galeria.length > 1 && (
@@ -175,11 +185,16 @@ export default function ProductCard({
           {!preciosOcultos && variant && (
             <button
               onClick={onAdd}
-              className={`mt-3 w-full rounded-lg py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.98] ${
-                added ? 'bg-[#1e7e34]' : 'bg-[#28a745] hover:bg-[#218838]'
+              disabled={sinStock}
+              className={`mt-3 w-full rounded-lg py-3 text-sm font-bold uppercase tracking-wide transition-colors ${
+                sinStock
+                  ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                  : added
+                    ? 'bg-[#1e7e34] text-white active:scale-[0.98]'
+                    : 'bg-[#28a745] text-white hover:bg-[#218838] active:scale-[0.98]'
               }`}
             >
-              {added ? 'Agregado ✓' : esConsultar ? 'Consultar' : 'Agregar'}
+              {sinStock ? 'Sin stock' : added ? 'Agregado ✓' : esConsultar ? 'Consultar' : 'Agregar'}
             </button>
           )}
         </div>

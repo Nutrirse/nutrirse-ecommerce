@@ -149,7 +149,7 @@ export default function CartDrawer() {
                         >
                           −
                         </button>
-                        <span className="w-7 text-center text-xs font-semibold tabular-nums text-gray-900">
+                        <span className="min-w-7 px-1 text-center text-xs font-semibold tabular-nums text-gray-900">
                           {i.cantidad}
                         </span>
                         {/* Mismo tope que el ProductModal. `maxCantidad` lo

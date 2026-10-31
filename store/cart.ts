@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { CartItem, Product, ShippingOption, Variant } from '@/types';
-import { maxCantidad as topeDeVariante } from '@/lib/variant-limits';
+import { MAX_POR_LINEA, maxCantidad as topeDeVariante } from '@/lib/variant-limits';
 
 type CartState = {
   items: CartItem[];
@@ -40,6 +40,9 @@ export const useCart = create<CartState>()(
 
       addItem: (product, variant, cantidad = 1) =>
         set((s) => {
+          // Sin stock: la UI ya deshabilita el boton, esto cubre cualquier
+          // otro llamador.
+          if (product.activo === false) return s;
           const key = keyOf(product.id, variant.id);
           const existing = s.items.find((i) => i.key === key);
           // El tope se aplica aca y no solo en la UI: sumar de a uno desde el
@@ -82,10 +85,10 @@ export const useCart = create<CartState>()(
             cantidad <= 0
               ? s.items.filter((i) => i.key !== key)
               : s.items.map((i) =>
-                  // `?? Infinity`: los carritos guardados antes de que
+                  // `?? MAX_POR_LINEA`: los carritos guardados antes de que
                   // existiera el tope no traen `maxCantidad`.
                   i.key === key
-                    ? { ...i, cantidad: Math.min(cantidad, i.maxCantidad ?? Infinity) }
+                    ? { ...i, cantidad: Math.min(cantidad, i.maxCantidad ?? MAX_POR_LINEA) }
                     : i
                 ),
         })),
@@ -99,6 +102,17 @@ export const useCart = create<CartState>()(
       name: 'nutrirse-cart',
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ items: s.items, cp: s.cp, shipping: s.shipping }),
+      // v1: se saco el tope de 5 por linea. Los carritos guardados antes
+      // traen `maxCantidad: 5` congelado; se descarta y el stepper usa el
+      // tope tecnico hasta que la linea se vuelva a agregar.
+      version: 1,
+      migrate: (persisted, version) => {
+        const s = persisted as Pick<CartState, 'items' | 'cp' | 'shipping'>;
+        if (version < 1) {
+          return { ...s, items: (s.items ?? []).map(({ maxCantidad: _, ...i }) => i) };
+        }
+        return s;
+      },
     }
   )
 );

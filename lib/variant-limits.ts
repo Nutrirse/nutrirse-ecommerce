@@ -10,17 +10,11 @@ import type { Product, Variant } from '@/types';
  */
 
 /**
- * Maximo de bultos cerrados por linea. Arriba de 5 el precio deja de ser de
- * lista y se cotiza por volumen: para eso existe la variante "+5 bultos".
+ * Tope tecnico por linea. No es una regla comercial (no se frenan compras
+ * grandes): solo evita que el input de cantidad o un carrito persistido
+ * lleguen a valores absurdos.
  */
-export const MAX_BULTOS = 5;
-
-/**
- * Tope de la presentacion base cuando el producto no publica bulto cerrado
- * (una sola presentacion en el catalogo). Sin bulto no hay con que calcular
- * el limite real, asi que se corta en un numero razonable.
- */
-export const MAX_BASE_SIN_BULTO = 5;
+export const MAX_POR_LINEA = 999;
 
 /**
  * El id de la presentacion base. Legado: la importacion ya no la genera (la
@@ -38,7 +32,7 @@ const ID_BULTO = 'bolsa';
  *
  * - `mayorista` (tipo `consultar`): sin tope. El precio se arma por
  *   WhatsApp, no hay estructura de bulto que romper.
- * - `bolsa`: {@link MAX_BULTOS}.
+ * - `bolsa` y cualquier otra presentacion: {@link MAX_POR_LINEA}.
  * - `5kg`: la mayor cantidad cuyo peso total sea **estrictamente menor** al
  *   del bulto cerrado. Apenas empatarlo conviene comprar el bulto, y esa es
  *   la decision que la UI tiene que forzar.
@@ -53,12 +47,11 @@ const ID_BULTO = 'bolsa';
  */
 export function maxCantidad(product: Product, variant: Variant): number {
   if (variant.tipo === 'consultar') return Infinity;
-  if (variant.id === ID_BULTO) return MAX_BULTOS;
-  if (variant.id !== ID_BASE) return MAX_BASE_SIN_BULTO;
+  if (variant.id !== ID_BASE) return MAX_POR_LINEA;
 
   const bulto = product.precios_por_variante.find((v) => v.id === ID_BULTO);
   if (!bulto || !(bulto.peso_kg > 0) || !(variant.peso_kg > 0)) {
-    return MAX_BASE_SIN_BULTO;
+    return MAX_POR_LINEA;
   }
 
   const tope = Math.ceil(bulto.peso_kg / variant.peso_kg) - 1;
@@ -72,17 +65,10 @@ export function maxCantidad(product: Product, variant: Variant): number {
  * usuario adonde ir, asi que cambia segun el motivo del tope.
  */
 export function motivoTope(product: Product, variant: Variant): string {
-  if (variant.id === ID_BULTO) {
-    const consultar = product.precios_por_variante.find((v) => v.tipo === 'consultar');
-    return `Para más de ${MAX_BULTOS} bultos, elegí la opción "${
-      consultar?.label ?? '+5 bultos (Consultar)'
-    }".`;
-  }
-
   const bulto = product.precios_por_variante.find((v) => v.id === ID_BULTO);
   if (variant.id === ID_BASE && bulto) {
     return `A partir de acá conviene el bulto cerrado: elegí "${bulto.label}".`;
   }
 
-  return `Máximo ${MAX_BASE_SIN_BULTO} unidades por pedido. Consultanos por WhatsApp para más volumen.`;
+  return `Máximo ${MAX_POR_LINEA} unidades por línea. Consultanos por WhatsApp para más volumen.`;
 }

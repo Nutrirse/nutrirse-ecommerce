@@ -65,10 +65,12 @@ const SELECT_CON_PRECIOS = `${COLUMNAS_PUBLICAS}, precios_por_variante`;
  * Cliente y columnas para leer el catalogo.
  *
  * - Con service_role: todas las columnas. service_role ignora RLS, asi que
- *   el filtro `activo = true` de la policy publica lo pone cada consulta.
+ *   trae tambien los productos sin stock (`activo = false`); la UI los
+ *   marca como agotados y no deja comprarlos.
  * - Sin service_role (entorno mal configurado): anon, sin la columna de
  *   precios (pedirla con anon daria "permission denied"). El catalogo se ve
- *   igual, con "Precio a Consultar"; mejor eso que caerse o mostrar el
+ *   igual, con "Precio a Consultar" y sin los productos sin stock (la
+ *   policy publica es `activo = true`); mejor eso que caerse o mostrar el
  *   fallback estatico.
  */
 function lector(): { db: SupabaseClient; select: string; conPrecios: boolean } | null {
@@ -85,8 +87,9 @@ const completar = (fila: Product, conPrecios: boolean): Product =>
   normalizar(conPrecios ? fila : { ...fila, precios_por_variante: [] });
 
 /**
- * Catalogo de una tienda: `activo = true` AND `visible_<canal> = true`.
- * El canal es obligatorio a proposito: un llamador nuevo no puede olvidarse
+ * Catalogo de una tienda: `visible_<canal> = true`, con o sin stock.
+ * `activo` no filtra: un producto sin stock se sigue listando y la tarjeta
+ * lo muestra agotado. El canal es obligatorio a proposito: un llamador nuevo no puede olvidarse
  * del filtro y mezclar duplicados de un canal en el otro.
  */
 export async function getProducts(canal: Canal): Promise<Product[]> {
@@ -96,7 +99,6 @@ export async function getProducts(canal: Canal): Promise<Product[]> {
   const { data, error } = await l.db
     .from('products')
     .select(l.select)
-    .eq('activo', true)
     .eq(COLUMNA_CANAL[canal], true)
     .order('orden', { ascending: true });
 
@@ -118,7 +120,6 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .from('products')
     .select(l.select)
     .eq('slug', slug)
-    .eq('activo', true)
     .maybeSingle();
 
   if (error) {

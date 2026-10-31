@@ -6,7 +6,7 @@ import { useCart } from '@/store/cart';
 import { desglosePrecio, formatARS, sufijoMedida } from '@/lib/format';
 import ShippingCalculator from './ShippingCalculator';
 import GoogleLoginButton from './GoogleLoginButton';
-import { maxCantidad as topeDeVariante, motivoTope } from '@/lib/variant-limits';
+import { MAX_POR_LINEA, maxCantidad as topeDeVariante, motivoTope } from '@/lib/variant-limits';
 import { imagenesDe } from '@/lib/imagenes';
 import { etiquetaCategoria } from '@/lib/categorias';
 import type { Product } from '@/types';
@@ -53,6 +53,8 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
 
   const variant = variantes.find((v) => v.id === variantId) ?? variantes[0];
   const esConsultar = variant?.tipo === 'consultar';
+  // `activo = false` es "Sin stock" en el admin: se ve, pero no se compra.
+  const sinStock = activo.activo === false;
 
   // Galeria del producto activo. La posicion 0 es la principal.
   const galeria = imagenesDe(activo);
@@ -60,7 +62,7 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
 
   /* ---- Tope de la variante activa. La regla vive en lib/variant-limits.ts,
          que tambien aplica el store del carrito: la UI solo la refleja.
-           - bulto cerrado -> 5 unidades
+           - bulto cerrado y resto -> tope tecnico (MAX_POR_LINEA)
            - presentacion base -> lo que pese menos que un bulto cerrado
            - "+5 bultos (Consultar)" -> sin tope, se cotiza aparte ---- */
   const maxUnidades = variant ? topeDeVariante(activo, variant) : Infinity;
@@ -181,9 +183,28 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
     setCantidad((c) => Math.min(c + 1, maxUnidades));
   };
 
+  /* ---- Cantidad tipeada: para pedidos grandes el +/- no alcanza. Vacio
+         queda en 0 mientras se escribe; al salir del input vuelve a 1. ---- */
+  const tipear = (texto: string) => {
+    if (!variant) return;
+    const n = parseInt(texto.replace(/\D/g, ''), 10);
+    if (!Number.isFinite(n)) {
+      setCantidad(0);
+      return;
+    }
+    if (n > maxUnidades) {
+      mostrarAviso(motivoTope(activo, variant));
+      setCantidad(maxUnidades);
+      return;
+    }
+    setAviso(null);
+    setCantidad(n);
+  };
+
   if (!variant) return null;
 
   const onAdd = () => {
+    if (sinStock || cantidad < 1) return;
     addItem(activo, variant, cantidad);
     setAdded(true);
     setTimeout(() => {
@@ -265,7 +286,7 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
                   fill
                   sizes="(max-width: 768px) 100vw, 45vw"
                   priority
-                  className="h-full w-full rounded-3xl object-cover"
+                  className={`h-full w-full rounded-3xl object-cover ${sinStock ? 'opacity-60 grayscale' : ''}`}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">
@@ -273,6 +294,12 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
                     {activo.nombre.charAt(0)}
                   </span>
                 </div>
+              )}
+
+              {sinStock && (
+                <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-red-600 px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-white shadow-md">
+                  Sin stock
+                </span>
               )}
 
               {/* Flechas: solo con galeria real, y solo en pantallas con
@@ -451,22 +478,33 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
                     <button
                       onClick={() => setCantidad((c) => Math.max(1, c - 1))}
                       aria-label="Restar"
-                      disabled={cantidad <= 1}
+                      disabled={sinStock || cantidad <= 1}
                       className="h-11 w-11 rounded-full text-gray-500 transition-colors hover:text-black disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:text-gray-300"
                     >
                       −
                     </button>
-                    <span className="w-10 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      aria-label="Cantidad"
+                      value={cantidad === 0 ? '' : cantidad}
+                      onChange={(e) => tipear(e.target.value)}
+                      onBlur={() => setCantidad((c) => Math.max(1, c))}
+                      disabled={sinStock}
+                      className="w-12 bg-transparent text-center text-sm font-semibold tabular-nums outline-none disabled:cursor-not-allowed disabled:text-gray-300"
+                    />
                     {/* En el tope se marca `aria-disabled` pero NO `disabled`:
                         un boton deshabilitado no dispara click, y el click es lo
                         unico que muestra el aviso de a donde ir. Queda inerte
-                        igual, porque `sumar()` corta antes de incrementar. */}
+                        igual, porque `sumar()` corta antes de incrementar.
+                        Sin stock si va `disabled`: no hay aviso que mostrar. */}
                     <button
                       onClick={sumar}
                       aria-label="Sumar"
                       aria-disabled={enTope}
+                      disabled={sinStock}
                       className={`h-11 w-11 rounded-full transition-colors ${
-                        enTope ? 'cursor-not-allowed text-gray-300' : 'text-gray-500 hover:text-black'
+                        enTope || sinStock ? 'cursor-not-allowed text-gray-300' : 'text-gray-500 hover:text-black'
                       }`}
                     >
                       +
@@ -475,8 +513,9 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
                 </div>
 
                 {/* Pista estatica del tope: se ve antes de chocar contra el, asi
-                    el limite no aparece como un boton que dejo de funcionar. */}
-                {Number.isFinite(maxUnidades) && (
+                    el limite no aparece como un boton que dejo de funcionar.
+                    El tope tecnico no se anuncia: no es una regla comercial. */}
+                {!sinStock && maxUnidades < MAX_POR_LINEA && (
                   <p className="mt-2 text-right text-xs text-gray-400">
                     Máximo {maxUnidades} {maxUnidades === 1 ? 'unidad' : 'unidades'} en esta
                     presentación
@@ -501,11 +540,22 @@ export default function ProductModal({ product, related = [], preciosVisibles = 
                 {/* CTA */}
                 <button
                   onClick={onAdd}
-                  className={`mt-6 w-full rounded-lg py-4 text-base font-bold uppercase tracking-wide text-white transition-colors active:scale-[0.99] ${
-                    added ? 'bg-[#1e7e34]' : 'bg-[#28a745] hover:bg-[#218838]'
+                  disabled={sinStock || cantidad < 1}
+                  className={`mt-6 w-full rounded-lg py-4 text-base font-bold uppercase tracking-wide transition-colors ${
+                    sinStock
+                      ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                      : added
+                        ? 'bg-[#1e7e34] text-white active:scale-[0.99]'
+                        : 'bg-[#28a745] text-white hover:bg-[#218838] active:scale-[0.99]'
                   }`}
                 >
-                  {added ? 'Agregado ✓' : esConsultar ? 'Agregar y consultar' : 'Agregar al carrito'}
+                  {sinStock
+                    ? 'Sin stock'
+                    : added
+                      ? 'Agregado ✓'
+                      : esConsultar
+                        ? 'Agregar y consultar'
+                        : 'Agregar al carrito'}
                 </button>
               </>
             )}
